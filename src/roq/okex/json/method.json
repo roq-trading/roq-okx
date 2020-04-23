@@ -1,0 +1,11 @@
+{
+"name": "Method",
+"type": "enum",
+"values": [
+	{ "name": "ticker" },
+	{ "name": "snapshotOrderbook" },
+	{ "name": "updateOrderbook" },
+	{ "name": "snapshotTrades" },
+	{ "name": "updateTrades" }
+]
+}

@@ -1,0 +1,16 @@
+{
+"name": "Ticker",
+"type": "item",
+"values": [
+	{ "name": "ask", "type": "double" },
+	{ "name": "bid", "type": "double" },
+	{ "name": "last", "type": "double" },
+	{ "name": "open", "type": "double" },
+	{ "name": "low", "type": "double" },
+	{ "name": "high", "type": "double" },
+	{ "name": "volume", "type": "double" },
+	{ "name": "volumeQuote", "type": "double" },
+	{ "name": "timestamp", "type": "std::chrono::nanoseconds" },
+	{ "name": "symbol", "type": "std::string_view" }
+]
+}

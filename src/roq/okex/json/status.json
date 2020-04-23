@@ -1,0 +1,12 @@
+{
+"name": "Status",
+"type": "enum",
+"values": [
+	{ "name": "new" },
+	{ "name": "suspended" },
+	{ "name": "partiallyFilled" },
+	{ "name": "filled" },
+	{ "name": "canceled" },
+	{ "name": "expired" }
+]
+}

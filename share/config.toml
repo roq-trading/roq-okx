@@ -1,0 +1,24 @@
+symbols = ".*"
+
+[accounts]
+
+  [accounts.A1]
+  master = true
+  login = "YOUR_HITBTC_API_KEY_GOES_HERE"
+  password = "YOUR_HITBTC_PASSPHRASE_GOES_HERE"
+  secret = "YOUR_HITBTC_SECRET_GOES_HERE"
+  symbols = [ "BTC-.*", "ETH-.*" ]
+
+[users]
+
+  [users.test]
+  password = "1234"
+  symbols = ".*"
+
+  [users.trader]
+  password = "secret"
+  accounts = [ "A1" ]
+  symbols = [ "BTC-USD" ]
+  monitor_period_secs = 60
+  ban_period_secs = 300
+  request_limit = 10

@@ -1,0 +1,40 @@
+symbols = ".*"
+# symbols = "PROCBTC"
+
+[accounts]
+
+  [accounts.A1]
+  master = true
+  login = "GqF8l3B-ufLb_2z8X9cyV4KRXgIIc4ns"
+  secret = "WKltV1MSWfHOze6f8TlmUWxFcBeQuoNy"
+  symbols = [ "BTC.*", "ETH.*" ]
+
+[users]
+
+  [users.test]
+  password = "1234"
+  symbols = ".*"
+
+  [users.trader]
+  password = "secret"
+  accounts = [ "A1" ]
+  symbols = [ "BTC-\\d{2}\\D{3}\\d{2}" ]
+  monitor_period_secs = 60
+  ban_period_secs = 300
+  request_limit = 10
+
+  [users.example-1]
+  password = "1234"
+  symbols = ".*"
+
+  [users.example-2]
+  password = "1234"
+  symbols = ".*"
+
+  [users.example-3]
+  password = "secret"
+  accounts = [ "A1" ]
+  symbols = [ "BTC-\\d{2}\\D{3}\\d{2}" ]
+  monitor_period_secs = 60
+  ban_period_secs = 300
+  request_limit = 10

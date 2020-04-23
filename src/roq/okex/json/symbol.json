@@ -1,0 +1,14 @@
+{
+"name": "Symbol",
+"type": "item",
+"values": [
+	{ "name": "id", "type": "std::string_view" },
+	{ "name": "baseCurrency", "type": "std::string_view" },
+	{ "name": "quoteCurrency", "type": "std::string_view" },
+	{ "name": "quantityIncrement", "type": "double" },
+	{ "name": "tickSize", "type": "double" },
+	{ "name": "takeLiquidityRate", "type": "double" },
+	{ "name": "provideLiquidityRate", "type": "double" },
+	{ "name": "feeCurrency", "type": "std::string_view" }
+]
+}

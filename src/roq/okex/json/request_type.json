@@ -1,0 +1,16 @@
+{
+"name": "RequestType",
+"type": "enum",
+"values": [
+	{ "name": "login" },
+	{ "name": "subscribeTicker" },
+	{ "name": "subscribeTrades" },
+	{ "name": "subscribeOrderbook" },
+	{ "name": "getSymbols" },
+	{ "name": "getTradingBalance" },
+	{ "name": "getOrders" },
+	{ "name": "newOrder" },
+	{ "name": "cancelOrder" },
+	{ "name": "cancelReplaceOrder" }
+]
+}

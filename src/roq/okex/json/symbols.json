@@ -1,0 +1,7 @@
+{
+"name": "Symbols",
+"type": "array",
+"values": [
+	{ "name": "data", "type": "roq::span<Symbol>" }
+]
+}

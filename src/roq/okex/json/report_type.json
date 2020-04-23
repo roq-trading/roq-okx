@@ -1,0 +1,7 @@
+{
+"name": "ReportType",
+"type": "enum",
+"values": [
+	{ "name": "trade" }
+]
+}
