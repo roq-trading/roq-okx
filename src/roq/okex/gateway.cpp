@@ -63,7 +63,10 @@ Gateway::Gateway(
           _ssl_context,
         },
         .download = WebSocketDownload(
-            std::chrono::seconds { FLAGS_download_timeout_secs }),
+            std::chrono::seconds { FLAGS_download_timeout_secs },
+            [this](auto state) {
+              return download(state);
+            }),
       },
       _rest {
         .connection = {
@@ -98,11 +101,13 @@ void Gateway::operator()(const TimerEvent& event) {
   _web_socket.connection(event);
   _rest.connection(event);
   // download
+  /*
   if (_web_socket.download.has_expired()) {
     LOG(WARNING)("WebSocket download has timed out");
     _web_socket.download.reset();
     _web_socket.connection.close();
   }
+  */
   _base.loop(EVLOOP_NONBLOCK);
 }
 
@@ -150,7 +155,9 @@ void Gateway::operator()(const Rest&) {
 
 // web socket
 
-uint32_t Gateway::download(WebSocketDownload::State state) {
+int32_t Gateway::download(WebSocketDownload::State state) {
+  if (_web_socket.connection.ready() == false)
+    return -1;
   switch (state) {
     case WebSocketDownload::State::UNDEFINED:
       assert(false);
@@ -175,11 +182,7 @@ uint32_t Gateway::download(WebSocketDownload::State state) {
 
 void Gateway::operator()(const WebSocket&) {
   if (_web_socket.connection.ready()) {
-    _web_socket.download.check(
-        WebSocketDownload::State::UNDEFINED,
-        [this](auto state) -> uint32_t {
-          return download(state);
-        });
+    _web_socket.download.begin();
   } else {
     _web_socket.download.reset();
     _symbols.clear();
@@ -225,11 +228,7 @@ void Gateway::operator()(const json::Symbols& symbols) {
       FMT_STRING(R"(- symbols: {} (/{}))"),
       count,
       symbols.data.size());
-  _web_socket.download.check(
-      WebSocketDownload::State::SYMBOLS,
-      [this](auto state) -> uint32_t {
-        return download(state);
-      });
+  _web_socket.download.check(WebSocketDownload::State::SYMBOLS);
 }
 
 void Gateway::operator()(const json::TradingBalance& trading_balance) {
@@ -254,11 +253,7 @@ void Gateway::operator()(const json::TradingBalance& trading_balance) {
       FMT_STRING(R"(- currencies: {} (/{}))"),
       count,
       trading_balance.data.size());
-  _web_socket.download.check(
-      WebSocketDownload::State::TRADING_BALANCE,
-      [this](auto state) -> uint32_t {
-        return download(state);
-      });
+  _web_socket.download.check(WebSocketDownload::State::TRADING_BALANCE);
 }
 
 void Gateway::operator()(const json::Orders& orders) {
@@ -271,11 +266,7 @@ void Gateway::operator()(const json::Orders& orders) {
       FMT_STRING(R"(- orders: {} (/{}))"),
       count,
       orders.data.size());
-  _web_socket.download.check(
-      WebSocketDownload::State::ORDERS,
-      [this](auto state) -> uint32_t {
-        return download(state);
-      });
+  _web_socket.download.check(WebSocketDownload::State::ORDERS);
 }
 
 void Gateway::operator()(const json::Order& order) {

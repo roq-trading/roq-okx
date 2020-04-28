@@ -76,7 +76,7 @@ class Gateway final : public server::Handler {
  private:
   using WebSocketDownload = server::Download<WebSocketState>;
 
-  uint32_t download(WebSocketDownload::State state);
+  int32_t download(WebSocketDownload::State state);
 
  private:
   void update(GatewayStatus gateway_status);
