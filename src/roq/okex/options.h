@@ -29,4 +29,4 @@ DECLARE_string(rest_ping_path);
 // external
 
 DECLARE_string(name);
-DECLARE_uint32(max_depth);
+DECLARE_uint32(cache_mbp_max_depth);
