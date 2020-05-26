@@ -62,6 +62,7 @@ WebSocket::WebSocket(
           dns_base,
           ssl_context,
           core::URI(FLAGS_ws_uri),
+          std::string_view(),  // query
           std::chrono::seconds { FLAGS_ping_freq_secs },
           FLAGS_decode_buffer_size,  // XXX need read buffer size
           FLAGS_encode_buffer_size,
