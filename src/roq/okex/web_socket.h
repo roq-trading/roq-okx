@@ -21,6 +21,8 @@
 
 #include "roq/core/jsonrpc/parser.h"
 
+#include "roq/server.h"
+
 #include "roq/okex/config.h"
 #include "roq/okex/random.h"
 
@@ -57,9 +59,9 @@ class WebSocket final
 
   void close();
 
-  void operator()(const StartEvent&);
-  void operator()(const StopEvent&);
-  void operator()(const TimerEvent&);
+  void operator()(const server::StartEvent&);
+  void operator()(const server::StopEvent&);
+  void operator()(const server::TimerEvent&);
 
   // request
 
