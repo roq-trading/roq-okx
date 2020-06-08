@@ -56,7 +56,7 @@ class Gateway final : public server::Handler {
       const std::string_view& request_id,
       const server::OMS_Order& order) override;
 
-  void operator()(Metrics& metrics) override;
+  void operator()(metrics::Writer& writer) override;
 
   // rest
   void operator()(const Rest&);

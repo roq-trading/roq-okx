@@ -299,22 +299,22 @@ void WebSocket::subscribe_orderbook(const std::string_view& symbol) {
   _connection.send_text(message);
 }
 
-void WebSocket::operator()(Metrics& metrics) {
-  metrics
+void WebSocket::operator()(metrics::Writer& writer) {
+  writer
     // counter
-    .write(_counter.disconnect)
+    .write(_counter.disconnect, metrics::COUNTER)
     // profile
-    .write(_profile.parse)
-    .write(_profile.get_symbols)
-    .write(_profile.get_trading_balance)
-    .write(_profile.get_orders)
-    .write(_profile.order)
-    .write(_profile.ticker)
-    .write(_profile.trades)
-    .write(_profile.orderbook)
+    .write(_profile.parse, metrics::PROFILE)
+    .write(_profile.get_symbols, metrics::PROFILE)
+    .write(_profile.get_trading_balance, metrics::PROFILE)
+    .write(_profile.get_orders, metrics::PROFILE)
+    .write(_profile.order, metrics::PROFILE)
+    .write(_profile.ticker, metrics::PROFILE)
+    .write(_profile.trades, metrics::PROFILE)
+    .write(_profile.orderbook, metrics::PROFILE)
     // latency
-    .write(_latency.ping)
-    .write(_latency.heartbeat);
+    .write(_latency.ping, metrics::LATENCY)
+    .write(_latency.heartbeat, metrics::LATENCY);
 }
 
 void WebSocket::operator()(const core::web::Socket::Connected&) {

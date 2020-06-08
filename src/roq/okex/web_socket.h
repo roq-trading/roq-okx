@@ -88,7 +88,7 @@ class WebSocket final
   void subscribe_trades(const std::string_view& symbol);
   void subscribe_orderbook(const std::string_view& symbol);
 
-  void operator()(Metrics& metrics);
+  void operator()(metrics::Writer& writer);
 
  protected:
   void operator()(const core::web::Socket::Connected&) override;
