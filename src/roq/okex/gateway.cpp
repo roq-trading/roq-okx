@@ -305,7 +305,7 @@ void Gateway::operator()(const json::Trades& trades) {
         timestamp,
         item.timestamp);
   }
-  if (unlikely(success == false)) {
+  if (ROQ_PREDICT_FALSE(success == false)) {
   LOG(FATAL)(
       FMT_STRING(
           R"(Insufficient trade array size(s): )"
@@ -349,7 +349,7 @@ void Gateway::operator()(
         ask_length,
         item);
   }
-  if (unlikely(success == false)) {
+  if (ROQ_PREDICT_FALSE(success == false)) {
   LOG(FATAL)(
       FMT_STRING(
           R"(Insufficient bid/ask array size(s): )"

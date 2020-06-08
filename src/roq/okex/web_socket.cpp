@@ -4,8 +4,6 @@
 
 #include <fmt/format.h>
 
-#include "roq/builtins.h"
-
 #include "roq/core/clock.h"
 
 #include "roq/okex/gateway.h"
