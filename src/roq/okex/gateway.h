@@ -90,12 +90,14 @@ class Gateway final : public server::Handler {
   template <typename T>
   void enqueue(
       const T& value,
+      const server::Trace& trace,
       bool is_last);
 
   template <typename T>
   void enqueue(
       uint8_t user_id,
       const T& value,
+      const server::Trace& trace,
       bool is_last);
 
  private:

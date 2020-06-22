@@ -191,6 +191,7 @@ void Gateway::operator()(const WebSocket&) {
 
 void Gateway::operator()(const json::Symbols& symbols) {
   assert(_symbols.empty());
+  server::Trace trace;  // XXX
   size_t count = 0;
   for (auto& item : symbols.data) {
     if (_dispatcher.discard_symbol(item.id)) {
@@ -222,6 +223,7 @@ void Gateway::operator()(const json::Symbols& symbols) {
         reference_data);
     enqueue(
         reference_data,
+        trace,
         true);
   }
   VLOG(1)(
@@ -232,6 +234,7 @@ void Gateway::operator()(const json::Symbols& symbols) {
 }
 
 void Gateway::operator()(const json::TradingBalance& trading_balance) {
+  server::Trace trace;  // XXX
   size_t count = 0;
   for (auto& item : trading_balance.data) {
     // XXX filter?
@@ -247,6 +250,7 @@ void Gateway::operator()(const json::TradingBalance& trading_balance) {
         funds_update);
     enqueue(
         funds_update,
+        trace,
         true);
   }
   VLOG(1)(
@@ -273,6 +277,7 @@ void Gateway::operator()(const json::Order& order) {
 }
 
 void Gateway::operator()(const json::Ticker& ticker) {
+  server::Trace trace;  // XXX
   TopOfBook top_of_book {
     .exchange = FLAGS_exchange,
     .symbol = ticker.symbol,
@@ -287,10 +292,12 @@ void Gateway::operator()(const json::Ticker& ticker) {
   };
   enqueue(
       top_of_book,
+      trace,
       true);
 }
 
 void Gateway::operator()(const json::Trades& trades) {
+  server::Trace trace;  // XXX
   std::chrono::nanoseconds timestamp = {};
   size_t trade_length = 0;
   bool success = true;
@@ -324,6 +331,7 @@ void Gateway::operator()(const json::Trades& trades) {
     };
     enqueue(
         trade_summary,
+        trace,
         true);
   }
 }
@@ -331,6 +339,7 @@ void Gateway::operator()(const json::Trades& trades) {
 void Gateway::operator()(
     const json::Orderbook& orderbook,
     bool snapshot) {
+  server::Trace trace;  // XXX
   size_t bid_length = 0, ask_length = 0;
   bool success = true;
   for (auto& item : orderbook.bid) {
@@ -375,6 +384,7 @@ void Gateway::operator()(
     };
     enqueue(
         market_by_price,
+        trace,
         true);
   }
 }
@@ -383,11 +393,13 @@ void Gateway::update(GatewayStatus gateway_status) {
   if (gateway_status == _gateway_status)
     return;
   _gateway_status = gateway_status;
+  server::Trace trace;
   MarketDataStatus market_data_status {
     .status = _gateway_status,
   };
   enqueue(
       market_data_status,
+      trace,
       false);
   OrderManagerStatus order_manager_status {
     .account = _account,
@@ -395,6 +407,7 @@ void Gateway::update(GatewayStatus gateway_status) {
   };
   enqueue(
       order_manager_status,
+      trace,
       true);
   LOG(INFO)(
       FMT_STRING(R"(Update: gateway_status={})"),
@@ -430,12 +443,11 @@ void Gateway::subscribe_market_data() {
 template <typename T>
 inline void Gateway::enqueue(
     const T& value,
+    const server::Trace& trace,
     bool is_last) {
-  auto now = core::get_system_clock();
   _dispatcher(
       value,
-      now,
-      now,
+      trace,
       is_last);
 }
 
@@ -443,13 +455,12 @@ template <typename T>
 inline void Gateway::enqueue(
     uint8_t user_id,
     const T& value,
+    const server::Trace& trace,
     bool is_last) {
-  auto now = core::get_system_clock();
   _dispatcher(
       user_id,
       value,
-      now,
-      now,
+      trace,
       is_last);
 }
 
