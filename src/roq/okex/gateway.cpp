@@ -265,6 +265,7 @@ void Gateway::operator()(const json::Orders& orders) {
   for (auto& item : orders.data) {
     ++count;
     // XXX ???
+    (void)(item);
   }
   VLOG(1)(
       FMT_STRING(R"(- orders: {} (/{}))"),
@@ -273,7 +274,7 @@ void Gateway::operator()(const json::Orders& orders) {
   _web_socket.download.check(WebSocketDownload::State::ORDERS);
 }
 
-void Gateway::operator()(const json::Order& order) {
+void Gateway::operator()(const json::Order&) {
 }
 
 void Gateway::operator()(const json::Ticker& ticker) {
@@ -368,7 +369,7 @@ void Gateway::operator()(
       ask_length, _ask.size());
   }
   if ((bid_length + ask_length) > 0) {
-    MarketByPrice market_by_price {
+    MarketByPriceUpdate market_by_price_update {
       .exchange = FLAGS_exchange,
       .symbol = orderbook.symbol,
       .bids = {
@@ -383,7 +384,7 @@ void Gateway::operator()(
       .exchange_time_utc = orderbook.timestamp
     };
     enqueue(
-        market_by_price,
+        market_by_price_update,
         trace,
         true);
   }
