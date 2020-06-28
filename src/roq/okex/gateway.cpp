@@ -85,19 +85,19 @@ Gateway::Gateway(
       "Orders will *NOT* be cancelled on disconnect");
 }
 
-void Gateway::operator()(const server::StartEvent& event) {
+void Gateway::operator()(const Event<Start>& event) {
   LOG(INFO)("Starting the gateway...");
   _web_socket.connection(event);
   _rest.connection(event);
 }
 
-void Gateway::operator()(const server::StopEvent& event) {
+void Gateway::operator()(const Event<Stop>& event) {
   LOG(INFO)("Stopping the gateway...");
   _rest.connection(event);
   _web_socket.connection(event);
 }
 
-void Gateway::operator()(const server::TimerEvent& event) {
+void Gateway::operator()(const Event<Timer>& event) {
   _web_socket.connection(event);
   _rest.connection(event);
   // download
@@ -111,7 +111,7 @@ void Gateway::operator()(const server::TimerEvent& event) {
   _base.loop(EVLOOP_NONBLOCK);
 }
 
-void Gateway::operator()(const Event<ConnectionStatus>&) {
+void Gateway::operator()(const Event<Connection>&) {
 }
 
 void Gateway::operator()(

@@ -93,16 +93,16 @@ void WebSocket::close() {
   _connection.close();
 }
 
-void WebSocket::operator()(const server::StartEvent&) {
+void WebSocket::operator()(const Event<Start>&) {
   _connection.start();
 }
 
-void WebSocket::operator()(const server::StopEvent&) {
+void WebSocket::operator()(const Event<Stop>&) {
   _connection.stop();
 }
 
-void WebSocket::operator()(const server::TimerEvent& event) {
-  _connection.refresh(event.now);
+void WebSocket::operator()(const Event<Timer>& event) {
+  _connection.refresh(event.value.now);
 }
 
 void WebSocket::login() {

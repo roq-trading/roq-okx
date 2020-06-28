@@ -38,10 +38,10 @@ class Gateway final : public server::Handler {
       server::Dispatcher& dispatcher,
       const Config& config);
 
-  void operator()(const server::StartEvent&) override;
-  void operator()(const server::StopEvent&) override;
-  void operator()(const server::TimerEvent&) override;
-  void operator()(const Event<ConnectionStatus>&) override;
+  void operator()(const Event<Start>&) override;
+  void operator()(const Event<Stop>&) override;
+  void operator()(const Event<Timer>&) override;
+  void operator()(const Event<Connection>&) override;
 
   void operator()(
       const Event<CreateOrder>& event,
