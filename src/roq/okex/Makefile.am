@@ -18,6 +18,7 @@ roq_okex_LDFLAGS = \
 	$(CROSSGUID_LIBS) \
 	$(CRYPTO_LIBS) \
 	$(PTHREAD_LIBS) \
+	$(STDCXX_FS_LIBS) \
 	$(RT_LIBS) \
 	$(GFLAGS_LIBS)
 roq_okex_CPPFLAGS = \
