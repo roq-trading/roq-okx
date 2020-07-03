@@ -191,7 +191,7 @@ void Gateway::operator()(const WebSocket&) {
 
 void Gateway::operator()(const json::Symbols& symbols) {
   assert(_symbols.empty());
-  server::Trace trace;  // XXX
+  server::TraceInfo trace_info;  // XXX
   size_t count = 0;
   for (auto& item : symbols.data) {
     if (_dispatcher.discard_symbol(item.id)) {
@@ -221,9 +221,10 @@ void Gateway::operator()(const json::Symbols& symbols) {
     VLOG(1)(
         FMT_STRING(R"(reference_data={})"),
         reference_data);
-    enqueue(
+    server::create_trace_and_dispatch(
+        trace_info,
         reference_data,
-        trace,
+        _dispatcher,
         true);
   }
   VLOG(1)(
@@ -234,7 +235,7 @@ void Gateway::operator()(const json::Symbols& symbols) {
 }
 
 void Gateway::operator()(const json::TradingBalance& trading_balance) {
-  server::Trace trace;  // XXX
+  server::TraceInfo trace_info;  // XXX
   size_t count = 0;
   for (auto& item : trading_balance.data) {
     // XXX filter?
@@ -248,9 +249,10 @@ void Gateway::operator()(const json::TradingBalance& trading_balance) {
     VLOG(1)(
         FMT_STRING(R"(funds_update={})"),
         funds_update);
-    enqueue(
+    server::create_trace_and_dispatch(
+        trace_info,
         funds_update,
-        trace,
+        _dispatcher,
         true);
   }
   VLOG(1)(
@@ -278,7 +280,7 @@ void Gateway::operator()(const json::Order&) {
 }
 
 void Gateway::operator()(const json::Ticker& ticker) {
-  server::Trace trace;  // XXX
+  server::TraceInfo trace_info;  // XXX
   TopOfBook top_of_book {
     .exchange = FLAGS_exchange,
     .symbol = ticker.symbol,
@@ -291,14 +293,15 @@ void Gateway::operator()(const json::Ticker& ticker) {
     .snapshot = false,
     .exchange_time_utc = ticker.timestamp,
   };
-  enqueue(
+  server::create_trace_and_dispatch(
+      trace_info,
       top_of_book,
-      trace,
+      _dispatcher,
       true);
 }
 
 void Gateway::operator()(const json::Trades& trades) {
-  server::Trace trace;  // XXX
+  server::TraceInfo trace_info;  // XXX
   std::chrono::nanoseconds timestamp = {};
   size_t trade_length = 0;
   bool success = true;
@@ -330,9 +333,10 @@ void Gateway::operator()(const json::Trades& trades) {
       },
       .exchange_time_utc = timestamp,
     };
-    enqueue(
+    server::create_trace_and_dispatch(
+        trace_info,
         trade_summary,
-        trace,
+        _dispatcher,
         true);
   }
 }
@@ -340,7 +344,7 @@ void Gateway::operator()(const json::Trades& trades) {
 void Gateway::operator()(
     const json::Orderbook& orderbook,
     bool snapshot) {
-  server::Trace trace;  // XXX
+  server::TraceInfo trace_info;  // XXX
   size_t bid_length = 0, ask_length = 0;
   bool success = true;
   for (auto& item : orderbook.bid) {
@@ -383,9 +387,10 @@ void Gateway::operator()(
       .snapshot = snapshot,
       .exchange_time_utc = orderbook.timestamp
     };
-    enqueue(
+    server::create_trace_and_dispatch(
+        trace_info,
         market_by_price_update,
-        trace,
+        _dispatcher,
         true);
   }
 }
@@ -394,21 +399,23 @@ void Gateway::update(GatewayStatus gateway_status) {
   if (gateway_status == _gateway_status)
     return;
   _gateway_status = gateway_status;
-  server::Trace trace;
+  server::TraceInfo trace_info;
   MarketDataStatus market_data_status {
     .status = _gateway_status,
   };
-  enqueue(
+  server::create_trace_and_dispatch(
+      trace_info,
       market_data_status,
-      trace,
+      _dispatcher,
       false);
   OrderManagerStatus order_manager_status {
     .account = _account,
     .status = _gateway_status,
   };
-  enqueue(
+  server::create_trace_and_dispatch(
+      trace_info,
       order_manager_status,
-      trace,
+      _dispatcher,
       true);
   LOG(INFO)(
       FMT_STRING(R"(Update: gateway_status={})"),
@@ -439,30 +446,6 @@ void Gateway::subscribe_market_data() {
     _web_socket.connection.subscribe_trades(item);
     _web_socket.connection.subscribe_orderbook(item);
   }
-}
-
-template <typename T>
-inline void Gateway::enqueue(
-    const T& value,
-    const server::Trace& trace,
-    bool is_last) {
-  _dispatcher(
-      value,
-      trace,
-      is_last);
-}
-
-template <typename T>
-inline void Gateway::enqueue(
-    uint8_t user_id,
-    const T& value,
-    const server::Trace& trace,
-    bool is_last) {
-  _dispatcher(
-      user_id,
-      value,
-      trace,
-      is_last);
 }
 
 }  // namespace okex
