@@ -196,7 +196,7 @@ void Gateway::operator()(const json::Symbols& symbols) {
   for (auto& item : symbols.data) {
     if (_dispatcher.discard_symbol(item.id)) {
       VLOG(1)(
-          FMT_STRING(R"(Drop symbol="{}")"),
+          R"(Drop symbol="{}")",
           item.id);
       continue;
     }
@@ -219,7 +219,7 @@ void Gateway::operator()(const json::Symbols& symbols) {
       .strike_price = std::numeric_limits<double>::quiet_NaN(),
     };
     VLOG(1)(
-        FMT_STRING(R"(reference_data={})"),
+        R"(reference_data={})",
         reference_data);
     server::create_trace_and_dispatch(
         trace_info,
@@ -228,7 +228,7 @@ void Gateway::operator()(const json::Symbols& symbols) {
         true);
   }
   VLOG(1)(
-      FMT_STRING(R"(- symbols: {} (/{}))"),
+      R"(- symbols: {} (/{}))",
       count,
       symbols.data.size());
   _web_socket.download.check(WebSocketDownload::State::SYMBOLS);
@@ -247,7 +247,7 @@ void Gateway::operator()(const json::TradingBalance& trading_balance) {
       .hold = item.reserved,
     };
     VLOG(1)(
-        FMT_STRING(R"(funds_update={})"),
+        R"(funds_update={})",
         funds_update);
     server::create_trace_and_dispatch(
         trace_info,
@@ -256,7 +256,7 @@ void Gateway::operator()(const json::TradingBalance& trading_balance) {
         true);
   }
   VLOG(1)(
-      FMT_STRING(R"(- currencies: {} (/{}))"),
+      R"(- currencies: {} (/{}))",
       count,
       trading_balance.data.size());
   _web_socket.download.check(WebSocketDownload::State::TRADING_BALANCE);
@@ -270,7 +270,7 @@ void Gateway::operator()(const json::Orders& orders) {
     (void)(item);
   }
   VLOG(1)(
-      FMT_STRING(R"(- orders: {} (/{}))"),
+      R"(- orders: {} (/{}))",
       count,
       orders.data.size());
   _web_socket.download.check(WebSocketDownload::State::ORDERS);
@@ -318,9 +318,8 @@ void Gateway::operator()(const json::Trades& trades) {
   }
   if (ROQ_PREDICT_FALSE(success == false)) {
   LOG(FATAL)(
-      FMT_STRING(
-          R"(Insufficient trade array size(s): )"
-          R"(len(trade)={}/{})"),
+      R"(Insufficient trade array size(s): )"
+      R"(len(trade)={}/{})",
       trade_length, _trade.size());
   }
   if (trade_length > 0) {
@@ -365,10 +364,9 @@ void Gateway::operator()(
   }
   if (ROQ_PREDICT_FALSE(success == false)) {
   LOG(FATAL)(
-      FMT_STRING(
-          R"(Insufficient bid/ask array size(s): )"
-          R"(len(bid)={}/{} )"
-          R"(len(ask)={}/{})"),
+      R"(Insufficient bid/ask array size(s): )"
+      R"(len(bid)={}/{} )"
+      R"(len(ask)={}/{})",
       bid_length, _bid.size(),
       ask_length, _ask.size());
   }
@@ -418,7 +416,7 @@ void Gateway::update(GatewayStatus gateway_status) {
       _dispatcher,
       true);
   LOG(INFO)(
-      FMT_STRING(R"(Update: gateway_status={})"),
+      R"(Update: gateway_status={})",
       _gateway_status);
 }
 

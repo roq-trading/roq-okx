@@ -112,17 +112,16 @@ void WebSocket::login() {
   auto nonce = _random.create_nonce();
   auto signature = _random.create_signature(nonce);
   auto message = fmt::format(
-      FMT_STRING(
-        R"({{)"
-        R"("method":"login",)"
-        R"("params":{{)"
-        R"("algo":"HS256",)"
-        R"("pKey":"{}",)"
-        R"("nonce":"{}",)"
-        R"("signature":"{}")"
-        R"(}},)"
-        R"("id":"{}")"
-        R"(}})"),
+      R"({{)"
+      R"("method":"login",)"
+      R"("params":{{)"
+      R"("algo":"HS256",)"
+      R"("pKey":"{}",)"
+      R"("nonce":"{}",)"
+      R"("signature":"{}")"
+      R"(}},)"
+      R"("id":"{}")"
+      R"(}})",
       _access_key,
       nonce,
       signature,
@@ -134,12 +133,11 @@ void WebSocket::get_symbols() {
   constexpr json::RequestType request_type =
     json::RequestType::GET_SYMBOLS;
   auto message = fmt::format(
-      FMT_STRING(
-        R"({{)"
-        R"("method":"getSymbols",)"
-        R"("params":{{}},)"
-        R"("id":"{}")"
-        R"(}})"),
+      R"({{)"
+      R"("method":"getSymbols",)"
+      R"("params":{{}},)"
+      R"("id":"{}")"
+      R"(}})",
       request_type.as_raw_text());
   _connection.send_text(message);
 }
@@ -148,12 +146,11 @@ void WebSocket::get_trading_balance() {
   constexpr json::RequestType request_type =
     json::RequestType::GET_TRADING_BALANCE;
   auto message = fmt::format(
-      FMT_STRING(
-        R"({{)"
-        R"("method":"getTradingBalance",)"
-        R"("params":{{}},)"
-        R"("id":"{}")"
-        R"(}})"),
+      R"({{)"
+      R"("method":"getTradingBalance",)"
+      R"("params":{{}},)"
+      R"("id":"{}")"
+      R"(}})",
       request_type.as_raw_text());
   _connection.send_text(message);
 }
@@ -162,12 +159,11 @@ void WebSocket::get_orders() {
   constexpr json::RequestType request_type =
     json::RequestType::GET_ORDERS;
   auto message = fmt::format(
-      FMT_STRING(
-        R"({{)"
-        R"("method":"getOrders",)"
-        R"("params":{{}},)"
-        R"("id":"{}")"
-        R"(}})"),
+      R"({{)"
+      R"("method":"getOrders",)"
+      R"("params":{{}},)"
+      R"("id":"{}")"
+      R"(}})",
       request_type.as_raw_text());
   _connection.send_text(message);
 }
@@ -178,20 +174,19 @@ void WebSocket::new_order(
   constexpr json::RequestType request_type =
     json::RequestType::NEW_ORDER;
   auto message = fmt::format(
-      FMT_STRING(
-        R"({{)"
-        R"("method":"newOrder",)"
-        R"("params":{{")"
-        R"("clientOrderId":"{}",)"
-        R"("symbol":"{}",)"
-        R"("side":"{}",)"
-        R"("type":"{}",)"
-        R"("timeInForce":"{}",)"
-        R"("quantity":"{}",)"
-        R"("price":"{}")"
-        R"(}},)"
-        R"("id":"{}")"
-        R"(}})"),
+      R"({{)"
+      R"("method":"newOrder",)"
+      R"("params":{{")"
+      R"("clientOrderId":"{}",)"
+      R"("symbol":"{}",)"
+      R"("side":"{}",)"
+      R"("type":"{}",)"
+      R"("timeInForce":"{}",)"
+      R"("quantity":"{}",)"
+      R"("price":"{}")"
+      R"(}},)"
+      R"("id":"{}")"
+      R"(}})",
       request_id,
       create_order.symbol,
       "sell",  // XXX
@@ -210,17 +205,16 @@ void WebSocket::cancel_replace_order(
   constexpr json::RequestType request_type =
     json::RequestType::CANCEL_REPLACE_ORDER;
   auto message = fmt::format(
-      FMT_STRING(
-        R"({{)"
-        R"("method":"cancelOrder",)"
-        R"("params":{{)"
-        R"("clientOrderId":"{}",)"
-        R"("requestClientId":"{}",)"
-        R"("quantity":"{}",)"
-        R"("price":"{}")"
-        R"(}},)"
-        R"("id":"{}")"
-        R"(}}")"),
+      R"({{)"
+      R"("method":"cancelOrder",)"
+      R"("params":{{)"
+      R"("clientOrderId":"{}",)"
+      R"("requestClientId":"{}",)"
+      R"("quantity":"{}",)"
+      R"("price":"{}")"
+      R"(}},)"
+      R"("id":"{}")"
+      R"(}}")",
       order.external_order_id,  // XXX WRONG !!!
       request_id,
       modify_order.quantity,
@@ -233,14 +227,13 @@ void WebSocket::cancel_order(const server::OMS_Order& order) {
   constexpr json::RequestType request_type =
     json::RequestType::CANCEL_ORDER;
   auto message = fmt::format(
-      FMT_STRING(
-        R"({{)"
-        R"("method":"cancelOrder",)"
-        R"("params":{{)"
-        R"("clientOrderId":"{}")"
-        R"(}},)"
-        R"("id":"{}")"
-        R"(}})"),
+      R"({{)"
+      R"("method":"cancelOrder",)"
+      R"("params":{{)"
+      R"("clientOrderId":"{}")"
+      R"(}},)"
+      R"("id":"{}")"
+      R"(}})",
       order.external_order_id,  // XXX WRONG !!!
       request_type.as_raw_text());
   _connection.send_text(message);
@@ -250,14 +243,13 @@ void WebSocket::subscribe_ticker(const std::string_view& symbol) {
   constexpr json::RequestType request_type =
     json::RequestType::SUBSCRIBE_TICKER;
   auto message = fmt::format(
-      FMT_STRING(
-        R"({{)"
-        R"("method":"subscribeTicker",)"
-        R"("params":{{)"
-        R"("symbol":"{}")"
-        R"(}},)"
-        R"("id":"{}")"
-        R"(}})"),
+      R"({{)"
+      R"("method":"subscribeTicker",)"
+      R"("params":{{)"
+      R"("symbol":"{}")"
+      R"(}},)"
+      R"("id":"{}")"
+      R"(}})",
       symbol,
       request_type.as_raw_text());
   _connection.send_text(message);
@@ -267,14 +259,13 @@ void WebSocket::subscribe_trades(const std::string_view& symbol) {
   constexpr json::RequestType request_type =
     json::RequestType::SUBSCRIBE_TRADES;
   auto message = fmt::format(
-      FMT_STRING(
-        R"({{)"
-        R"("method":"subscribeTrades",)"
-        R"("params":{{)"
-        R"("symbol":"{}")"
-        R"(}},)"
-        R"("id":"{}")"
-        R"(}})"),
+      R"({{)"
+      R"("method":"subscribeTrades",)"
+      R"("params":{{)"
+      R"("symbol":"{}")"
+      R"(}},)"
+      R"("id":"{}")"
+      R"(}})",
       symbol,
       request_type.as_raw_text());
   _connection.send_text(message);
@@ -284,14 +275,13 @@ void WebSocket::subscribe_orderbook(const std::string_view& symbol) {
   constexpr json::RequestType request_type =
     json::RequestType::SUBSCRIBE_ORDERBOOK;
   auto message = fmt::format(
-      FMT_STRING(
-        R"({{)"
-        R"("method":"subscribeOrderbook",)"
-        R"("params":{{)"
-        R"("symbol":"{}")"
-        R"(}},)"
-        R"("id":"{}")"
-        R"(}})"),
+      R"({{)"
+      R"("method":"subscribeOrderbook",)"
+      R"("params":{{)"
+      R"("symbol":"{}")"
+      R"(}},)"
+      R"("id":"{}")"
+      R"(}})",
       symbol,
       request_type.as_raw_text());
   _connection.send_text(message);
@@ -350,10 +340,10 @@ void WebSocket::parse(const std::string_view& message) {
               message);
         } catch (std::exception& e) {
           LOG(WARNING)(
-              FMT_STRING(R"(message="{}")"),
+              R"(message="{}")",
               message);
           LOG(FATAL)(
-              FMT_STRING(R"("ERROR what="{}")"),
+              R"("ERROR what="{}")",
               e.what());
         }
       });
@@ -364,7 +354,7 @@ void WebSocket::operator()(
     core::json::value_t& value) {
   json::Error error_2(value);
   LOG(WARNING)(
-      FMT_STRING(R"(error={}, id="{}")"),
+      R"(error={}, id="{}")",
       error_2,
       error.id);
   switch (error_2.code) {
@@ -385,7 +375,7 @@ void WebSocket::operator()(
       break;
     case json::RequestType::UNKNOWN:
       DLOG(FATAL)(
-          FMT_STRING(R"("Unknown request_type="{}")"),
+          R"("Unknown request_type="{}")",
           result.id);
       break;
     case json::RequestType::LOGIN: {
@@ -447,7 +437,7 @@ void WebSocket::operator()(
       break;
     case json::Method::UNKNOWN:
       DLOG(FATAL)(
-          FMT_STRING(R"(Unknown method="{}")"),
+          R"(Unknown method="{}")",
           notification.method);
       break;
     case json::Method::TICKER: {
@@ -486,7 +476,7 @@ void WebSocket::operator()(const json::Symbols& symbols) {
   _profile.get_symbols(
       [&]() {
         VLOG(1)(
-            FMT_STRING(R"(symbols={})"),
+            R"(symbols={})",
             symbols);
         _gateway(symbols);
       });
@@ -496,7 +486,7 @@ void WebSocket::operator()(const json::TradingBalance& trading_balance) {
   _profile.get_trading_balance(
       [&]() {
         VLOG(1)(
-            FMT_STRING(R"(trading_balance={})"),
+            R"(trading_balance={})",
             trading_balance);
         _gateway(trading_balance);
       });
@@ -506,7 +496,7 @@ void WebSocket::operator()(const json::Orders& orders) {
   _profile.get_orders(
       [&]() {
         VLOG(1)(
-            FMT_STRING(R"(orders={})"),
+            R"(orders={})",
             orders);
         _gateway(orders);
       });
@@ -516,7 +506,7 @@ void WebSocket::operator()(const json::Order& order) {
   _profile.order(
       [&]() {
         VLOG(1)(
-            FMT_STRING(R"(order={})"),
+            R"(order={})",
             order);
         _gateway(order);
       });
@@ -526,7 +516,7 @@ void WebSocket::operator()(const json::Ticker& ticker) {
   _profile.ticker(
       [&]() {
         VLOG(3)(
-            FMT_STRING(R"(ticker={})"),
+            R"(ticker={})",
             ticker);
         _gateway(ticker);
       });
@@ -538,7 +528,7 @@ void WebSocket::operator()(
   _profile.trades(
       [&]() {
         VLOG(3)(
-            FMT_STRING(R"(trades={}, snapshot={})"),
+            R"(trades={}, snapshot={})",
             trades,
             snapshot);
         if (snapshot == false)
@@ -552,7 +542,7 @@ void WebSocket::operator()(
   _profile.orderbook(
       [&]() {
         VLOG(3)(
-            FMT_STRING(R"(orderbook={}, snapshot={})"),
+            R"(orderbook={}, snapshot={})",
             orderbook,
             snapshot);
         _gateway(
