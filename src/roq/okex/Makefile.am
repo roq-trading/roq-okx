@@ -11,7 +11,7 @@ roq_okex_LDFLAGS = \
 	$(BROTLI_LIBS) \
 	$(HTTP_PARSER_LIBS) \
 	$(FMT_LIBS) \
-	$(LIBUCL_LIBS) \
+	$(ABSEIL_LIBS) \
 	$(LIBEVENT_LIBS) \
 	-levent_openssl \
 	$(OPENSSL_LIBS) \
@@ -24,10 +24,10 @@ roq_okex_LDFLAGS = \
 roq_okex_CPPFLAGS = \
 	-I$(top_srcdir)/src \
 	$(PTHREAD_CFLAGS) \
+	$(ABSEIL_CFLAGS) \
 	$(GFLAGS_CFLAGS) \
 	$(OPENSSL_CFLAGS) \
 	$(LIBEVENT_CFLAGS) \
-	$(LIBUCL_CFLAGS) \
 	$(FMT_CFLAGS) \
 	$(HTTP_PARSER_CFLAGS) \
 	$(BROTLI_CFLAGS) \
