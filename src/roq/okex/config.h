@@ -2,16 +2,14 @@
 
 #pragma once
 
+#include <absl/container/flat_hash_map.h>
+
 #include <fmt/format.h>
 
-#include <iostream>
 #include <string>
 #include <string_view>
 #include <vector>
 
-#include <absl/container/flat_hash_map.h>
-
-#include "roq/format.h"
 #include "roq/server.h"
 
 namespace roq {
