@@ -7,9 +7,9 @@
 #include <iostream>
 #include <string>
 #include <string_view>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
+
+#include <absl/container/flat_hash_map.h>
 
 #include "roq/format.h"
 #include "roq/server.h"
@@ -51,7 +51,7 @@ class Config final
  public:
   std::vector<User> users;
   server::Symbols symbols;
-  std::unordered_map<std::string, Account> accounts;
+  absl::flat_hash_map<std::string, Account> accounts;
 };
 
 }  // namespace okex
