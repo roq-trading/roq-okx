@@ -42,3 +42,5 @@ roq-okex-benchmark
 roq-okex-test
 
 *.roq
+
+build/
