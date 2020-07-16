@@ -10,8 +10,9 @@ add_executable("${TARGET_NAME}"
 
 target_link_libraries("${TARGET_NAME}"
   "${PROJECT_NAME}-json"
-  roq-logging
+  roq-logging::roq-logging
   gtest_main
+  ${RT_LIBRARIES}
 )
 
 set_target_properties("${TARGET_NAME}" PROPERTIES LINK_FLAGS_RELEASE -s)
