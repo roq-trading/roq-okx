@@ -6,22 +6,46 @@ set(SOURCES
 
 include(RoqAutogen)
 
+set(AUTOGEN_SCHEMAS
+  error.json
+  method.json
+  order.json
+  orderbook.json
+  orderbook_item.json
+  orders.json
+  report.json
+  report_type.json
+  request_type.json
+  response.json
+  side.json
+  status.json
+  symbol.json
+  symbols.json
+  ticker.json
+  time_in_force.json
+  trades.json
+  trades_item.json
+  trading_balance.json
+  trading_balance_item.json
+  type.json
+)
+
 roq_autogen(
   OUTPUT AUTOGEN_HEADERS
-  PATTERN "*.json"
   NAMESPACE "roq/okex/json"
   OUTPUT_TYPE "json"
-  FILE_TYPE "h")
+  FILE_TYPE "h"
+  SOURCES ${AUTOGEN_SCHEMAS})
 
 add_custom_target(autogen-json-headers ALL
   DEPENDS ${AUTOGEN_HEADERS})
 
 roq_autogen(
   OUTPUT AUTOGEN_SOURCES
-  PATTERN "*.json"
   NAMESPACE "roq/okex/json"
   OUTPUT_TYPE "json"
-  FILE_TYPE "cpp")
+  FILE_TYPE "cpp"
+  SOURCES ${AUTOGEN_SCHEMAS})
 
 add_library("${TARGET_NAME}" STATIC
   ${SOURCES}
