@@ -57,6 +57,7 @@ build/
 
 # project specific
 
+roq-okex.pc
 roq-okex
 roq-okex-benchmark
 roq-okex-test
