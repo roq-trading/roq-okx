@@ -117,8 +117,7 @@ void Gateway::operator()(const Event<Connection>&) {
 void Gateway::operator()(
     const Event<CreateOrder>& event,
     const std::string_view& request_id,
-    uint32_t gateway_order_id) {
-  (void)gateway_order_id;  // avoid warning
+    [[ maybe_unused ]] uint32_t gateway_order_id) {
   _web_socket.connection.new_order(
       event.value,
       request_id);
@@ -135,11 +134,9 @@ void Gateway::operator()(
 }
 
 void Gateway::operator()(
-    const Event<CancelOrder>& event,
-    const std::string_view& request_id,
+    [[ maybe_unused ]] const Event<CancelOrder>& event,
+    [[ maybe_unused ]] const std::string_view& request_id,
     const server::OMS_Order& order) {
-  (void)event;  // avoid warning
-  (void)request_id;  // avoid warning
   _web_socket.connection.cancel_order(order);
 }
 
@@ -267,7 +264,7 @@ void Gateway::operator()(const json::Orders& orders) {
   for (auto& item : orders.data) {
     ++count;
     // XXX ???
-    (void)(item);
+    std::ignore = item;
   }
   VLOG(1)(
       R"(- orders: {} (/{}))",
