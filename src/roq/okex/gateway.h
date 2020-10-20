@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-#include "roq/server.h"
 #include "roq/download.h"
+#include "roq/server.h"
 
 #include "roq/core/hash/map.h"
 #include "roq/core/hash/set.h"
@@ -33,44 +33,42 @@ namespace okex {
 
 class Gateway final : public server::Handler {
  public:
-  Gateway(
-      server::Dispatcher& dispatcher,
-      const Config& config);
+  Gateway(server::Dispatcher &dispatcher, const Config &config);
 
-  void operator()(const Event<Start>&) override;
-  void operator()(const Event<Stop>&) override;
-  void operator()(const Event<Timer>&) override;
-  void operator()(const Event<Connection>&) override;
+  void operator()(const Event<Start> &) override;
+  void operator()(const Event<Stop> &) override;
+  void operator()(const Event<Timer> &) override;
+  void operator()(const Event<Connection> &) override;
 
   void operator()(
-      const Event<CreateOrder>& event,
-      const std::string_view& request_id,
+      const Event<CreateOrder> &event,
+      const std::string_view &request_id,
       uint32_t gateway_order_id) override;
   void operator()(
-      const Event<ModifyOrder>& event,
-      const std::string_view& request_id,
-      const server::OMS_Order& order) override;
+      const Event<ModifyOrder> &event,
+      const std::string_view &request_id,
+      const server::OMS_Order &order) override;
   void operator()(
-      const Event<CancelOrder>& event,
-      const std::string_view& request_id,
-      const server::OMS_Order& order) override;
+      const Event<CancelOrder> &event,
+      const std::string_view &request_id,
+      const server::OMS_Order &order) override;
 
-  void operator()(metrics::Writer& writer) override;
+  void operator()(metrics::Writer &writer) override;
 
   // rest
-  void operator()(const Rest&);
+  void operator()(const Rest &);
 
   // web socket
-  void operator()(const WebSocket&);
+  void operator()(const WebSocket &);
   // ... request
-  void operator()(const json::Symbols& symbols);
-  void operator()(const json::TradingBalance& trading_balance);
-  void operator()(const json::Orders& orders);
-  void operator()(const json::Order& order);
+  void operator()(const json::Symbols &symbols);
+  void operator()(const json::TradingBalance &trading_balance);
+  void operator()(const json::Orders &orders);
+  void operator()(const json::Order &order);
   // ... notification
-  void operator()(const json::Ticker& ticker);
-  void operator()(const json::Trades& trades);
-  void operator()(const json::Orderbook& orderbook, bool snapshot);
+  void operator()(const json::Ticker &ticker);
+  void operator()(const json::Trades &trades);
+  void operator()(const json::Orderbook &orderbook, bool snapshot);
 
  private:
   using WebSocketDownload = server::Download<WebSocketState>;
@@ -87,7 +85,7 @@ class Gateway final : public server::Handler {
   void subscribe_market_data();
 
  private:
-  server::Dispatcher& _dispatcher;
+  server::Dispatcher &_dispatcher;
   // config
   const std::string _account;
   const std::string _access_key;

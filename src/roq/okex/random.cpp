@@ -15,9 +15,9 @@ namespace roq {
 namespace okex {
 
 static char CHARSET_DATA[] =
-  "abcdefghijklmnopqrstuvwxyz"
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-  "0123456789";
+    "abcdefghijklmnopqrstuvwxyz"
+    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    "0123456789";
 
 constexpr auto CHARSET_LENGTH = sizeof(CHARSET_DATA) - 1;
 
@@ -28,31 +28,23 @@ static std::uniform_int_distribution<int> DISTRIBUTION(0, CHARSET_LENGTH);
 
 constexpr size_t RANDOM_BYTES = 15;
 
-
-Random::Random(const std::string_view& secret)
-    : _hmac(
-          secret.data(),
-          secret.length()) {
+Random::Random(const std::string_view &secret)
+    : _hmac(secret.data(), secret.length()) {
 }
 
 std::string Random::create_nonce() {
   std::string result(RANDOM_BYTES, '-');
-  for (auto& iter : result)
-    iter = CHARSET_DATA[DISTRIBUTION(GENERATOR)];
+  for (auto &iter : result) iter = CHARSET_DATA[DISTRIBUTION(GENERATOR)];
   return result;
 }
 
-std::string Random::create_signature(const std::string_view& nonce) {
+std::string Random::create_signature(const std::string_view &nonce) {
   _hmac.clear();
   _hmac.update(nonce);
   std::array<char, 32> buffer;
-  auto length = _hmac.digest(
-      buffer.data(),
-      buffer.size());
+  auto length = _hmac.digest(buffer.data(), buffer.size());
   assert(length == buffer.size());
-  return core::binascii::Hex::encode(
-      buffer.data(),
-      length);
+  return core::binascii::Hex::encode(buffer.data(), length);
 }
 
 }  // namespace okex

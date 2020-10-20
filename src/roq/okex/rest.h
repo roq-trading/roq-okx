@@ -27,54 +27,51 @@ namespace okex {
 
 class Gateway;
 
-class Rest final
-    : public core::web::Client::Handler {
+class Rest final : public core::web::Client::Handler {
  public:
   Rest(
-      Gateway& gateway,
-      const Config& config,
-      Random& random,
-      core::event::Base& base,
-      core::event::DNSBase& dns_base,
-      core::ssl::Context& ssl_context);
+      Gateway &gateway,
+      const Config &config,
+      Random &random,
+      core::event::Base &base,
+      core::event::DNSBase &dns_base,
+      core::ssl::Context &ssl_context);
 
-  Rest(Rest&&) = delete;
-  Rest(const Rest&) = delete;
+  Rest(Rest &&) = delete;
+  Rest(const Rest &) = delete;
 
   bool ready() const;
 
   void close();
 
-  void operator()(const Event<Start>&);
-  void operator()(const Event<Stop>&);
-  void operator()(const Event<Timer>&);
+  void operator()(const Event<Start> &);
+  void operator()(const Event<Stop> &);
+  void operator()(const Event<Timer> &);
 
-  void operator()(metrics::Writer& writer);
+  void operator()(metrics::Writer &writer);
 
  protected:
-  void operator()(const core::web::Client::Connected&) override;
-  void operator()(const core::web::Client::Disconnected&) override;
-  void operator()(const core::web::Client::Latency&) override;
+  void operator()(const core::web::Client::Connected &) override;
+  void operator()(const core::web::Client::Disconnected &) override;
+  void operator()(const core::web::Client::Latency &) override;
 
  private:
-  Gateway& _gateway;
+  Gateway &_gateway;
   // authentication
-  Random& _random;
+  Random &_random;
   // connection
   core::web::Client _connection;
   // buffers
   core::utils::Buffer _decode_buffer;
   // metrics
   struct {
-    core::metrics::Counter
-      disconnect;
+    core::metrics::Counter disconnect;
   } _counter;
   struct {
     // core::metrics::Profile
   } _profile;
   struct {
-    core::metrics::Latency
-      ping;
+    core::metrics::Latency ping;
   } _latency;
 };
 

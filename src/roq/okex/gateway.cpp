@@ -15,11 +15,8 @@ namespace roq {
 namespace okex {
 
 template <typename T>
-static bool mbp_update(
-    auto& data,
-    size_t& offset,
-    const T& item) {
-  auto& obj = data[offset];
+static bool mbp_update(auto &data, size_t &offset, const T &item) {
+  auto &obj = data[offset];
   new (&obj) MBPUpdate {
     .price = item.price,
     .quantity = item.size,
@@ -29,11 +26,8 @@ static bool mbp_update(
 }
 
 template <typename T>
-static bool trade_update(
-    auto& data,
-    size_t& offset,
-    const T& item) {
-  auto& obj = data[offset];
+static bool trade_update(auto &data, size_t &offset, const T &item) {
+  auto &obj = data[offset];
   new (&obj) Trade {
     .side = json::map(item.side),
     .price = item.price,
@@ -81,23 +75,23 @@ Gateway::Gateway(
       _bid(FLAGS_cache_mbp_max_depth),
       _ask(FLAGS_cache_mbp_max_depth),
       _trade(FLAGS_max_trades) {
-  LOG_IF(WARNING, FLAGS_cancel_on_disconnect == false)(
-      "Orders will *NOT* be cancelled on disconnect");
+  LOG_IF(WARNING, FLAGS_cancel_on_disconnect == false)
+  ("Orders will *NOT* be cancelled on disconnect");
 }
 
-void Gateway::operator()(const Event<Start>& event) {
+void Gateway::operator()(const Event<Start> &event) {
   LOG(INFO)("Starting the gateway...");
   _web_socket.connection(event);
   _rest.connection(event);
 }
 
-void Gateway::operator()(const Event<Stop>& event) {
+void Gateway::operator()(const Event<Stop> &event) {
   LOG(INFO)("Stopping the gateway...");
   _rest.connection(event);
   _web_socket.connection(event);
 }
 
-void Gateway::operator()(const Event<Timer>& event) {
+void Gateway::operator()(const Event<Timer> &event) {
   _web_socket.connection(event);
   _rest.connection(event);
   // download
@@ -111,50 +105,44 @@ void Gateway::operator()(const Event<Timer>& event) {
   _base.loop(EVLOOP_NONBLOCK);
 }
 
-void Gateway::operator()(const Event<Connection>&) {
+void Gateway::operator()(const Event<Connection> &) {
 }
 
 void Gateway::operator()(
-    const Event<CreateOrder>& event,
-    const std::string_view& request_id,
-    [[ maybe_unused ]] uint32_t gateway_order_id) {
-  _web_socket.connection.new_order(
-      event.value,
-      request_id);
+    const Event<CreateOrder> &event,
+    const std::string_view &request_id,
+    [[maybe_unused]] uint32_t gateway_order_id) {
+  _web_socket.connection.new_order(event.value, request_id);
 }
 
 void Gateway::operator()(
-    const Event<ModifyOrder>& event,
-    const std::string_view& request_id,
-    const server::OMS_Order& order) {
-  _web_socket.connection.cancel_replace_order(
-      event.value,
-      request_id,
-      order);
+    const Event<ModifyOrder> &event,
+    const std::string_view &request_id,
+    const server::OMS_Order &order) {
+  _web_socket.connection.cancel_replace_order(event.value, request_id, order);
 }
 
 void Gateway::operator()(
-    [[ maybe_unused ]] const Event<CancelOrder>& event,
-    [[ maybe_unused ]] const std::string_view& request_id,
-    const server::OMS_Order& order) {
+    [[maybe_unused]] const Event<CancelOrder> &event,
+    [[maybe_unused]] const std::string_view &request_id,
+    const server::OMS_Order &order) {
   _web_socket.connection.cancel_order(order);
 }
 
-void Gateway::operator()(metrics::Writer& writer) {
+void Gateway::operator()(metrics::Writer &writer) {
   _rest.connection(writer);
   _web_socket.connection(writer);
 }
 
 // rest
 
-void Gateway::operator()(const Rest&) {
+void Gateway::operator()(const Rest &) {
 }
 
 // web socket
 
 int32_t Gateway::download(WebSocketDownload::State state) {
-  if (_web_socket.connection.ready() == false)
-    return -1;
+  if (_web_socket.connection.ready() == false) return -1;
   switch (state) {
     case WebSocketDownload::State::UNDEFINED:
       assert(false);
@@ -177,7 +165,7 @@ int32_t Gateway::download(WebSocketDownload::State state) {
   return 0;
 }
 
-void Gateway::operator()(const WebSocket&) {
+void Gateway::operator()(const WebSocket &) {
   if (_web_socket.connection.ready()) {
     _web_socket.download.begin();
   } else {
@@ -186,15 +174,13 @@ void Gateway::operator()(const WebSocket&) {
   }
 }
 
-void Gateway::operator()(const json::Symbols& symbols) {
+void Gateway::operator()(const json::Symbols &symbols) {
   assert(_symbols.empty());
   server::TraceInfo trace_info;  // XXX
   size_t count = 0;
-  for (auto& item : symbols.data) {
+  for (auto &item : symbols.data) {
     if (_dispatcher.discard_symbol(item.id)) {
-      VLOG(1)(
-          R"(Drop symbol="{}")",
-          item.id);
+      VLOG(1)(R"(Drop symbol="{}")", item.id);
       continue;
     }
     ++count;
@@ -215,26 +201,18 @@ void Gateway::operator()(const json::Symbols& symbols) {
       .strike_currency = std::string_view(),
       .strike_price = std::numeric_limits<double>::quiet_NaN(),
     };
-    VLOG(1)(
-        R"(reference_data={})",
-        reference_data);
+    VLOG(1)(R"(reference_data={})", reference_data);
     server::create_trace_and_dispatch(
-        trace_info,
-        reference_data,
-        _dispatcher,
-        true);
+        trace_info, reference_data, _dispatcher, true);
   }
-  VLOG(1)(
-      R"(- symbols: {} (/{}))",
-      count,
-      symbols.data.size());
+  VLOG(1)(R"(- symbols: {} (/{}))", count, symbols.data.size());
   _web_socket.download.check(WebSocketDownload::State::SYMBOLS);
 }
 
-void Gateway::operator()(const json::TradingBalance& trading_balance) {
+void Gateway::operator()(const json::TradingBalance &trading_balance) {
   server::TraceInfo trace_info;  // XXX
   size_t count = 0;
-  for (auto& item : trading_balance.data) {
+  for (auto &item : trading_balance.data) {
     // XXX filter?
     ++count;
     FundsUpdate funds_update {
@@ -243,40 +221,29 @@ void Gateway::operator()(const json::TradingBalance& trading_balance) {
       .balance = item.available,
       .hold = item.reserved,
     };
-    VLOG(1)(
-        R"(funds_update={})",
-        funds_update);
+    VLOG(1)(R"(funds_update={})", funds_update);
     server::create_trace_and_dispatch(
-        trace_info,
-        funds_update,
-        _dispatcher,
-        true);
+        trace_info, funds_update, _dispatcher, true);
   }
-  VLOG(1)(
-      R"(- currencies: {} (/{}))",
-      count,
-      trading_balance.data.size());
+  VLOG(1)(R"(- currencies: {} (/{}))", count, trading_balance.data.size());
   _web_socket.download.check(WebSocketDownload::State::TRADING_BALANCE);
 }
 
-void Gateway::operator()(const json::Orders& orders) {
+void Gateway::operator()(const json::Orders &orders) {
   size_t count = 0;
-  for (auto& item : orders.data) {
+  for (auto &item : orders.data) {
     ++count;
     // XXX ???
     std::ignore = item;
   }
-  VLOG(1)(
-      R"(- orders: {} (/{}))",
-      count,
-      orders.data.size());
+  VLOG(1)(R"(- orders: {} (/{}))", count, orders.data.size());
   _web_socket.download.check(WebSocketDownload::State::ORDERS);
 }
 
-void Gateway::operator()(const json::Order&) {
+void Gateway::operator()(const json::Order &) {
 }
 
-void Gateway::operator()(const json::Ticker& ticker) {
+void Gateway::operator()(const json::Ticker &ticker) {
   server::TraceInfo trace_info;  // XXX
   TopOfBook top_of_book {
     .exchange = FLAGS_exchange,
@@ -290,34 +257,25 @@ void Gateway::operator()(const json::Ticker& ticker) {
     .snapshot = false,
     .exchange_time_utc = ticker.timestamp,
   };
-  server::create_trace_and_dispatch(
-      trace_info,
-      top_of_book,
-      _dispatcher,
-      true);
+  server::create_trace_and_dispatch(trace_info, top_of_book, _dispatcher, true);
 }
 
-void Gateway::operator()(const json::Trades& trades) {
+void Gateway::operator()(const json::Trades &trades) {
   server::TraceInfo trace_info;  // XXX
   std::chrono::nanoseconds timestamp = {};
   size_t trade_length = 0;
   bool success = true;
-  for (auto& item : trades.data) {
-    if (success == false)
-      break;
-    success = trade_update(
-        _trade,
-        trade_length,
-        item);
-    timestamp = std::max(
-        timestamp,
-        item.timestamp);
+  for (auto &item : trades.data) {
+    if (success == false) break;
+    success = trade_update(_trade, trade_length, item);
+    timestamp = std::max(timestamp, item.timestamp);
   }
   if (ROQ_UNLIKELY(success == false)) {
-  LOG(FATAL)(
-      R"(Insufficient trade array size(s): )"
-      R"(len(trade)={}/{})",
-      trade_length, _trade.size());
+    LOG(FATAL)
+    (R"(Insufficient trade array size(s): )"
+     R"(len(trade)={}/{})",
+     trade_length,
+     _trade.size());
   }
   if (trade_length > 0) {
     TradeSummary trade_summary {
@@ -330,42 +288,31 @@ void Gateway::operator()(const json::Trades& trades) {
       .exchange_time_utc = timestamp,
     };
     server::create_trace_and_dispatch(
-        trace_info,
-        trade_summary,
-        _dispatcher,
-        true);
+        trace_info, trade_summary, _dispatcher, true);
   }
 }
 
-void Gateway::operator()(
-    const json::Orderbook& orderbook,
-    bool snapshot) {
+void Gateway::operator()(const json::Orderbook &orderbook, bool snapshot) {
   server::TraceInfo trace_info;  // XXX
   size_t bid_length = 0, ask_length = 0;
   bool success = true;
-  for (auto& item : orderbook.bid) {
-    if (success == false)
-      break;
-    success = mbp_update(
-        _bid,
-        bid_length,
-        item);
+  for (auto &item : orderbook.bid) {
+    if (success == false) break;
+    success = mbp_update(_bid, bid_length, item);
   }
-  for (auto& item : orderbook.ask) {
-    if (success == false)
-      break;
-    success = mbp_update(
-        _ask,
-        ask_length,
-        item);
+  for (auto &item : orderbook.ask) {
+    if (success == false) break;
+    success = mbp_update(_ask, ask_length, item);
   }
   if (ROQ_UNLIKELY(success == false)) {
-  LOG(FATAL)(
-      R"(Insufficient bid/ask array size(s): )"
-      R"(len(bid)={}/{} )"
-      R"(len(ask)={}/{})",
-      bid_length, _bid.size(),
-      ask_length, _ask.size());
+    LOG(FATAL)
+    (R"(Insufficient bid/ask array size(s): )"
+     R"(len(bid)={}/{} )"
+     R"(len(ask)={}/{})",
+     bid_length,
+     _bid.size(),
+     ask_length,
+     _ask.size());
   }
   if ((bid_length + ask_length) > 0) {
     MarketByPriceUpdate market_by_price_update {
@@ -383,38 +330,26 @@ void Gateway::operator()(
       .exchange_time_utc = orderbook.timestamp
     };
     server::create_trace_and_dispatch(
-        trace_info,
-        market_by_price_update,
-        _dispatcher,
-        true);
+        trace_info, market_by_price_update, _dispatcher, true);
   }
 }
 
 void Gateway::update(GatewayStatus gateway_status) {
-  if (gateway_status == _gateway_status)
-    return;
+  if (gateway_status == _gateway_status) return;
   _gateway_status = gateway_status;
   server::TraceInfo trace_info;
   MarketDataStatus market_data_status {
     .status = _gateway_status,
   };
   server::create_trace_and_dispatch(
-      trace_info,
-      market_data_status,
-      _dispatcher,
-      false);
+      trace_info, market_data_status, _dispatcher, false);
   OrderManagerStatus order_manager_status {
     .account = _account,
     .status = _gateway_status,
   };
   server::create_trace_and_dispatch(
-      trace_info,
-      order_manager_status,
-      _dispatcher,
-      true);
-  LOG(INFO)(
-      R"(Update: gateway_status={})",
-      _gateway_status);
+      trace_info, order_manager_status, _dispatcher, true);
+  LOG(INFO)(R"(Update: gateway_status={})", _gateway_status);
 }
 
 void Gateway::download_symbols() {
@@ -436,7 +371,7 @@ void Gateway::subscribe_market_data() {
     return;
   }
   LOG(INFO)("Subscribe market data");
-  for (auto& item : _symbols) {
+  for (auto &item : _symbols) {
     _web_socket.connection.subscribe_ticker(item);
     _web_socket.connection.subscribe_trades(item);
     _web_socket.connection.subscribe_orderbook(item);
