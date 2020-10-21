@@ -47,6 +47,8 @@ Rest::Rest(
           core::URI(FLAGS_rest_uri),
           ROQ_PACKAGE_NAME,
           true,  // keep alive
+          FLAGS_request_queue_depth,
+          std::chrono::seconds { FLAGS_request_timeout_secs },
           std::chrono::seconds { FLAGS_rate_limit_interval_secs },
           FLAGS_rate_limit_max_requests,
           std::chrono::seconds { FLAGS_ping_freq_secs },

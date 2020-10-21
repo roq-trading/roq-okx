@@ -8,6 +8,8 @@ DECLARE_string(config_file);
 
 DECLARE_string(rest_uri);
 DECLARE_string(ws_uri);
+DECLARE_uint32(request_queue_depth);
+DECLARE_uint32(request_timeout_secs);
 DECLARE_uint32(rate_limit_interval_secs);
 DECLARE_uint32(rate_limit_max_requests);
 DECLARE_uint32(ping_freq_secs);
