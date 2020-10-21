@@ -17,9 +17,9 @@ namespace okex {
 template <typename T>
 static bool mbp_update(auto &data, size_t &offset, const T &item) {
   auto &obj = data[offset];
-  new (&obj) MBPUpdate {
-    .price = item.price,
-    .quantity = item.size,
+  new (&obj) MBPUpdate{
+      .price = item.price,
+      .quantity = item.size,
   };
   ++offset;
   return offset < data.size();
@@ -28,52 +28,47 @@ static bool mbp_update(auto &data, size_t &offset, const T &item) {
 template <typename T>
 static bool trade_update(auto &data, size_t &offset, const T &item) {
   auto &obj = data[offset];
-  new (&obj) Trade {
-    .side = json::map(item.side),
-    .price = item.price,
-    .quantity = item.quantity,
-    .trade_id = {},
+  new (&obj) Trade{
+      .side = json::map(item.side),
+      .price = item.price,
+      .quantity = item.quantity,
+      .trade_id = {},
   };
   // XXX write tradeid
   ++offset;
   return offset < data.size();
 }
 
-Gateway::Gateway(
-    server::Dispatcher& dispatcher,
-    const Config& config)
-    : _dispatcher(dispatcher),
-      _account(config.get_account()),
-      _access_key(config.get_access_key()),
-      _random(config.get_access_secret()),
+Gateway::Gateway(server::Dispatcher &dispatcher, const Config &config)
+    : _dispatcher(dispatcher), _account(config.get_account()),
+      _access_key(config.get_access_key()), _random(config.get_access_secret()),
       _dns_base(_base, true),
-      _web_socket {
-        .connection = {
-          *this,
-          config,
-          _random,
-          _base,
-          _dns_base,
-          _ssl_context,
-        },
-        .download = WebSocketDownload(
-            std::chrono::seconds { FLAGS_download_timeout_secs },
-            [this](auto state) {
-              return download(state);
-            }),
+      _web_socket{
+          .connection =
+              {
+                  *this,
+                  config,
+                  _random,
+                  _base,
+                  _dns_base,
+                  _ssl_context,
+              },
+          .download = WebSocketDownload(
+              std::chrono::seconds{FLAGS_download_timeout_secs},
+              [this](auto state) { return download(state); }),
       },
-      _rest {
-        .connection = {
-          *this,
-          config,
-          _random,
-          _base,
-          _dns_base,
-          _ssl_context,
-        },
+      _rest{
+          .connection =
+              {
+                  *this,
+                  config,
+                  _random,
+                  _base,
+                  _dns_base,
+                  _ssl_context,
+              },
       },
-      _bid(FLAGS_cache_mbp_max_depth),
-      _ask(FLAGS_cache_mbp_max_depth),
+      _bid(FLAGS_cache_mbp_max_depth), _ask(FLAGS_cache_mbp_max_depth),
       _trade(FLAGS_max_trades) {
   LOG_IF(WARNING, FLAGS_cancel_on_disconnect == false)
   ("Orders will *NOT* be cancelled on disconnect");
@@ -185,21 +180,21 @@ void Gateway::operator()(const json::Symbols &symbols) {
     }
     ++count;
     _symbols.push_back(std::string(item.id));
-    ReferenceData reference_data {
-      .exchange = FLAGS_exchange,
-      .symbol = item.id,
-      .security_type = SecurityType::UNDEFINED,
-      .currency = item.quote_currency,
-      .settlement_currency = item.base_currency,
-      .commission_currency = item.fee_currency,
-      .tick_size = item.tick_size,
-      .limit_up = std::numeric_limits<double>::quiet_NaN(),
-      .limit_down = std::numeric_limits<double>::quiet_NaN(),
-      .multiplier = std::numeric_limits<double>::quiet_NaN(),
-      .min_trade_vol = item.quantity_increment,
-      .option_type = OptionType::UNDEFINED,
-      .strike_currency = std::string_view(),
-      .strike_price = std::numeric_limits<double>::quiet_NaN(),
+    ReferenceData reference_data{
+        .exchange = FLAGS_exchange,
+        .symbol = item.id,
+        .security_type = SecurityType::UNDEFINED,
+        .currency = item.quote_currency,
+        .settlement_currency = item.base_currency,
+        .commission_currency = item.fee_currency,
+        .tick_size = item.tick_size,
+        .limit_up = std::numeric_limits<double>::quiet_NaN(),
+        .limit_down = std::numeric_limits<double>::quiet_NaN(),
+        .multiplier = std::numeric_limits<double>::quiet_NaN(),
+        .min_trade_vol = item.quantity_increment,
+        .option_type = OptionType::UNDEFINED,
+        .strike_currency = std::string_view(),
+        .strike_price = std::numeric_limits<double>::quiet_NaN(),
     };
     VLOG(1)(R"(reference_data={})", reference_data);
     server::create_trace_and_dispatch(
@@ -215,11 +210,11 @@ void Gateway::operator()(const json::TradingBalance &trading_balance) {
   for (auto &item : trading_balance.data) {
     // XXX filter?
     ++count;
-    FundsUpdate funds_update {
-      .account = _account,
-      .currency = item.currency,
-      .balance = item.available,
-      .hold = item.reserved,
+    FundsUpdate funds_update{
+        .account = _account,
+        .currency = item.currency,
+        .balance = item.available,
+        .hold = item.reserved,
     };
     VLOG(1)(R"(funds_update={})", funds_update);
     server::create_trace_and_dispatch(
@@ -245,17 +240,18 @@ void Gateway::operator()(const json::Order &) {
 
 void Gateway::operator()(const json::Ticker &ticker) {
   server::TraceInfo trace_info;  // XXX
-  TopOfBook top_of_book {
-    .exchange = FLAGS_exchange,
-    .symbol = ticker.symbol,
-    .layer = {
-      .bid_price = ticker.bid,
-      .bid_quantity = std::numeric_limits<double>::quiet_NaN(),
-      .ask_price = ticker.ask,
-      .ask_quantity = std::numeric_limits<double>::quiet_NaN(),
-    },
-    .snapshot = false,
-    .exchange_time_utc = ticker.timestamp,
+  TopOfBook top_of_book{
+      .exchange = FLAGS_exchange,
+      .symbol = ticker.symbol,
+      .layer =
+          {
+              .bid_price = ticker.bid,
+              .bid_quantity = std::numeric_limits<double>::quiet_NaN(),
+              .ask_price = ticker.ask,
+              .ask_quantity = std::numeric_limits<double>::quiet_NaN(),
+          },
+      .snapshot = false,
+      .exchange_time_utc = ticker.timestamp,
   };
   server::create_trace_and_dispatch(trace_info, top_of_book, _dispatcher, true);
 }
@@ -278,14 +274,15 @@ void Gateway::operator()(const json::Trades &trades) {
      _trade.size());
   }
   if (trade_length > 0) {
-    TradeSummary trade_summary {
-      .exchange = FLAGS_exchange,
-      .symbol = trades.symbol,
-      .trades = {
-        .items = _trade.data(),
-        .length = trade_length,
-      },
-      .exchange_time_utc = timestamp,
+    TradeSummary trade_summary{
+        .exchange = FLAGS_exchange,
+        .symbol = trades.symbol,
+        .trades =
+            {
+                .items = _trade.data(),
+                .length = trade_length,
+            },
+        .exchange_time_utc = timestamp,
     };
     server::create_trace_and_dispatch(
         trace_info, trade_summary, _dispatcher, true);
@@ -315,20 +312,21 @@ void Gateway::operator()(const json::Orderbook &orderbook, bool snapshot) {
      _ask.size());
   }
   if ((bid_length + ask_length) > 0) {
-    MarketByPriceUpdate market_by_price_update {
-      .exchange = FLAGS_exchange,
-      .symbol = orderbook.symbol,
-      .bids = {
-        .items = _bid.data(),
-        .length = bid_length,
-      },
-      .asks = {
-        .items = _ask.data(),
-        .length = ask_length,
-      },
-      .snapshot = snapshot,
-      .exchange_time_utc = orderbook.timestamp
-    };
+    MarketByPriceUpdate market_by_price_update{
+        .exchange = FLAGS_exchange,
+        .symbol = orderbook.symbol,
+        .bids =
+            {
+                .items = _bid.data(),
+                .length = bid_length,
+            },
+        .asks =
+            {
+                .items = _ask.data(),
+                .length = ask_length,
+            },
+        .snapshot = snapshot,
+        .exchange_time_utc = orderbook.timestamp};
     server::create_trace_and_dispatch(
         trace_info, market_by_price_update, _dispatcher, true);
   }
@@ -338,14 +336,14 @@ void Gateway::update(GatewayStatus gateway_status) {
   if (gateway_status == _gateway_status) return;
   _gateway_status = gateway_status;
   server::TraceInfo trace_info;
-  MarketDataStatus market_data_status {
-    .status = _gateway_status,
+  MarketDataStatus market_data_status{
+      .status = _gateway_status,
   };
   server::create_trace_and_dispatch(
       trace_info, market_data_status, _dispatcher, false);
-  OrderManagerStatus order_manager_status {
-    .account = _account,
-    .status = _gateway_status,
+  OrderManagerStatus order_manager_status{
+      .account = _account,
+      .status = _gateway_status,
   };
   server::create_trace_and_dispatch(
       trace_info, order_manager_status, _dispatcher, true);
