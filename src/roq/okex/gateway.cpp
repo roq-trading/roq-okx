@@ -2,6 +2,7 @@
 
 #include "roq/okex/gateway.h"
 
+#include <algorithm>
 #include <limits>
 #include <utility>
 
