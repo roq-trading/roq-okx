@@ -34,7 +34,9 @@ Random::Random(const std::string_view &secret)
 
 std::string Random::create_nonce() {
   std::string result(RANDOM_BYTES, '-');
-  for (auto &iter : result) iter = CHARSET_DATA[DISTRIBUTION(GENERATOR)];
+  std::generate(result.begin(), result.end(), []() {
+    return CHARSET_DATA[DISTRIBUTION(GENERATOR)];
+  });
   return result;
 }
 
