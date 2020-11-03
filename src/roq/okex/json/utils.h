@@ -65,14 +65,10 @@ inline void update(Type &result, const core::json::value_t &value) {
 
 inline roq::Side map(json::Side side) {
   switch (side) {
-    case json::Side::UNDEFINED:
-      return roq::Side::UNDEFINED;
-    case json::Side::BUY:
-      return roq::Side::BUY;
-    case json::Side::SELL:
-      return roq::Side::SELL;
-    default:
-      return roq::Side::UNDEFINED;  // XXX UNKNOWN ??
+    case json::Side::UNDEFINED: return roq::Side::UNDEFINED;
+    case json::Side::BUY: return roq::Side::BUY;
+    case json::Side::SELL: return roq::Side::SELL;
+    default: return roq::Side::UNDEFINED;  // XXX UNKNOWN ??
   }
 }
 

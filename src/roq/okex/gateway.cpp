@@ -140,18 +140,12 @@ void Gateway::operator()(const Rest &) {
 int32_t Gateway::download(WebSocketDownload::State state) {
   if (_web_socket.connection.ready() == false) return -1;
   switch (state) {
-    case WebSocketDownload::State::UNDEFINED:
-      assert(false);
-      break;
-    case WebSocketDownload::State::SYMBOLS:
-      download_symbols();
-      return 1;
+    case WebSocketDownload::State::UNDEFINED: assert(false); break;
+    case WebSocketDownload::State::SYMBOLS: download_symbols(); return 1;
     case WebSocketDownload::State::TRADING_BALANCE:
       download_trading_balance();
       return 1;
-    case WebSocketDownload::State::ORDERS:
-      download_orders();
-      return 1;
+    case WebSocketDownload::State::ORDERS: download_orders(); return 1;
     case WebSocketDownload::State::DONE:
       update(GatewayStatus::READY);
       subscribe_market_data();
