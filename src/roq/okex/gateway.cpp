@@ -183,8 +183,6 @@ void Gateway::operator()(const json::Symbols &symbols) {
         .settlement_currency = item.base_currency,
         .commission_currency = item.fee_currency,
         .tick_size = item.tick_size,
-        .limit_up = std::numeric_limits<double>::quiet_NaN(),
-        .limit_down = std::numeric_limits<double>::quiet_NaN(),
         .multiplier = std::numeric_limits<double>::quiet_NaN(),
         .min_trade_vol = item.quantity_increment,
         .option_type = OptionType::UNDEFINED,
