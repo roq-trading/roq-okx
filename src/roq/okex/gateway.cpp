@@ -188,6 +188,10 @@ void Gateway::operator()(const json::Symbols &symbols) {
         .option_type = OptionType::UNDEFINED,
         .strike_currency = std::string_view(),
         .strike_price = std::numeric_limits<double>::quiet_NaN(),
+        .underlying = std::string_view(),
+        .issue_date_utc = {},
+        .expiry_time_utc = {},
+        .settlement_date_utc = {},
     };
     VLOG(1)(R"(reference_data={})", reference_data);
     server::create_trace_and_dispatch(
