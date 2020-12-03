@@ -178,6 +178,7 @@ void Gateway::operator()(const json::Symbols &symbols) {
     ReferenceData reference_data{
         .exchange = FLAGS_exchange,
         .symbol = item.id,
+        .description = {},
         .security_type = SecurityType::UNDEFINED,
         .currency = item.quote_currency,
         .settlement_currency = item.base_currency,
@@ -186,12 +187,14 @@ void Gateway::operator()(const json::Symbols &symbols) {
         .multiplier = std::numeric_limits<double>::quiet_NaN(),
         .min_trade_vol = item.quantity_increment,
         .option_type = OptionType::UNDEFINED,
-        .strike_currency = std::string_view(),
+        .strike_currency = {},
         .strike_price = std::numeric_limits<double>::quiet_NaN(),
-        .underlying = std::string_view(),
-        .issue_date_utc = {},
-        .expiry_time_utc = {},
-        .settlement_date_utc = {},
+        .underlying = {},
+        .time_zone = {},
+        .issue_date = {},
+        .settlement_date = {},
+        .expiry_datetime = {},
+        .expiry_datetime_utc = {},
     };
     VLOG(1)(R"(reference_data={})", reference_data);
     server::create_trace_and_dispatch(
@@ -212,6 +215,7 @@ void Gateway::operator()(const json::TradingBalance &trading_balance) {
         .currency = item.currency,
         .balance = item.available,
         .hold = item.reserved,
+        .external_account = {},
     };
     VLOG(1)(R"(funds_update={})", funds_update);
     server::create_trace_and_dispatch(
