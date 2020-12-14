@@ -15,8 +15,8 @@
 namespace roq {
 namespace okex {
 
-template <typename T>
-static bool mbp_update(auto &data, size_t &offset, const T &item) {
+template <typename C, typename T>
+static bool mbp_update(C &data, size_t &offset, const T &item) {
   auto &obj = data[offset];
   new (&obj) MBPUpdate{
       .price = item.price,
@@ -26,8 +26,8 @@ static bool mbp_update(auto &data, size_t &offset, const T &item) {
   return offset < data.size();
 }
 
-template <typename T>
-static bool trade_update(auto &data, size_t &offset, const T &item) {
+template <typename C, typename T>
+static bool trade_update(C &data, size_t &offset, const T &item) {
   auto &obj = data[offset];
   new (&obj) Trade{
       .side = json::map(item.side),
