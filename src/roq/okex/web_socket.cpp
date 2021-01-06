@@ -471,7 +471,8 @@ void WebSocket::operator()(const json::Ticker &ticker) {
 void WebSocket::operator()(const json::Trades &trades, bool snapshot) {
   _profile.trades([&]() {
     VLOG(3)(R"(trades={}, snapshot={})", trades, snapshot);
-    if (snapshot == false) _gateway(trades);
+    if (snapshot == false)
+      _gateway(trades);
   });
 }
 

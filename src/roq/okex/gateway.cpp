@@ -138,7 +138,8 @@ void Gateway::operator()(const Rest &) {
 // web socket
 
 int32_t Gateway::download(WebSocketDownload::State state) {
-  if (_web_socket.connection.ready() == false) return -1;
+  if (_web_socket.connection.ready() == false)
+    return -1;
   switch (state) {
     case WebSocketDownload::State::UNDEFINED: assert(false); break;
     case WebSocketDownload::State::SYMBOLS: download_symbols(); return 1;
@@ -263,7 +264,8 @@ void Gateway::operator()(const json::Trades &trades) {
   size_t trade_length = 0;
   bool success = true;
   for (auto &item : trades.data) {
-    if (success == false) break;
+    if (success == false)
+      break;
     success = trade_update(_trade, trade_length, item);
     timestamp = std::max(timestamp, item.timestamp);
   }
@@ -295,11 +297,13 @@ void Gateway::operator()(const json::Orderbook &orderbook, bool snapshot) {
   size_t bid_length = 0, ask_length = 0;
   bool success = true;
   for (auto &item : orderbook.bid) {
-    if (success == false) break;
+    if (success == false)
+      break;
     success = mbp_update(_bid, bid_length, item);
   }
   for (auto &item : orderbook.ask) {
-    if (success == false) break;
+    if (success == false)
+      break;
     success = mbp_update(_ask, ask_length, item);
   }
   if (ROQ_UNLIKELY(success == false)) {
@@ -334,7 +338,8 @@ void Gateway::operator()(const json::Orderbook &orderbook, bool snapshot) {
 }
 
 void Gateway::update(GatewayStatus gateway_status) {
-  if (gateway_status == _gateway_status) return;
+  if (gateway_status == _gateway_status)
+    return;
   _gateway_status = gateway_status;
   server::TraceInfo trace_info;
   MarketDataStatus market_data_status{
