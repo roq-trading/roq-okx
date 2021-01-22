@@ -2,6 +2,8 @@
 
 #include "roq/okex/rest.h"
 
+#include <absl/flags/flag.h>
+
 #include <fmt/chrono.h>
 #include <fmt/format.h>
 
@@ -19,15 +21,18 @@ namespace {
 constexpr std::string_view CONNECTION = "rest";
 
 static auto create_counter(const std::string_view &function) {
-  return core::metrics::Counter(FLAGS_name, CONNECTION, function);
+  return core::metrics::Counter(
+      absl::GetFlag(FLAGS_name), CONNECTION, function);
 }
 
 static auto create_profile(const std::string_view &function) {
-  return core::metrics::Profile(FLAGS_name, CONNECTION, function);
+  return core::metrics::Profile(
+      absl::GetFlag(FLAGS_name), CONNECTION, function);
 }
 
 static auto create_latency(const std::string_view &function) {
-  return core::metrics::Latency(FLAGS_name, CONNECTION, function);
+  return core::metrics::Latency(
+      absl::GetFlag(FLAGS_name), CONNECTION, function);
 }
 }  // namespace
 
@@ -44,18 +49,18 @@ Rest::Rest(
           base,
           dns_base,
           ssl_context,
-          core::URI(FLAGS_rest_uri),
+          core::URI(absl::GetFlag(FLAGS_rest_uri)),
           ROQ_PACKAGE_NAME,
           true,  // keep alive
-          FLAGS_request_queue_depth,
-          std::chrono::seconds{FLAGS_request_timeout_secs},
-          std::chrono::seconds{FLAGS_rate_limit_interval_secs},
-          FLAGS_rate_limit_max_requests,
-          std::chrono::seconds{FLAGS_ping_freq_secs},
-          FLAGS_decode_buffer_size,
-          FLAGS_encode_buffer_size,
-          FLAGS_rest_ping_path),
-      _decode_buffer(FLAGS_decode_buffer_size),
+          absl::GetFlag(FLAGS_request_queue_depth),
+          std::chrono::seconds{absl::GetFlag(FLAGS_request_timeout_secs)},
+          std::chrono::seconds{absl::GetFlag(FLAGS_rate_limit_interval_secs)},
+          absl::GetFlag(FLAGS_rate_limit_max_requests),
+          std::chrono::seconds{absl::GetFlag(FLAGS_ping_freq_secs)},
+          absl::GetFlag(FLAGS_decode_buffer_size),
+          absl::GetFlag(FLAGS_encode_buffer_size),
+          absl::GetFlag(FLAGS_rest_ping_path)),
+      _decode_buffer(absl::GetFlag(FLAGS_decode_buffer_size)),
       _counter{
           .disconnect = create_counter("disconnect"),
       },

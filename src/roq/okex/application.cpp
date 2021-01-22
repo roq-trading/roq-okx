@@ -2,6 +2,8 @@
 
 #include "roq/okex/application.h"
 
+#include <absl/flags/flag.h>
+
 #include "roq/okex/config.h"
 #include "roq/okex/gateway.h"
 #include "roq/okex/options.h"
@@ -11,7 +13,7 @@ namespace okex {
 
 int Application::main(int, char **) {
   LOG(INFO)("Parse configuration");
-  Config config(FLAGS_config_file);
+  Config config(absl::GetFlag(FLAGS_config_file));
   VLOG(1)("config={}", config);
   LOG(INFO)("Starting the gateway");
   roq::server::Trading<Gateway>(

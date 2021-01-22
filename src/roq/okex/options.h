@@ -2,32 +2,35 @@
 
 #pragma once
 
-#include <gflags/gflags.h>
+#include <absl/flags/declare.h>
 
-DECLARE_string(config_file);
+#include <cstdint>
+#include <string>
 
-DECLARE_string(rest_uri);
-DECLARE_string(ws_uri);
-DECLARE_uint32(request_queue_depth);
-DECLARE_uint32(request_timeout_secs);
-DECLARE_uint32(rate_limit_interval_secs);
-DECLARE_uint32(rate_limit_max_requests);
-DECLARE_uint32(ping_freq_secs);
-DECLARE_uint32(download_timeout_secs);
-DECLARE_string(exchange);
-DECLARE_bool(cancel_on_disconnect);
-DECLARE_uint32(max_trades);
-DECLARE_uint32(encode_buffer_size);
-DECLARE_uint32(decode_buffer_size);
-DECLARE_uint32(reconnect_secs);
+ABSL_DECLARE_FLAG(std::string, config_file);
 
-DECLARE_uint32(max_batch_size);
+ABSL_DECLARE_FLAG(std::string, rest_uri);
+ABSL_DECLARE_FLAG(std::string, ws_uri);
+ABSL_DECLARE_FLAG(uint32_t, request_queue_depth);
+ABSL_DECLARE_FLAG(uint32_t, request_timeout_secs);
+ABSL_DECLARE_FLAG(uint32_t, rate_limit_interval_secs);
+ABSL_DECLARE_FLAG(uint32_t, rate_limit_max_requests);
+ABSL_DECLARE_FLAG(uint32_t, ping_freq_secs);
+ABSL_DECLARE_FLAG(uint32_t, download_timeout_secs);
+ABSL_DECLARE_FLAG(std::string, exchange);
+ABSL_DECLARE_FLAG(bool, cancel_on_disconnect);
+ABSL_DECLARE_FLAG(uint32_t, max_trades);
+ABSL_DECLARE_FLAG(uint32_t, encode_buffer_size);
+ABSL_DECLARE_FLAG(uint32_t, decode_buffer_size);
+ABSL_DECLARE_FLAG(uint32_t, reconnect_secs);
 
-DECLARE_bool(log_fix);
+ABSL_DECLARE_FLAG(uint32_t, max_batch_size);
 
-DECLARE_string(rest_ping_path);
+ABSL_DECLARE_FLAG(bool, log_fix);
+
+ABSL_DECLARE_FLAG(std::string, rest_ping_path);
 
 // external
 
-DECLARE_string(name);
-DECLARE_uint32(cache_mbp_max_depth);
+ABSL_DECLARE_FLAG(std::string, name);
+ABSL_DECLARE_FLAG(uint32_t, cache_mbp_max_depth);
