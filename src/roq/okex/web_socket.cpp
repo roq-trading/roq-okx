@@ -2,14 +2,12 @@
 
 #include "roq/okex/web_socket.h"
 
-#include <absl/flags/flag.h>
-
 #include <fmt/format.h>
 
 #include "roq/core/clock.h"
 
+#include "roq/okex/flags.h"
 #include "roq/okex/gateway.h"
-#include "roq/okex/options.h"
 
 #include "roq/okex/json/error.h"
 #include "roq/okex/json/method.h"
@@ -22,18 +20,15 @@ namespace {
 constexpr std::string_view CONNECTION = "ws";
 
 static auto create_counter(const std::string_view &function) {
-  return core::metrics::Counter(
-      absl::GetFlag(FLAGS_name), CONNECTION, function);
+  return core::metrics::Counter(Flags::name(), CONNECTION, function);
 }
 
 static auto create_profile(const std::string_view &function) {
-  return core::metrics::Profile(
-      absl::GetFlag(FLAGS_name), CONNECTION, function);
+  return core::metrics::Profile(Flags::name(), CONNECTION, function);
 }
 
 static auto create_latency(const std::string_view &function) {
-  return core::metrics::Latency(
-      absl::GetFlag(FLAGS_name), CONNECTION, function);
+  return core::metrics::Latency(Flags::name(), CONNECTION, function);
 }
 }  // namespace
 
@@ -50,13 +45,13 @@ WebSocket::WebSocket(
           base,
           dns_base,
           ssl_context,
-          core::URI(absl::GetFlag(FLAGS_ws_uri)),
+          core::URI(Flags::ws_uri()),
           std::string_view(),  // query
-          std::chrono::seconds{absl::GetFlag(FLAGS_ping_freq_secs)},
-          absl::GetFlag(FLAGS_decode_buffer_size),  // XXX need read buffer size
-          absl::GetFlag(FLAGS_encode_buffer_size),
+          std::chrono::seconds{Flags::ping_freq_secs()},
+          Flags::decode_buffer_size(),  // XXX need read buffer size
+          Flags::encode_buffer_size(),
           []() { return std::string(); }),
-      _decode_buffer(absl::GetFlag(FLAGS_decode_buffer_size)),
+      _decode_buffer(Flags::decode_buffer_size()),
       _counter{
           .disconnect = create_counter("disconnect"),
       },
