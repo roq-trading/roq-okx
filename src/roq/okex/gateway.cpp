@@ -41,9 +41,8 @@ static bool trade_update(C &data, size_t &offset, const T &item) {
 }
 
 Gateway::Gateway(server::Dispatcher &dispatcher, const Config &config)
-    : _dispatcher(dispatcher), _account(config.get_account()),
-      _access_key(config.get_access_key()), _random(config.get_access_secret()),
-      _dns_base(_base, true),
+    : _dispatcher(dispatcher), _account(config.get_account()), _access_key(config.get_access_key()),
+      _random(config.get_access_secret()), _dns_base(_base, true),
       _web_socket{
           .connection =
               {
@@ -204,8 +203,7 @@ void Gateway::operator()(const json::Symbols &symbols) {
         .expiry_datetime_utc = {},
     };
     VLOG(1)(R"(reference_data={})", reference_data);
-    server::create_trace_and_dispatch(
-        trace_info, reference_data, _dispatcher, true);
+    server::create_trace_and_dispatch(trace_info, reference_data, _dispatcher, true);
   }
   VLOG(1)(R"(- symbols: {} (/{}))", count, symbols.data.size());
   _web_socket.download.check(WebSocketDownload::State::SYMBOLS);
@@ -225,8 +223,7 @@ void Gateway::operator()(const json::TradingBalance &trading_balance) {
         .external_account = {},
     };
     VLOG(1)(R"(funds_update={})", funds_update);
-    server::create_trace_and_dispatch(
-        trace_info, funds_update, _dispatcher, true);
+    server::create_trace_and_dispatch(trace_info, funds_update, _dispatcher, true);
   }
   VLOG(1)(R"(- currencies: {} (/{}))", count, trading_balance.data.size());
   _web_socket.download.check(WebSocketDownload::State::TRADING_BALANCE);
@@ -293,8 +290,7 @@ void Gateway::operator()(const json::Trades &trades) {
             },
         .exchange_time_utc = timestamp,
     };
-    server::create_trace_and_dispatch(
-        trace_info, trade_summary, _dispatcher, true);
+    server::create_trace_and_dispatch(trace_info, trade_summary, _dispatcher, true);
   }
 }
 
@@ -338,8 +334,7 @@ void Gateway::operator()(const json::Orderbook &orderbook, bool snapshot) {
             },
         .snapshot = snapshot,
         .exchange_time_utc = orderbook.timestamp};
-    server::create_trace_and_dispatch(
-        trace_info, market_by_price_update, _dispatcher, true);
+    server::create_trace_and_dispatch(trace_info, market_by_price_update, _dispatcher, true);
   }
 }
 
@@ -351,14 +346,12 @@ void Gateway::update(GatewayStatus gateway_status) {
   MarketDataStatus market_data_status{
       .status = _gateway_status,
   };
-  server::create_trace_and_dispatch(
-      trace_info, market_data_status, _dispatcher, false);
+  server::create_trace_and_dispatch(trace_info, market_data_status, _dispatcher, false);
   OrderManagerStatus order_manager_status{
       .account = _account,
       .status = _gateway_status,
   };
-  server::create_trace_and_dispatch(
-      trace_info, order_manager_status, _dispatcher, true);
+  server::create_trace_and_dispatch(trace_info, order_manager_status, _dispatcher, true);
   LOG(INFO)(R"(Update: gateway_status={})", _gateway_status);
 }
 

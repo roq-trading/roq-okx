@@ -104,8 +104,7 @@ void Rest::operator()(const core::web::Client::Disconnected &) {
 
 void Rest::operator()(const core::web::Client::Latency &latency) {
   _latency.ping.update(
-      std::chrono::duration_cast<std::chrono::nanoseconds>(latency.sample)
-          .count());
+      std::chrono::duration_cast<std::chrono::nanoseconds>(latency.sample).count());
 }
 
 }  // namespace okex

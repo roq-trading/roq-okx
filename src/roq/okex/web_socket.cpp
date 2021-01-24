@@ -127,8 +127,7 @@ void WebSocket::get_symbols() {
 }
 
 void WebSocket::get_trading_balance() {
-  constexpr json::RequestType request_type =
-      json::RequestType::GET_TRADING_BALANCE;
+  constexpr json::RequestType request_type = json::RequestType::GET_TRADING_BALANCE;
   auto message = fmt::format(
       R"({{)"
       R"("method":"getTradingBalance",)"
@@ -151,8 +150,7 @@ void WebSocket::get_orders() {
   _connection.send_text(message);
 }
 
-void WebSocket::new_order(
-    const CreateOrder &create_order, const std::string_view &request_id) {
+void WebSocket::new_order(const CreateOrder &create_order, const std::string_view &request_id) {
   constexpr json::RequestType request_type = json::RequestType::NEW_ORDER;
   auto message = fmt::format(
       R"({{)"
@@ -183,8 +181,7 @@ void WebSocket::cancel_replace_order(
     const ModifyOrder &modify_order,
     const std::string_view &request_id,
     const server::OMS_Order &order) {
-  constexpr json::RequestType request_type =
-      json::RequestType::CANCEL_REPLACE_ORDER;
+  constexpr json::RequestType request_type = json::RequestType::CANCEL_REPLACE_ORDER;
   auto message = fmt::format(
       R"({{)"
       R"("method":"cancelOrder",)"
@@ -220,8 +217,7 @@ void WebSocket::cancel_order(const server::OMS_Order &order) {
 }
 
 void WebSocket::subscribe_ticker(const std::string_view &symbol) {
-  constexpr json::RequestType request_type =
-      json::RequestType::SUBSCRIBE_TICKER;
+  constexpr json::RequestType request_type = json::RequestType::SUBSCRIBE_TICKER;
   auto message = fmt::format(
       R"({{)"
       R"("method":"subscribeTicker",)"
@@ -236,8 +232,7 @@ void WebSocket::subscribe_ticker(const std::string_view &symbol) {
 }
 
 void WebSocket::subscribe_trades(const std::string_view &symbol) {
-  constexpr json::RequestType request_type =
-      json::RequestType::SUBSCRIBE_TRADES;
+  constexpr json::RequestType request_type = json::RequestType::SUBSCRIBE_TRADES;
   auto message = fmt::format(
       R"({{)"
       R"("method":"subscribeTrades",)"
@@ -252,8 +247,7 @@ void WebSocket::subscribe_trades(const std::string_view &symbol) {
 }
 
 void WebSocket::subscribe_orderbook(const std::string_view &symbol) {
-  constexpr json::RequestType request_type =
-      json::RequestType::SUBSCRIBE_ORDERBOOK;
+  constexpr json::RequestType request_type = json::RequestType::SUBSCRIBE_ORDERBOOK;
   auto message = fmt::format(
       R"({{)"
       R"("method":"subscribeOrderbook",)"
@@ -303,8 +297,7 @@ void WebSocket::operator()(const core::web::Socket::Close &) {
 
 void WebSocket::operator()(const core::web::Socket::Latency &latency) {
   _latency.ping.update(
-      std::chrono::duration_cast<std::chrono::nanoseconds>(latency.sample)
-          .count());
+      std::chrono::duration_cast<std::chrono::nanoseconds>(latency.sample).count());
 }
 
 void WebSocket::operator()(const core::web::Socket::Text &text) {
@@ -322,8 +315,7 @@ void WebSocket::parse(const std::string_view &message) {
   });
 }
 
-void WebSocket::operator()(
-    const core::jsonrpc::Error &error, core::json::value_t &value) {
+void WebSocket::operator()(const core::jsonrpc::Error &error, core::json::value_t &value) {
   json::Error error_2(value);
   LOG(WARNING)(R"(error={}, id="{}")", error_2, error.id);
   switch (error_2.code) {
@@ -335,8 +327,7 @@ void WebSocket::operator()(
   }
 }
 
-void WebSocket::operator()(
-    const core::jsonrpc::Result &result, core::json::value_t &value) {
+void WebSocket::operator()(const core::jsonrpc::Result &result, core::json::value_t &value) {
   json::RequestType request_type(result.id);
   switch (request_type) {
     case json::RequestType::UNDEFINED:
@@ -395,8 +386,7 @@ void WebSocket::operator()(
 }
 
 void WebSocket::operator()(
-    const core::jsonrpc::Notification &notification,
-    core::json::value_t &value) {
+    const core::jsonrpc::Notification &notification, core::json::value_t &value) {
   json::Method method(notification.method);
   switch (method) {
     case json::Method::UNDEFINED:

@@ -15,8 +15,7 @@
 namespace roq {
 namespace okex {
 
-class Config final : public server::Config,
-                     public server::ConfigReader::Handler {
+class Config final : public server::Config, public server::ConfigReader::Handler {
  public:
   explicit Config(const std::string_view &path);
 

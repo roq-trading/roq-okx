@@ -8,11 +8,6 @@ constexpr std::string_view DESCRIPTION = "Roq HitBTC Gateway";
 
 int main(int argc, char **argv) {
   return roq::okex::Application(
-             argc,
-             argv,
-             DESCRIPTION,
-             ROQ_BUILD_VERSION,
-             ROQ_BUILD_TYPE,
-             ROQ_GIT_DESCRIBE_HASH)
+             argc, argv, DESCRIPTION, ROQ_BUILD_VERSION, ROQ_BUILD_TYPE, ROQ_GIT_DESCRIBE_HASH)
       .run();
 }

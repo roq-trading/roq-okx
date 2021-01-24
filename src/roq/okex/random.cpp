@@ -28,15 +28,13 @@ static std::uniform_int_distribution<int> DISTRIBUTION(0, CHARSET_LENGTH);
 
 constexpr size_t RANDOM_BYTES = 15;
 
-Random::Random(const std::string_view &secret)
-    : _hmac(secret.data(), secret.length()) {
+Random::Random(const std::string_view &secret) : _hmac(secret.data(), secret.length()) {
 }
 
 std::string Random::create_nonce() {
   std::string result(RANDOM_BYTES, '-');
-  std::generate(result.begin(), result.end(), []() {
-    return CHARSET_DATA[DISTRIBUTION(GENERATOR)];
-  });
+  std::generate(
+      result.begin(), result.end(), []() { return CHARSET_DATA[DISTRIBUTION(GENERATOR)]; });
   return result;
 }
 

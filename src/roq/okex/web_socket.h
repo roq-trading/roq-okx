@@ -39,8 +39,7 @@ namespace okex {
 
 class Gateway;
 
-class WebSocket final : public core::web::Socket::Handler,
-                        public core::jsonrpc::Parser::Handler {
+class WebSocket final : public core::web::Socket::Handler, public core::jsonrpc::Parser::Handler {
  public:
   WebSocket(
       Gateway &gateway,
@@ -69,8 +68,7 @@ class WebSocket final : public core::web::Socket::Handler,
   void get_trading_balance();
   void get_orders();
 
-  void new_order(
-      const CreateOrder &create_order, const std::string_view &request_id);
+  void new_order(const CreateOrder &create_order, const std::string_view &request_id);
 
   void cancel_replace_order(
       const ModifyOrder &modify_order,
@@ -97,13 +95,10 @@ class WebSocket final : public core::web::Socket::Handler,
 
   void parse(const std::string_view &message);
 
+  void operator()(const core::jsonrpc::Error &error, core::json::value_t &value) override;
+  void operator()(const core::jsonrpc::Result &result, core::json::value_t &value) override;
   void operator()(
-      const core::jsonrpc::Error &error, core::json::value_t &value) override;
-  void operator()(
-      const core::jsonrpc::Result &result, core::json::value_t &value) override;
-  void operator()(
-      const core::jsonrpc::Notification &notification,
-      core::json::value_t &value) override;
+      const core::jsonrpc::Notification &notification, core::json::value_t &value) override;
 
   // response
   void operator()(const json::Symbols &symbols);
@@ -134,8 +129,8 @@ class WebSocket final : public core::web::Socket::Handler,
     core::metrics::Counter disconnect;
   } _counter;
   struct {
-    core::metrics::Profile parse, get_symbols, get_trading_balance, get_orders,
-        order, ticker, trades, orderbook;
+    core::metrics::Profile parse, get_symbols, get_trading_balance, get_orders, order, ticker,
+        trades, orderbook;
   } _profile;
   struct {
     core::metrics::Latency ping, heartbeat;
