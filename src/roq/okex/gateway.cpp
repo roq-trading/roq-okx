@@ -283,11 +283,7 @@ void Gateway::operator()(const json::Trades &trades) {
     TradeSummary trade_summary{
         .exchange = Flags::exchange(),
         .symbol = trades.symbol,
-        .trades =
-            {
-                .items = _trade.data(),
-                .length = trade_length,
-            },
+        .trades = {_trade.data(), trade_length},
         .exchange_time_utc = timestamp,
     };
     server::create_trace_and_dispatch(trace_info, trade_summary, _dispatcher, true);
@@ -322,16 +318,8 @@ void Gateway::operator()(const json::Orderbook &orderbook, bool snapshot) {
     MarketByPriceUpdate market_by_price_update{
         .exchange = Flags::exchange(),
         .symbol = orderbook.symbol,
-        .bids =
-            {
-                .items = _bid.data(),
-                .length = bid_length,
-            },
-        .asks =
-            {
-                .items = _ask.data(),
-                .length = ask_length,
-            },
+        .bids = {_bid.data(), bid_length},
+        .asks = {_ask.data(), ask_length},
         .snapshot = snapshot,
         .exchange_time_utc = orderbook.timestamp};
     server::create_trace_and_dispatch(trace_info, market_by_price_update, _dispatcher, true);
