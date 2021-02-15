@@ -96,7 +96,7 @@ void WebSocket::login() {
   constexpr json::RequestType request_type = json::RequestType::LOGIN;
   auto nonce = _random.create_nonce();
   auto signature = _random.create_signature(nonce);
-  auto message = fmt::format(
+  auto message = roq::format(
       R"({{)"
       R"("method":"login",)"
       R"("params":{{)"
@@ -116,7 +116,7 @@ void WebSocket::login() {
 
 void WebSocket::get_symbols() {
   constexpr json::RequestType request_type = json::RequestType::GET_SYMBOLS;
-  auto message = fmt::format(
+  auto message = roq::format(
       R"({{)"
       R"("method":"getSymbols",)"
       R"("params":{{}},)"
@@ -128,7 +128,7 @@ void WebSocket::get_symbols() {
 
 void WebSocket::get_trading_balance() {
   constexpr json::RequestType request_type = json::RequestType::GET_TRADING_BALANCE;
-  auto message = fmt::format(
+  auto message = roq::format(
       R"({{)"
       R"("method":"getTradingBalance",)"
       R"("params":{{}},)"
@@ -140,7 +140,7 @@ void WebSocket::get_trading_balance() {
 
 void WebSocket::get_orders() {
   constexpr json::RequestType request_type = json::RequestType::GET_ORDERS;
-  auto message = fmt::format(
+  auto message = roq::format(
       R"({{)"
       R"("method":"getOrders",)"
       R"("params":{{}},)"
@@ -152,7 +152,7 @@ void WebSocket::get_orders() {
 
 void WebSocket::new_order(const CreateOrder &create_order, const std::string_view &request_id) {
   constexpr json::RequestType request_type = json::RequestType::NEW_ORDER;
-  auto message = fmt::format(
+  auto message = roq::format(
       R"({{)"
       R"("method":"newOrder",)"
       R"("params":{{")"
@@ -182,7 +182,7 @@ void WebSocket::cancel_replace_order(
     const std::string_view &request_id,
     const server::OMS_Order &order) {
   constexpr json::RequestType request_type = json::RequestType::CANCEL_REPLACE_ORDER;
-  auto message = fmt::format(
+  auto message = roq::format(
       R"({{)"
       R"("method":"cancelOrder",)"
       R"("params":{{)"
@@ -203,7 +203,7 @@ void WebSocket::cancel_replace_order(
 
 void WebSocket::cancel_order(const server::OMS_Order &order) {
   constexpr json::RequestType request_type = json::RequestType::CANCEL_ORDER;
-  auto message = fmt::format(
+  auto message = roq::format(
       R"({{)"
       R"("method":"cancelOrder",)"
       R"("params":{{)"
@@ -218,7 +218,7 @@ void WebSocket::cancel_order(const server::OMS_Order &order) {
 
 void WebSocket::subscribe_ticker(const std::string_view &symbol) {
   constexpr json::RequestType request_type = json::RequestType::SUBSCRIBE_TICKER;
-  auto message = fmt::format(
+  auto message = roq::format(
       R"({{)"
       R"("method":"subscribeTicker",)"
       R"("params":{{)"
@@ -233,7 +233,7 @@ void WebSocket::subscribe_ticker(const std::string_view &symbol) {
 
 void WebSocket::subscribe_trades(const std::string_view &symbol) {
   constexpr json::RequestType request_type = json::RequestType::SUBSCRIBE_TRADES;
-  auto message = fmt::format(
+  auto message = roq::format(
       R"({{)"
       R"("method":"subscribeTrades",)"
       R"("params":{{)"
@@ -248,7 +248,7 @@ void WebSocket::subscribe_trades(const std::string_view &symbol) {
 
 void WebSocket::subscribe_orderbook(const std::string_view &symbol) {
   constexpr json::RequestType request_type = json::RequestType::SUBSCRIBE_ORDERBOOK;
-  auto message = fmt::format(
+  auto message = roq::format(
       R"({{)"
       R"("method":"subscribeOrderbook",)"
       R"("params":{{)"

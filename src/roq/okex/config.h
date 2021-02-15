@@ -52,15 +52,11 @@ class Config final : public server::Config, public server::ConfigReader::Handler
 }  // namespace roq
 
 template <>
-struct fmt::formatter<roq::okex::Config> {
-  template <typename C>
-  constexpr auto parse(C &ctx) {
-    return ctx.begin();
-  }
+struct fmt::formatter<roq::okex::Config> : public roq::formatter {
   template <typename C>
   auto format(const roq::okex::Config &value, C &ctx) {
     // FIXME(thraneh): proper
-    return format_to(
+    return roq::format_to(
         ctx.out(),
         "{{"
         "users=[{}], "
