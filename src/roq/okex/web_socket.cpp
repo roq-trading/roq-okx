@@ -2,8 +2,6 @@
 
 #include "roq/okex/web_socket.h"
 
-#include <fmt/format.h>
-
 #include "roq/core/clock.h"
 
 #include "roq/okex/flags.h"
@@ -106,7 +104,7 @@ void WebSocket::login() {
       R"("signature":"{}")"
       R"(}},)"
       R"("id":"{}")"
-      R"(}})",
+      R"(}})"_fmt,
       _access_key,
       nonce,
       signature,
@@ -121,7 +119,7 @@ void WebSocket::get_symbols() {
       R"("method":"getSymbols",)"
       R"("params":{{}},)"
       R"("id":"{}")"
-      R"(}})",
+      R"(}})"_fmt,
       request_type.as_raw_text());
   _connection.send_text(message);
 }
@@ -133,7 +131,7 @@ void WebSocket::get_trading_balance() {
       R"("method":"getTradingBalance",)"
       R"("params":{{}},)"
       R"("id":"{}")"
-      R"(}})",
+      R"(}})"_fmt,
       request_type.as_raw_text());
   _connection.send_text(message);
 }
@@ -145,7 +143,7 @@ void WebSocket::get_orders() {
       R"("method":"getOrders",)"
       R"("params":{{}},)"
       R"("id":"{}")"
-      R"(}})",
+      R"(}})"_fmt,
       request_type.as_raw_text());
   _connection.send_text(message);
 }
@@ -165,7 +163,7 @@ void WebSocket::new_order(const CreateOrder &create_order, const std::string_vie
       R"("price":"{}")"
       R"(}},)"
       R"("id":"{}")"
-      R"(}})",
+      R"(}})"_fmt,
       request_id,
       create_order.symbol,
       "sell",   // XXX
@@ -192,7 +190,7 @@ void WebSocket::cancel_replace_order(
       R"("price":"{}")"
       R"(}},)"
       R"("id":"{}")"
-      R"(}}")",
+      R"(}}")"_fmt,
       order.external_order_id,  // XXX WRONG !!!
       request_id,
       modify_order.quantity,
@@ -210,7 +208,7 @@ void WebSocket::cancel_order(const server::OMS_Order &order) {
       R"("clientOrderId":"{}")"
       R"(}},)"
       R"("id":"{}")"
-      R"(}})",
+      R"(}})"_fmt,
       order.external_order_id,  // XXX WRONG !!!
       request_type.as_raw_text());
   _connection.send_text(message);
@@ -225,7 +223,7 @@ void WebSocket::subscribe_ticker(const std::string_view &symbol) {
       R"("symbol":"{}")"
       R"(}},)"
       R"("id":"{}")"
-      R"(}})",
+      R"(}})"_fmt,
       symbol,
       request_type.as_raw_text());
   _connection.send_text(message);
@@ -240,7 +238,7 @@ void WebSocket::subscribe_trades(const std::string_view &symbol) {
       R"("symbol":"{}")"
       R"(}},)"
       R"("id":"{}")"
-      R"(}})",
+      R"(}})"_fmt,
       symbol,
       request_type.as_raw_text());
   _connection.send_text(message);
@@ -255,7 +253,7 @@ void WebSocket::subscribe_orderbook(const std::string_view &symbol) {
       R"("symbol":"{}")"
       R"(}},)"
       R"("id":"{}")"
-      R"(}})",
+      R"(}})"_fmt,
       symbol,
       request_type.as_raw_text());
   _connection.send_text(message);

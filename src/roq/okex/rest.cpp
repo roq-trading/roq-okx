@@ -3,7 +3,6 @@
 #include "roq/okex/rest.h"
 
 #include <fmt/chrono.h>
-#include <fmt/format.h>
 
 #include "roq/core/json/parser.h"
 

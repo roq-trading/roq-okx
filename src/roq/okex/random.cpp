@@ -2,8 +2,7 @@
 
 #include "roq/okex/random.h"
 
-#include <fmt/format.h>
-
+#include <algorithm>
 #include <array>
 #include <random>
 

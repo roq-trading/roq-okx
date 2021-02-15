@@ -4,12 +4,12 @@
 
 #include <absl/container/flat_hash_map.h>
 
-#include <fmt/format.h>
-
 #include <string>
 #include <string_view>
 #include <vector>
 
+#include "roq/format.h"
+#include "roq/literals.h"
 #include "roq/server.h"
 
 namespace roq {
@@ -55,13 +55,14 @@ template <>
 struct fmt::formatter<roq::okex::Config> : public roq::formatter {
   template <typename C>
   auto format(const roq::okex::Config &value, C &ctx) {
+    using namespace roq::literals;
     // FIXME(thraneh): proper
     return roq::format_to(
         ctx.out(),
         "{{"
         "users=[{}], "
         "accounts=..."
-        "}}",
-        fmt::join(value.users, ", "));
+        "}}"_fmt,
+        roq::join(value.users, ", "_sv));
   }
 };
