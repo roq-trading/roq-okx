@@ -306,15 +306,15 @@ void WebSocket::parse(const std::string_view &message) {
     try {
       core::jsonrpc::Parser::dispatch(*this, message);
     } catch (std::exception &e) {
-      LOG(WARNING)(R"(message="{}")", message);
-      LOG(FATAL)(R"("ERROR what="{}")", e.what());
+      LOG(WARNING)(R"(message="{}")"_fmt, message);
+      LOG(FATAL)(R"("ERROR what="{}")"_fmt, e.what());
     }
   });
 }
 
 void WebSocket::operator()(const core::jsonrpc::Error &error, core::json::value_t &value) {
   json::Error error_2(value);
-  LOG(WARNING)(R"(error={}, id="{}")", error_2, error.id);
+  LOG(WARNING)(R"(error={}, id="{}")"_fmt, error_2, error.id);
   switch (error_2.code) {
     case 1:  // invalid json
       _connection.close();
@@ -330,7 +330,7 @@ void WebSocket::operator()(const core::jsonrpc::Result &result, core::json::valu
     case json::RequestType::UNDEFINED:
       break;
     case json::RequestType::UNKNOWN:
-      DLOG(FATAL)(R"("Unknown request_type="{}")", result.id);
+      DLOG(FATAL)(R"("Unknown request_type="{}")"_fmt, result.id);
       break;
     case json::RequestType::LOGIN: {
       LOG(INFO)("Ready");
@@ -389,7 +389,7 @@ void WebSocket::operator()(
     case json::Method::UNDEFINED:
       break;
     case json::Method::UNKNOWN:
-      DLOG(FATAL)(R"(Unknown method="{}")", notification.method);
+      DLOG(FATAL)(R"(Unknown method="{}")"_fmt, notification.method);
       break;
     case json::Method::TICKER: {
       json::Ticker ticker(value);
@@ -425,42 +425,42 @@ void WebSocket::operator()(
 
 void WebSocket::operator()(const json::Symbols &symbols) {
   _profile.get_symbols([&]() {
-    VLOG(1)(R"(symbols={})", symbols);
+    VLOG(1)(R"(symbols={})"_fmt, symbols);
     _gateway(symbols);
   });
 }
 
 void WebSocket::operator()(const json::TradingBalance &trading_balance) {
   _profile.get_trading_balance([&]() {
-    VLOG(1)(R"(trading_balance={})", trading_balance);
+    VLOG(1)(R"(trading_balance={})"_fmt, trading_balance);
     _gateway(trading_balance);
   });
 }
 
 void WebSocket::operator()(const json::Orders &orders) {
   _profile.get_orders([&]() {
-    VLOG(1)(R"(orders={})", orders);
+    VLOG(1)(R"(orders={})"_fmt, orders);
     _gateway(orders);
   });
 }
 
 void WebSocket::operator()(const json::Order &order) {
   _profile.order([&]() {
-    VLOG(1)(R"(order={})", order);
+    VLOG(1)(R"(order={})"_fmt, order);
     _gateway(order);
   });
 }
 
 void WebSocket::operator()(const json::Ticker &ticker) {
   _profile.ticker([&]() {
-    VLOG(3)(R"(ticker={})", ticker);
+    VLOG(3)(R"(ticker={})"_fmt, ticker);
     _gateway(ticker);
   });
 }
 
 void WebSocket::operator()(const json::Trades &trades, bool snapshot) {
   _profile.trades([&]() {
-    VLOG(3)(R"(trades={}, snapshot={})", trades, snapshot);
+    VLOG(3)(R"(trades={}, snapshot={})"_fmt, trades, snapshot);
     if (snapshot == false)
       _gateway(trades);
   });
@@ -468,7 +468,7 @@ void WebSocket::operator()(const json::Trades &trades, bool snapshot) {
 
 void WebSocket::operator()(const json::Orderbook &orderbook, bool snapshot) {
   _profile.orderbook([&]() {
-    VLOG(3)(R"(orderbook={}, snapshot={})", orderbook, snapshot);
+    VLOG(3)(R"(orderbook={}, snapshot={})"_fmt, orderbook, snapshot);
     _gateway(orderbook, snapshot);
   });
 }

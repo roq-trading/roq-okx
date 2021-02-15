@@ -176,7 +176,7 @@ void Gateway::operator()(const json::Symbols &symbols) {
   size_t count = 0;
   for (auto &item : symbols.data) {
     if (_dispatcher.discard_symbol(item.id)) {
-      VLOG(1)(R"(Drop symbol="{}")", item.id);
+      VLOG(1)(R"(Drop symbol="{}")"_fmt, item.id);
       continue;
     }
     ++count;
@@ -202,10 +202,10 @@ void Gateway::operator()(const json::Symbols &symbols) {
         .expiry_datetime = {},
         .expiry_datetime_utc = {},
     };
-    VLOG(1)(R"(reference_data={})", reference_data);
+    VLOG(1)(R"(reference_data={})"_fmt, reference_data);
     server::create_trace_and_dispatch(trace_info, reference_data, _dispatcher, true);
   }
-  VLOG(1)(R"(- symbols: {} (/{}))", count, symbols.data.size());
+  VLOG(1)(R"(- symbols: {} (/{}))"_fmt, count, symbols.data.size());
   _web_socket.download.check(WebSocketDownload::State::SYMBOLS);
 }
 
@@ -222,10 +222,10 @@ void Gateway::operator()(const json::TradingBalance &trading_balance) {
         .hold = item.reserved,
         .external_account = {},
     };
-    VLOG(1)(R"(funds_update={})", funds_update);
+    VLOG(1)(R"(funds_update={})"_fmt, funds_update);
     server::create_trace_and_dispatch(trace_info, funds_update, _dispatcher, true);
   }
-  VLOG(1)(R"(- currencies: {} (/{}))", count, trading_balance.data.size());
+  VLOG(1)(R"(- currencies: {} (/{}))"_fmt, count, trading_balance.data.size());
   _web_socket.download.check(WebSocketDownload::State::TRADING_BALANCE);
 }
 
@@ -236,7 +236,7 @@ void Gateway::operator()(const json::Orders &orders) {
     // XXX ???
     std::ignore = item;
   }
-  VLOG(1)(R"(- orders: {} (/{}))", count, orders.data.size());
+  VLOG(1)(R"(- orders: {} (/{}))"_fmt, count, orders.data.size());
   _web_socket.download.check(WebSocketDownload::State::ORDERS);
 }
 
@@ -275,7 +275,7 @@ void Gateway::operator()(const json::Trades &trades) {
   if (ROQ_UNLIKELY(success == false)) {
     LOG(FATAL)
     (R"(Insufficient trade array size(s): )"
-     R"(len(trade)={}/{})",
+     R"(len(trade)={}/{})"_fmt,
      trade_length,
      _trade.size());
   }
@@ -308,7 +308,7 @@ void Gateway::operator()(const json::Orderbook &orderbook, bool snapshot) {
     LOG(FATAL)
     (R"(Insufficient bid/ask array size(s): )"
      R"(len(bid)={}/{} )"
-     R"(len(ask)={}/{})",
+     R"(len(ask)={}/{})"_fmt,
      bid_length,
      _bid.size(),
      ask_length,
@@ -340,7 +340,7 @@ void Gateway::update(GatewayStatus gateway_status) {
       .status = _gateway_status,
   };
   server::create_trace_and_dispatch(trace_info, order_manager_status, _dispatcher, true);
-  LOG(INFO)(R"(Update: gateway_status={})", _gateway_status);
+  LOG(INFO)(R"(Update: gateway_status={})"_fmt, _gateway_status);
 }
 
 void Gateway::download_symbols() {

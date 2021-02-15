@@ -12,7 +12,7 @@ namespace okex {
 int Application::main(int, char **) {
   LOG(INFO)("Parse configuration");
   Config config(Flags::config_file());
-  VLOG(1)("config={}", config);
+  VLOG(1)("config={}"_fmt, config);
   LOG(INFO)("Starting the gateway");
   roq::server::Trading<Gateway>(ROQ_PACKAGE_NAME, config, server::RequestIdType::SEQUENTIAL, config)
       .dispatch();
