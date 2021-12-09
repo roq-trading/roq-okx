@@ -1,16 +1,13 @@
-{% set version = environ.get('GIT_DESCRIBE_TAG', '0.0.0') %}
-{% set number = environ.get('GIT_DESCRIBE_NUMBER', 0) %}
-
 package:
   name: roq-okex
-  version: {{ version }}
+  version: {{ GIT_DESCRIBE_TAG }}
 
 source:
-  path: ..
+  git_url: ..
 
 build:
-  skip: True  # [win and osx]
-  number: {{ number }}
+  skip: True  # [win]
+  number: {{ GIT_DESCRIBE_NUMBER }}
   run_exports:
     - {{ pin_subpackage('roq-okex', max_pin='x.x') }}
 
@@ -22,11 +19,16 @@ requirements:
     - make
   host:
     - benchmark
-    - roq-api =={{ version }}
-    - roq-core =={{ version }}
+    - roq-api
+    - roq-core
+    - roq-oss-abseil-cpp
+    - roq-oss-brotli
     - roq-oss-date
     - roq-oss-http-parser
-    - roq-server =={{ version }}
+    - roq-oss-libevent
+    - roq-oss-magic_enum
+    - roq-oss-tomlplusplus
+    - roq-server
 
 about:
   home: https://roq-trading.com
