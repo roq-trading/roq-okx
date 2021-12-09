@@ -27,20 +27,18 @@ endif()
 
 set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
 
+
+# prefer static libraries
+
+set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
+
 # c++
 
-option(TEST_CPP20 "Enable c++20" OFF)
-
-if(TEST_CPP20)
-  set(CMAKE_CXX_STANDARD 20)
-else(TEST_CPP20)
-  set(CMAKE_CXX_STANDARD 17)
-endif(TEST_CPP20)
-
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
-set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+if (CMAKE_BUILD_TYPE STREQUAL "Release")
+  message("Setting default visibility to hidden")
+  set(CMAKE_CXX_VISIBILITY_PRESET hidden)
+  set(CMAKE_VISIBILITY_INLINES_HIDDEN 1)
+endif (CMAKE_BUILD_TYPE STREQUAL "Release")
 
 # filesystem
 
@@ -56,8 +54,11 @@ find_package(roq-api REQUIRED)
 find_package(roq-core REQUIRED)
 find_package(roq-logging REQUIRED)
 find_package(roq-server REQUIRED)
-find_package(rt REQUIRED)
 find_package(uuid REQUIRED)
+
+if(UNIX AND NOT APPLE)
+  find_package(rt REQUIRED)
+endif()
 
 find_program(CLANG_FORMAT clang-format REQUIRED)
 
@@ -99,10 +100,3 @@ install(FILES "share/config.toml" DESTINATION "${CMAKE_INSTALL_DATADIR}/roq-okex
 
 install(FILES "${CMAKE_SOURCE_DIR}/CHANGELOG.md"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/${PROJECT_NAME}")
-
-# debian
-
-set(CPACK_GENERATOR "DEB")
-set(CPACK_DEBIAN_PACKAGE_MAINTAINER "thraneh@gmail.com")
-set(CPACK_DEBIAN_PACKAGE_DEPENDS "roq-api, roq-logging, roq-server")
-include(CPack)
