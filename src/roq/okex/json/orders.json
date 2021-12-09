@@ -1,7 +1,9 @@
 {
 "name": "Orders",
-"type": "array",
+"type": "comp",
 "values": [
-	{ "name": "data", "type": "roq::span<Order>" }
+	{ "name": "code", "type": "int32_t" },
+	{ "name": "msg", "type": "std::string_view", "optional": true },
+	{ "name": "data", "type": "OrdersData" }
 ]
 }

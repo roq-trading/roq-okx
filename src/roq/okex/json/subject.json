@@ -1,0 +1,11 @@
+{
+"name": "Subject",
+"type": "enum",
+"values": [
+	{ "raw": "trade.snapshot", "name": "trade_snapshot" },
+	{ "raw": "trade.l2update", "name": "trade_l2update" },
+	{ "raw": "trade.ticker", "name": "trade_ticker" },
+	{ "raw": "account.balance", "name": "account_balance" },
+	{ "name": "orderChange" }
+]
+}

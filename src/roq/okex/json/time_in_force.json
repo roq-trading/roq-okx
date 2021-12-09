@@ -3,9 +3,8 @@
 "type": "enum",
 "values": [
 	{ "name": "GTC" },
+	{ "name": "GTT" },
 	{ "name": "IOC" },
-	{ "name": "FOK" },
-	{ "name": "DAY" },
-	{ "name": "GTD" }
+	{ "name": "FOK" }
 ]
 }

@@ -1,0 +1,9 @@
+{
+"name": "RelationEvent",
+"type": "enum",
+"values": [
+	{ "raw": "trade.hold", "name": "trade_hold" },
+	{ "raw": "trade.setted", "name": "trade_setted" },
+	{ "raw": "trade.other", "name": "trade_other" }
+]
+}

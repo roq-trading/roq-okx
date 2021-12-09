@@ -1,0 +1,8 @@
+{
+"name": "Liquidity",
+"type": "enum",
+"values": [
+	{ "name": "maker" },
+	{ "name": "taker" }
+]
+}

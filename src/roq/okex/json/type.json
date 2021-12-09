@@ -2,9 +2,10 @@
 "name": "Type",
 "type": "enum",
 "values": [
-	{ "name": "limit" },
-	{ "name": "market" },
-	{ "name": "stopLimit" },
-	{ "name": "stopMarket" }
+	{ "name": "welcome" },
+	{ "name": "error" },
+	{ "name": "pong" },
+	{ "name": "ack" },
+	{ "name": "message" }
 ]
 }

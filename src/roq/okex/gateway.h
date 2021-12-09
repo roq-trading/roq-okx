@@ -1,113 +1,105 @@
-/* Copyright (c) 2017-2021, Hans Erik Thrane */
+/* Copyright (c) 2017-2022, Hans Erik Thrane */
 
 #pragma once
 
+#include <absl/container/flat_hash_map.h>
+
+#include <memory>
 #include <string>
+#include <utility>
 #include <vector>
 
-#include "roq/download.h"
 #include "roq/server.h"
 
-#include "roq/core/ssl/ssl.h"
-
-#include "roq/core/event/base.h"
-#include "roq/core/event/dns_base.h"
+#include "roq/core/io/context.h"
 
 #include "roq/okex/config.h"
-#include "roq/okex/random.h"
+#include "roq/okex/drop_copy.h"
+#include "roq/okex/market_data.h"
+#include "roq/okex/order_entry.h"
 #include "roq/okex/rest.h"
-#include "roq/okex/web_socket.h"
-
-#include "roq/okex/web_socket_state.h"
-
-#include "roq/okex/json/order.h"
-#include "roq/okex/json/orders.h"
-#include "roq/okex/json/symbols.h"
-#include "roq/okex/json/trading_balance.h"
+#include "roq/okex/security.h"
+#include "roq/okex/shared.h"
 
 namespace roq {
 namespace okex {
 
-class Gateway final : public server::Handler {
+class Gateway final : public server::Handler,
+                      public Rest::Handler,
+                      public OrderEntry::Handler,
+                      public DropCopy::Handler,
+                      public MarketData::Handler {
  public:
-  Gateway(server::Dispatcher &dispatcher, const Config &config);
+  Gateway(server::Dispatcher &, const Config &);
 
+ protected:
   void operator()(const Event<Start> &) override;
   void operator()(const Event<Stop> &) override;
   void operator()(const Event<Timer> &) override;
-  void operator()(const Event<Connection> &) override;
+  void operator()(const Event<Connected> &) override;
+  void operator()(const Event<Disconnected> &) override;
 
-  void operator()(
-      const Event<CreateOrder> &event,
+  uint16_t operator()(
+      const Event<CreateOrder> &, const oms::Order &, const std::string_view &request_id) override;
+  uint16_t operator()(
+      const Event<ModifyOrder> &,
+      const oms::Order &,
       const std::string_view &request_id,
-      uint32_t gateway_order_id) override;
-  void operator()(
-      const Event<ModifyOrder> &event,
+      const std::string_view &previous_request_id) override;
+  uint16_t operator()(
+      const Event<CancelOrder> &,
+      const oms::Order &,
       const std::string_view &request_id,
-      const server::OMS_Order &order) override;
-  void operator()(
-      const Event<CancelOrder> &event,
-      const std::string_view &request_id,
-      const server::OMS_Order &order) override;
+      const std::string_view &previous_request_id) override;
 
-  void operator()(metrics::Writer &writer) override;
+  uint16_t operator()(const Event<CancelAllOrders> &, const std::string_view &request_id) override;
 
-  // rest
-  void operator()(const Rest &);
+  void operator()(metrics::Writer &) override;
 
-  // web socket
-  void operator()(const WebSocket &);
-  // ... request
-  void operator()(const json::Symbols &symbols);
-  void operator()(const json::TradingBalance &trading_balance);
-  void operator()(const json::Orders &orders);
-  void operator()(const json::Order &order);
-  // ... notification
-  void operator()(const json::Ticker &ticker);
-  void operator()(const json::Trades &trades);
-  void operator()(const json::Orderbook &orderbook, bool snapshot);
+  // many
+
+  void operator()(server::Trace<StreamStatus> const &) override;
+  void operator()(server::Trace<ExternalLatency> const &) override;
+  void operator()(server::Trace<ReferenceData> const &, bool is_last) override;
+  void operator()(server::Trace<MarketStatus> const &, bool is_last) override;
+  void operator()(server::Trace<TopOfBook> const &, bool is_last) override;
+  void operator()(server::Trace<MarketByPriceUpdate> const &, bool is_last, bool refresh) override;
+  void operator()(server::Trace<TradeSummary> const &, bool is_last) override;
+  void operator()(server::Trace<StatisticsUpdate> const &, bool is_last) override;
+  void operator()(const server::Trace<TradeUpdate> &, bool is_last, uint8_t user_id) override;
+  void operator()(server::Trace<FundsUpdate> const &, bool is_last) override;
+
+  void operator()(Rest::PublicToken const &) override;
+  void operator()(Rest::SymbolsUpdate &) override;
+
+  void operator()(OrderEntry::PrivateToken const &) override;
+
+  // utilities
+
+  OrderEntry &get_order_entry(const std::string_view &account);
 
  private:
-  using WebSocketDownload = server::Download<WebSocketState>;
-
-  int32_t download(WebSocketDownload::State state);
-
- private:
-  void update(GatewayStatus gateway_status);
-
-  void download_symbols();
-  void download_trading_balance();
-  void download_orders();
-
-  void subscribe_market_data();
-
- private:
-  server::Dispatcher &_dispatcher;
+  server::Dispatcher &dispatcher_;
   // config
-  const std::string _account;
-  const std::string _access_key;
-  // authentication
-  Random _random;
-  // async
-  core::event::Base _base;
-  core::event::DNSBase _dns_base;
-  // crypto
-  core::ssl::Context _ssl_context;
-  // connections
-  struct {
-    WebSocket connection;
-    WebSocketDownload download;
-  } _web_socket;
-  struct {
-    Rest connection;
-  } _rest;
-  // download (web socket)
-  std::vector<std::string> _symbols;
-  // market data + order manager
-  GatewayStatus _gateway_status = GatewayStatus::DISCONNECTED;
-  // market data
-  core::page_aligned_vector<MBPUpdate> _bid, _ask;
-  core::page_aligned_vector<Trade> _trade;
+  const std::string master_account_;
+  // security
+  absl::flat_hash_map<std::string, std::unique_ptr<Security>> security_;
+  // io
+  core::io::Context context_;
+  // shared
+  Shared shared_;
+  // seed
+  uint16_t stream_id_ = {};
+  // streams
+  Rest rest_;
+  absl::flat_hash_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
+  absl::flat_hash_map<std::string, std::unique_ptr<DropCopy>> drop_copy_;
+  std::vector<std::unique_ptr<MarketData>> market_data_;
+  // websocket uri's
+  std::string public_ws_uri_;
+  std::string public_ws_query_;
+  std::chrono::nanoseconds public_ws_ping_frequency_;
+  std::string private_ws_uri_;
 };
 
 }  // namespace okex

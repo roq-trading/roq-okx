@@ -1,0 +1,23 @@
+{
+"name": "OrderChangeData",
+"type": "comp",
+"values": [
+	{ "name": "symbol", "type": "std::string_view" },
+	{ "name": "orderType", "type": "OrderType" },
+	{ "name": "side", "type": "Side" },
+	{ "name": "orderTime", "type": "std::chrono::nanoseconds" },
+	{ "name": "size", "type": "double" },
+	{ "name": "orderId", "type": "std::string_view" },
+	{ "name": "filledSize", "type": "double" },
+	{ "name": "price", "type": "double" },
+	{ "name": "type", "type": "OrderChangeType" },
+	{ "name": "remainSize", "type": "double" },
+	{ "name": "status", "type": "OrderStatus" },
+	{ "name": "ts", "type": "std::chrono::nanoseconds" },
+	{ "name": "clientOid", "type": "std::string_view" },
+	{ "name": "liquidity", "type": "Liquidity" },
+	{ "name": "matchPrice", "type": "double" },
+	{ "name": "matchSize", "type": "double" },
+	{ "name": "tradeId", "type": "std::string_view" }
+]
+}

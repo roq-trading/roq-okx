@@ -1,0 +1,10 @@
+{
+"name": "Level2Data",
+"type": "comp",
+"values": [
+	{ "name": "sequenceStart", "type": "int64_t" },
+	{ "name": "sequenceEnd", "type": "int64_t" },
+	{ "name": "symbol", "type": "std::string_view" },
+	{ "name": "changes", "type": "Level2DataChanges" }
+]
+}

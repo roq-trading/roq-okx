@@ -1,0 +1,18 @@
+{
+"name": "Currency",
+"type": "item",
+"values": [
+	{ "name": "currency", "type": "std::string_view" },
+	{ "name": "name", "type": "std::string_view" },
+	{ "name": "fullName", "type": "std::string_view" },
+	{ "name": "precision", "type": "int32_t" },
+	{ "name": "confirms", "type": "int32_t" },
+	{ "name": "contractAddress", "type": "std::string_view" },
+	{ "name": "withdrawalMinSize", "type": "std::string_view" },
+	{ "name": "withdrawalMinFee", "type": "std::string_view" },
+	{ "name": "isWithdrawEnabled", "type": "bool" },
+	{ "name": "isDepositEnabled", "type": "bool" },
+	{ "name": "isMarginEnabled", "type": "bool" },
+	{ "name": "isDebitEnabled", "type": "bool" }
+]
+}

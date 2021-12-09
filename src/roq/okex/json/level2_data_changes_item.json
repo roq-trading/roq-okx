@@ -1,0 +1,9 @@
+{
+"name": "Level2DataChangesItem",
+"type": "array_item",
+"values": [
+	{ "name": "price", "type": "double" },
+	{ "name": "size", "type": "double" },
+	{ "name": "sequence", "type": "int64_t" }
+]
+}

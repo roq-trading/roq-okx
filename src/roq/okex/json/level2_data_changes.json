@@ -1,0 +1,8 @@
+{
+"name": "Level2DataChanges",
+"type": "comp",
+"values": [
+	{ "name": "bids", "type": "roq::span<Level2DataChangesItem>" },
+	{ "name": "asks", "type": "roq::span<Level2DataChangesItem>" }
+]
+}

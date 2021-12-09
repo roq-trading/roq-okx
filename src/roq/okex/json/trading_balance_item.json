@@ -1,9 +1,0 @@
-{
-"name": "TradingBalanceItem",
-"type": "item",
-"values": [
-	{ "name": "currency", "type": "std::string_view" },
-	{ "name": "available", "type": "double" },
-	{ "name": "reserved", "type": "double" }
-]
-}

@@ -1,0 +1,11 @@
+{
+"name": "OrderEntryState",
+"type": "enum",
+"values": [
+	{ "name": "private_token" },
+	{ "name": "accounts" },
+	{ "name": "orders" },
+	{ "name": "fills" },
+	{ "name": "done" }
+]
+}

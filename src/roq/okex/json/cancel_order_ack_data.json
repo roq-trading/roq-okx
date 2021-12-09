@@ -1,0 +1,7 @@
+{
+"name": "CancelOrderAckData",
+"type": "comp",
+"values": [
+	{ "name": "cancelledOrderIds", "type": "roq::span<std::string_view>" }
+]
+}

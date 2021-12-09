@@ -1,372 +1,284 @@
-/* Copyright (c) 2017-2021, Hans Erik Thrane */
+/* Copyright (c) 2017-2022, Hans Erik Thrane */
 
 #include "roq/okex/gateway.h"
 
 #include <algorithm>
+#include <cctype>
 #include <limits>
-#include <utility>
 
+#include "roq/logging.h"
+
+#include "roq/core/charconv.h"
+#include "roq/core/clock.h"
 #include "roq/core/utils.h"
 
 #include "roq/okex/flags.h"
 
 #include "roq/okex/json/utils.h"
 
+using namespace std::literals;
+
 namespace roq {
 namespace okex {
 
-template <typename C, typename T>
-static bool mbp_update(C &data, size_t &offset, const T &item) {
-  auto &obj = data[offset];
-  new (&obj) MBPUpdate{
-      .price = item.price,
-      .quantity = item.size,
-  };
-  ++offset;
-  return offset < data.size();
+namespace {
+static auto create_security(const Config &config) {
+  absl::flat_hash_map<std::string, std::unique_ptr<Security>> result;
+  for (auto &[_, iter] : config.accounts) {
+    result.try_emplace(iter.name, std::make_unique<Security>(config, iter.name));
+  }
+  return result;
 }
 
-template <typename C, typename T>
-static bool trade_update(C &data, size_t &offset, const T &item) {
-  auto &obj = data[offset];
-  new (&obj) Trade{
-      .side = json::map(item.side),
-      .price = item.price,
-      .quantity = item.quantity,
-      .trade_id = {},
-  };
-  // XXX write tradeid
-  ++offset;
-  return offset < data.size();
+template <typename T>
+static auto create_order_entry(
+    Gateway &gateway,
+    core::io::Context &context,
+    uint16_t &stream_id,
+    T &security,
+    Shared &shared) {
+  absl::flat_hash_map<std::string, std::unique_ptr<OrderEntry>> result;
+  for (auto &iter : security) {
+    result.try_emplace(
+        iter.first,
+        std::make_unique<OrderEntry>(gateway, context, ++stream_id, *iter.second, shared));
+  }
+  return result;
 }
+
+template <typename T>
+static auto create_drop_copy(T &security) {
+  absl::flat_hash_map<std::string, std::unique_ptr<DropCopy>> result;
+  for (auto &iter : security) {
+    result.try_emplace(iter.first, nullptr);
+  }
+  return result;
+}
+}  // namespace
 
 Gateway::Gateway(server::Dispatcher &dispatcher, const Config &config)
-    : _dispatcher(dispatcher), _account(config.get_account()), _access_key(config.get_access_key()),
-      _random(config.get_access_secret()), _dns_base(_base, true),
-      _web_socket{
-          .connection =
-              {
-                  *this,
-                  config,
-                  _random,
-                  _base,
-                  _dns_base,
-                  _ssl_context,
-              },
-          .download = WebSocketDownload(
-              std::chrono::seconds{Flags::download_timeout_secs()},
-              [this](auto state) { return download(state); }),
-      },
-      _rest{
-          .connection =
-              {
-                  *this,
-                  config,
-                  _random,
-                  _base,
-                  _dns_base,
-                  _ssl_context,
-              },
-      },
-      _bid(Flags::cache_mbp_max_depth()), _ask(Flags::cache_mbp_max_depth()),
-      _trade(Flags::max_trades()) {
-  LOG_IF(WARNING, Flags::cancel_on_disconnect() == false)
-  ("Orders will *NOT* be cancelled on disconnect");
+    : dispatcher_(dispatcher), master_account_(config.get_master_account()),
+      security_(create_security(config)), shared_(dispatcher),
+      rest_(*this, context_, ++stream_id_, *security_[master_account_], shared_),
+      order_entry_(create_order_entry(*this, context_, stream_id_, security_, shared_)),
+      drop_copy_(create_drop_copy(security_)) {
 }
 
 void Gateway::operator()(const Event<Start> &event) {
-  LOG(INFO)("Starting the gateway...");
-  _web_socket.connection(event);
-  _rest.connection(event);
+  log::info("Starting the gateway..."sv);
+  rest_(event);
+  for (auto &[_, order_entry] : order_entry_)
+    (*order_entry)(event);
+  for (auto &[_, drop_copy] : drop_copy_)
+    if (static_cast<bool>(drop_copy))
+      (*drop_copy)(event);
+  assert(std::empty(market_data_));
+  // order_entry_.download.begin();
 }
 
 void Gateway::operator()(const Event<Stop> &event) {
-  LOG(INFO)("Stopping the gateway...");
-  _rest.connection(event);
-  _web_socket.connection(event);
+  log::info("Stopping the gateway..."sv);
+  for (auto &iter : market_data_)
+    (*iter)(event);
+  for (auto &[_, drop_copy] : drop_copy_)
+    if (static_cast<bool>(drop_copy))
+      (*drop_copy)(event);
+  for (auto &[_, order_entry] : order_entry_)
+    (*order_entry)(event);
+  rest_(event);
 }
 
 void Gateway::operator()(const Event<Timer> &event) {
-  _web_socket.connection(event);
-  _rest.connection(event);
-  // download
-  /*
-  if (_web_socket.download.has_expired()) {
-    LOG(WARNING)("WebSocket download has timed out");
-    _web_socket.download.reset();
-    _web_socket.connection.close();
+  rest_(event);
+  for (auto &[_, order_entry] : order_entry_)
+    (*order_entry)(event);
+  for (auto &[_, drop_copy] : drop_copy_)
+    if (static_cast<bool>(drop_copy))
+      (*drop_copy)(event);
+  for (auto &iter : market_data_)
+    (*iter)(event);
+  context_.dispatch(true);
+}
+
+void Gateway::operator()(const Event<Connected> &) {
+}
+
+void Gateway::operator()(const Event<Disconnected> &event) {
+  const auto &[message_info, disconnected] = event;
+  log::warn(
+      R"(Disconnected: source="{}", order_cancel_policy={})"sv,
+      message_info.source_name,
+      disconnected.order_cancel_policy);
+  switch (disconnected.order_cancel_policy) {
+    case OrderCancelPolicy::UNDEFINED:
+      break;
+    case OrderCancelPolicy::MANAGED_ORDERS:
+      log::warn("*** CANCEL MANAGED ORDERS NOT IMPLEMENTED ***"sv);
+      break;
+    case OrderCancelPolicy::BY_ACCOUNT:
+      log::warn("*** CANCEL ALL ACCOUNT ORDERS ***"sv);
+      for (auto &[account, order_entry] : order_entry_) {
+        if (dispatcher_.can_user_trade_account(account, message_info.source)) {
+          log::warn(R"(- account="{}")"sv, account);
+          CancelAllOrders cancel_all_orders{
+              .account = account,
+          };
+          Event event(message_info, cancel_all_orders);
+          (*order_entry)(event, {});
+        }
+      }
   }
-  */
-  _base.loop(EVLOOP_NONBLOCK);
 }
 
-void Gateway::operator()(const Event<Connection> &) {
+void Gateway::operator()(const server::Trace<StreamStatus> &event) {
+  dispatcher_(event);
+}
+
+void Gateway::operator()(const server::Trace<ExternalLatency> &event) {
+  dispatcher_(event);
+}
+
+void Gateway::operator()(const server::Trace<ReferenceData> &event, bool is_last) {
+  dispatcher_(event, is_last);
+}
+
+void Gateway::operator()(const server::Trace<MarketStatus> &event, bool is_last) {
+  dispatcher_(event, is_last);
+}
+
+void Gateway::operator()(const server::Trace<TopOfBook> &event, bool is_last) {
+  dispatcher_(event, is_last);
 }
 
 void Gateway::operator()(
-    const Event<CreateOrder> &event,
-    const std::string_view &request_id,
-    [[maybe_unused]] uint32_t gateway_order_id) {
-  _web_socket.connection.new_order(event.value, request_id);
+    const server::Trace<MarketByPriceUpdate> &event, bool is_last, bool refresh) {
+  dispatcher_(
+      event,
+      is_last,
+      refresh,
+      shared_.final_bids,
+      shared_.final_asks,
+      []([[maybe_unused]] auto &market_by_price) {});
 }
 
-void Gateway::operator()(
+void Gateway::operator()(const server::Trace<TradeSummary> &event, bool is_last) {
+  dispatcher_(event, is_last);
+}
+
+void Gateway::operator()(const server::Trace<StatisticsUpdate> &event, bool is_last) {
+  dispatcher_(event, is_last);
+}
+
+void Gateway::operator()(const server::Trace<TradeUpdate> &event, bool is_last, uint8_t user_id) {
+  dispatcher_(event, is_last, user_id);
+}
+
+void Gateway::operator()(const server::Trace<FundsUpdate> &event, bool is_last) {
+  dispatcher_(event, is_last);
+}
+
+void Gateway::operator()(Rest::PublicToken const &public_token) {
+  public_ws_uri_ = public_token.uri;
+  public_ws_query_ = public_token.query;
+  public_ws_ping_frequency_ = public_token.ping_frequency;
+}
+
+void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
+  auto &symbols = symbols_update.symbols;
+  for (auto &iter : market_data_) {
+    if (std::empty(symbols))
+      break;
+    (*iter).update_subscriptions(symbols);
+  }
+  for (;;) {
+    if (std::empty(symbols))
+      break;
+    log::info("Create market-data (public channel)"sv);
+    assert(!std::empty(public_ws_uri_));
+    assert(public_ws_ping_frequency_.count() > 0);
+    auto market_data = std::make_unique<MarketData>(
+        *this,
+        context_,
+        ++stream_id_,
+        shared_,
+        public_ws_uri_,
+        public_ws_query_,
+        public_ws_ping_frequency_);
+    (*market_data).update_subscriptions(symbols);
+    MessageInfo message_info;  // XXX something sensible
+    Start start;
+    create_event_and_dispatch(*market_data, message_info, start);
+    market_data_.emplace_back(std::move(market_data));
+  }
+}
+
+void Gateway::operator()(OrderEntry::PrivateToken const &private_token) {
+  auto account = private_token.account;
+  auto &drop_copy = drop_copy_[account];
+  if (!drop_copy) {
+    auto tmp = std::make_unique<DropCopy>(
+        *this,
+        context_,
+        ++stream_id_,
+        *security_[account],
+        shared_,
+        private_token.uri,
+        private_token.query,
+        private_token.ping_frequency);
+    MessageInfo message_info;  // XXX something sensible
+    Start start;
+    create_event_and_dispatch(*tmp, message_info, start);
+    drop_copy = std::move(tmp);
+  }
+}
+
+uint16_t Gateway::operator()(
+    const Event<CreateOrder> &event, const oms::Order &order, const std::string_view &request_id) {
+  assert(!std::empty(event.value.account));
+  return get_order_entry(event.value.account)(event, order, request_id);
+}
+
+uint16_t Gateway::operator()(
     const Event<ModifyOrder> &event,
+    const oms::Order &order,
     const std::string_view &request_id,
-    const server::OMS_Order &order) {
-  _web_socket.connection.cancel_replace_order(event.value, request_id, order);
+    const std::string_view &previous_request_id) {
+  assert(!std::empty(event.value.account));
+  assert(event.value.account == order.account);
+  return get_order_entry(event.value.account)(event, order, request_id, previous_request_id);
 }
 
-void Gateway::operator()(
-    [[maybe_unused]] const Event<CancelOrder> &event,
-    [[maybe_unused]] const std::string_view &request_id,
-    const server::OMS_Order &order) {
-  _web_socket.connection.cancel_order(order);
+uint16_t Gateway::operator()(
+    const Event<CancelOrder> &event,
+    const oms::Order &order,
+    const std::string_view &request_id,
+    const std::string_view &previous_request_id) {
+  assert(!std::empty(event.value.account));
+  assert(event.value.account == order.account);
+  return get_order_entry(event.value.account)(event, order, request_id, previous_request_id);
+}
+
+uint16_t Gateway::operator()(
+    const Event<CancelAllOrders> &event, const std::string_view &request_id) {
+  assert(!std::empty(event.value.account));
+  return get_order_entry(event.value.account)(event, request_id);
 }
 
 void Gateway::operator()(metrics::Writer &writer) {
-  _rest.connection(writer);
-  _web_socket.connection(writer);
+  for (auto &[_, order_entry] : order_entry_)
+    (*order_entry)(writer);
+  for (auto &[_, drop_copy] : drop_copy_)
+    if (static_cast<bool>(drop_copy))
+      (*drop_copy)(writer);
+  for (auto &iter : market_data_)
+    (*iter)(writer);
 }
 
-// rest
-
-void Gateway::operator()(const Rest &) {
-}
-
-// web socket
-
-int32_t Gateway::download(WebSocketDownload::State state) {
-  if (_web_socket.connection.ready() == false)
-    return -1;
-  switch (state) {
-    case WebSocketDownload::State::UNDEFINED:
-      assert(false);
-      break;
-    case WebSocketDownload::State::SYMBOLS:
-      download_symbols();
-      return 1;
-    case WebSocketDownload::State::TRADING_BALANCE:
-      download_trading_balance();
-      return 1;
-    case WebSocketDownload::State::ORDERS:
-      download_orders();
-      return 1;
-    case WebSocketDownload::State::DONE:
-      update(GatewayStatus::READY);
-      subscribe_market_data();
-      return 0;
-  }
-  assert(false);
-  return 0;
-}
-
-void Gateway::operator()(const WebSocket &) {
-  if (_web_socket.connection.ready()) {
-    _web_socket.download.begin();
-  } else {
-    _web_socket.download.reset();
-    _symbols.clear();
-  }
-}
-
-void Gateway::operator()(const json::Symbols &symbols) {
-  assert(_symbols.empty());
-  server::TraceInfo trace_info;  // XXX
-  size_t count = 0;
-  for (auto &item : symbols.data) {
-    if (_dispatcher.discard_symbol(item.id)) {
-      VLOG(1)(R"(Drop symbol="{}")"_fmt, item.id);
-      continue;
-    }
-    ++count;
-    _symbols.push_back(std::string(item.id));
-    ReferenceData reference_data{
-        .exchange = Flags::exchange(),
-        .symbol = item.id,
-        .description = {},
-        .security_type = SecurityType::UNDEFINED,
-        .currency = item.quote_currency,
-        .settlement_currency = item.base_currency,
-        .commission_currency = item.fee_currency,
-        .tick_size = item.tick_size,
-        .multiplier = NaN,
-        .min_trade_vol = item.quantity_increment,
-        .option_type = OptionType::UNDEFINED,
-        .strike_currency = {},
-        .strike_price = NaN,
-        .underlying = {},
-        .time_zone = {},
-        .issue_date = {},
-        .settlement_date = {},
-        .expiry_datetime = {},
-        .expiry_datetime_utc = {},
-    };
-    VLOG(1)(R"(reference_data={})"_fmt, reference_data);
-    server::create_trace_and_dispatch(trace_info, reference_data, _dispatcher, true);
-  }
-  VLOG(1)(R"(- symbols: {} (/{}))"_fmt, count, symbols.data.size());
-  _web_socket.download.check(WebSocketDownload::State::SYMBOLS);
-}
-
-void Gateway::operator()(const json::TradingBalance &trading_balance) {
-  server::TraceInfo trace_info;  // XXX
-  size_t count = 0;
-  for (auto &item : trading_balance.data) {
-    // XXX filter?
-    ++count;
-    FundsUpdate funds_update{
-        .account = _account,
-        .currency = item.currency,
-        .balance = item.available,
-        .hold = item.reserved,
-        .external_account = {},
-    };
-    VLOG(1)(R"(funds_update={})"_fmt, funds_update);
-    server::create_trace_and_dispatch(trace_info, funds_update, _dispatcher, true);
-  }
-  VLOG(1)(R"(- currencies: {} (/{}))"_fmt, count, trading_balance.data.size());
-  _web_socket.download.check(WebSocketDownload::State::TRADING_BALANCE);
-}
-
-void Gateway::operator()(const json::Orders &orders) {
-  size_t count = 0;
-  for (auto &item : orders.data) {
-    ++count;
-    // XXX ???
-    std::ignore = item;
-  }
-  VLOG(1)(R"(- orders: {} (/{}))"_fmt, count, orders.data.size());
-  _web_socket.download.check(WebSocketDownload::State::ORDERS);
-}
-
-void Gateway::operator()(const json::Order &) {
-}
-
-void Gateway::operator()(const json::Ticker &ticker) {
-  server::TraceInfo trace_info;  // XXX
-  TopOfBook top_of_book{
-      .exchange = Flags::exchange(),
-      .symbol = ticker.symbol,
-      .layer =
-          {
-              .bid_price = ticker.bid,
-              .bid_quantity = NaN,
-              .ask_price = ticker.ask,
-              .ask_quantity = NaN,
-          },
-      .snapshot = false,
-      .exchange_time_utc = ticker.timestamp,
-  };
-  server::create_trace_and_dispatch(trace_info, top_of_book, _dispatcher, true);
-}
-
-void Gateway::operator()(const json::Trades &trades) {
-  server::TraceInfo trace_info;  // XXX
-  std::chrono::nanoseconds timestamp = {};
-  size_t trade_length = 0;
-  bool success = true;
-  for (auto &item : trades.data) {
-    if (success == false)
-      break;
-    success = trade_update(_trade, trade_length, item);
-    timestamp = std::max(timestamp, item.timestamp);
-  }
-  if (ROQ_UNLIKELY(success == false)) {
-    LOG(FATAL)
-    (R"(Insufficient trade array size(s): )"
-     R"(len(trade)={}/{})"_fmt,
-     trade_length,
-     _trade.size());
-  }
-  if (trade_length > 0) {
-    TradeSummary trade_summary{
-        .exchange = Flags::exchange(),
-        .symbol = trades.symbol,
-        .trades = {_trade.data(), trade_length},
-        .exchange_time_utc = timestamp,
-    };
-    server::create_trace_and_dispatch(trace_info, trade_summary, _dispatcher, true);
-  }
-}
-
-void Gateway::operator()(const json::Orderbook &orderbook, bool snapshot) {
-  server::TraceInfo trace_info;  // XXX
-  size_t bid_length = 0, ask_length = 0;
-  bool success = true;
-  for (auto &item : orderbook.bid) {
-    if (success == false)
-      break;
-    success = mbp_update(_bid, bid_length, item);
-  }
-  for (auto &item : orderbook.ask) {
-    if (success == false)
-      break;
-    success = mbp_update(_ask, ask_length, item);
-  }
-  if (ROQ_UNLIKELY(success == false)) {
-    LOG(FATAL)
-    (R"(Insufficient bid/ask array size(s): )"
-     R"(len(bid)={}/{} )"
-     R"(len(ask)={}/{})"_fmt,
-     bid_length,
-     _bid.size(),
-     ask_length,
-     _ask.size());
-  }
-  if ((bid_length + ask_length) > 0) {
-    MarketByPriceUpdate market_by_price_update{
-        .exchange = Flags::exchange(),
-        .symbol = orderbook.symbol,
-        .bids = {_bid.data(), bid_length},
-        .asks = {_ask.data(), ask_length},
-        .snapshot = snapshot,
-        .exchange_time_utc = orderbook.timestamp};
-    server::create_trace_and_dispatch(trace_info, market_by_price_update, _dispatcher, true);
-  }
-}
-
-void Gateway::update(GatewayStatus gateway_status) {
-  if (gateway_status == _gateway_status)
-    return;
-  _gateway_status = gateway_status;
-  server::TraceInfo trace_info;
-  MarketDataStatus market_data_status{
-      .status = _gateway_status,
-  };
-  server::create_trace_and_dispatch(trace_info, market_data_status, _dispatcher, false);
-  OrderManagerStatus order_manager_status{
-      .account = _account,
-      .status = _gateway_status,
-  };
-  server::create_trace_and_dispatch(trace_info, order_manager_status, _dispatcher, true);
-  LOG(INFO)(R"(Update: gateway_status={})"_fmt, _gateway_status);
-}
-
-void Gateway::download_symbols() {
-  _web_socket.connection.get_symbols();
-}
-
-void Gateway::download_trading_balance() {
-  _web_socket.connection.get_trading_balance();
-}
-
-void Gateway::download_orders() {
-  _web_socket.connection.get_orders();
-}
-
-void Gateway::subscribe_market_data() {
-  assert(_gateway_status == GatewayStatus::READY);
-  if (_symbols.empty()) {
-    LOG(WARNING)("Can't subscribe market data, reason: NO SYMBOLS");
-    return;
-  }
-  LOG(INFO)("Subscribe market data");
-  for (auto &item : _symbols) {
-    _web_socket.connection.subscribe_ticker(item);
-    _web_socket.connection.subscribe_trades(item);
-    _web_socket.connection.subscribe_orderbook(item);
-  }
+OrderEntry &Gateway::get_order_entry(const std::string_view &account) {
+  auto iter = order_entry_.find(account);
+  if (iter != std::end(order_entry_))
+    return *(*iter).second;
+  throw RuntimeErrorException(R"(Unknown account="{}")"sv, account);
 }
 
 }  // namespace okex

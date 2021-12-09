@@ -1,0 +1,10 @@
+{
+"name": "SelfTradePrevention",
+"type": "enum",
+"values": [
+	{ "raw": "DC", "name": "DecrementAndCancel" },
+	{ "raw": "CO", "name": "CancelOldest" },
+	{ "raw": "CN", "name": "CancelNewest" },
+	{ "raw": "CB", "name": "CancelBoth" }
+]
+}

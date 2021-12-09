@@ -1,0 +1,8 @@
+{
+"name": "TradeType",
+"type": "enum",
+"values": [
+	{ "name": "TRADE" },
+	{ "name": "MARGIN_TRADE" }
+]
+}

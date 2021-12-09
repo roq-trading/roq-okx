@@ -1,0 +1,10 @@
+{
+"name": "Snapshot",
+"type": "comp",
+"values": [
+	{ "name": "type", "type": "Type" },
+	{ "name": "subject", "type": "Subject" },
+	{ "name": "topic", "type": "std::string_view" },
+	{ "name": "data", "type": "SnapshotData" }
+]
+}

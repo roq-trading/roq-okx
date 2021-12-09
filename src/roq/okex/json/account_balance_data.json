@@ -1,0 +1,17 @@
+{
+"name": "AccountBalanceData",
+"type": "comp",
+"values": [
+	{ "name": "accountId", "type": "std::string_view" },
+	{ "name": "total", "type": "double" },
+	{ "name": "holdChange", "type": "double" },
+	{ "name": "relationEvent", "type": "RelationEvent" },
+	{ "name": "available", "type": "double" },
+	{ "name": "currency", "type": "std::string_view" },
+	{ "name": "relationContext", "type": "RelationContext" },
+	{ "name": "availableChange", "type": "double" },
+	{ "name": "time", "type": "std::chrono::milliseconds" },
+	{ "name": "hold", "type": "double" },
+	{ "name": "relationEventId", "type": "std::string_view" }
+]
+}

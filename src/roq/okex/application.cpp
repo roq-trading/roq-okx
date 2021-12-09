@@ -1,4 +1,4 @@
-/* Copyright (c) 2017-2021, Hans Erik Thrane */
+/* Copyright (c) 2017-2022, Hans Erik Thrane */
 
 #include "roq/okex/application.h"
 
@@ -6,16 +6,17 @@
 #include "roq/okex/flags.h"
 #include "roq/okex/gateway.h"
 
+using namespace std::literals;
+
 namespace roq {
 namespace okex {
 
 int Application::main(int, char **) {
-  LOG(INFO)("Parse configuration");
-  Config config(Flags::config_file());
-  VLOG(1)("config={}"_fmt, config);
-  LOG(INFO)("Starting the gateway");
-  roq::server::Trading<Gateway>(ROQ_PACKAGE_NAME, config, server::RequestIdType::SEQUENTIAL, config)
-      .dispatch();
+  log::info(R"(Parse config_file="{}")"sv, Flags::config_file());
+  Config config(Flags::config_file(), Flags::secrets_file());
+  log::info<1>("config={}"sv, config);
+  log::info("Starting the gateway"sv);
+  roq::server::Trading<Gateway>(ROQ_PACKAGE_NAME, config).dispatch();
   return EXIT_SUCCESS;
 }
 

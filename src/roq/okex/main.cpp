@@ -1,9 +1,11 @@
-/* Copyright (c) 2017-2021, Hans Erik Thrane */
+/* Copyright (c) 2017-2022, Hans Erik Thrane */
 
 #include "roq/okex/application.h"
 
+using namespace std::literals;
+
 namespace {
-constexpr std::string_view DESCRIPTION = "Roq HitBTC Gateway";
+static const auto DESCRIPTION = "Roq KuCoin Gateway"sv;
 }  // namespace
 
 int main(int argc, char **argv) {

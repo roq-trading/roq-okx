@@ -1,9 +1,10 @@
 {
 "name": "Error",
-"type": "item",
+"type": "comp",
 "values": [
-	{ "name": "code", "type": "int32_t" },
-	{ "name": "message", "type": "std::string_view" },
-	{ "name": "description", "type": "std::string_view" }
+	{ "name": "code", "type": "int32_t", "optional": true },
+	{ "name": "type", "type": "Type" },
+	{ "name": "data", "type": "std::string_view" },
+	{ "name": "id", "type": "std::string_view", "optional": true }
 ]
 }

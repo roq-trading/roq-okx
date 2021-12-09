@@ -1,0 +1,10 @@
+{
+"name": "OrderChangeType",
+"type": "enum",
+"values": [
+	{ "name": "open" },
+	{ "name": "match" },
+	{ "name": "filled" },
+	{ "name": "canceled" }
+]
+}

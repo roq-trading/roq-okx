@@ -1,0 +1,10 @@
+{
+"name": "RestState",
+"type": "enum",
+"values": [
+	{ "name": "public_token" },
+	{ "name": "currencies" },
+	{ "name": "symbols" },
+	{ "name": "done" }
+]
+}

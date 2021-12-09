@@ -1,0 +1,12 @@
+{
+"name": "OrderChange",
+"type": "comp",
+"values": [
+	{ "name": "subject", "type": "Subject" },
+	{ "name": "topic", "type": "std::string_view" },
+	{ "name": "channelType", "type": "std::string_view" },
+	{ "name": "type", "type": "Type" },
+	{ "name": "userId", "type": "std::string_view" },
+	{ "name": "data", "type": "OrderChangeData" }
+]
+}

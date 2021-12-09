@@ -1,0 +1,8 @@
+{
+"name": "AccountType",
+"type": "enum",
+"values": [
+	{ "name": "main" },
+	{ "name": "trade" }
+]
+}

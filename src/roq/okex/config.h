@@ -1,15 +1,16 @@
-/* Copyright (c) 2017-2021, Hans Erik Thrane */
+/* Copyright (c) 2017-2022, Hans Erik Thrane */
 
 #pragma once
 
 #include <absl/container/flat_hash_map.h>
 
+#include <fmt/ranges.h>
+
 #include <string>
 #include <string_view>
 #include <vector>
 
-#include "roq/format.h"
-#include "roq/literals.h"
+#include "roq/logging.h"
 #include "roq/server.h"
 
 namespace roq {
@@ -17,52 +18,58 @@ namespace okex {
 
 class Config final : public server::Config, public server::ConfigReader::Handler {
  public:
-  explicit Config(const std::string_view &path);
+  Config(const std::string_view &config_path, const std::string_view &secrets_path);
 
-  std::string get_account() const;
+  std::string get_master_account() const;
 
-  auto get_access_key() const {
-    if (accounts.size() != 1)
-      throw std::runtime_error("More accounts not yet supported");
-    return (*accounts.begin()).second.login;
-  }
-  auto get_access_secret() const {
-    if (accounts.size() != 1)
-      throw std::runtime_error("More accounts not yet supported");
-    return (*accounts.begin()).second.secret;
-  }
+  std::string get_api_key(const std::string_view &account) const;
+  std::string get_passphrase(const std::string_view &account) const;
+  std::string get_secret(const std::string_view &account) const;
 
  protected:
   // server::Config
-  void dispatch(server::Config::Handler &handler) const override;
+  void dispatch(server::Config::Handler &) const override;
 
   // server::ConfigReader::Handler
-  void operator()(server::Symbols &&symbols) override;
-  void operator()(server::Account &&account) override;
-  void operator()(server::User &&user) override;
-  void operator()(const std::string_view &key, cpptoml::base &base) override;
+  void operator()(server::Symbols &&) override;
+  void operator()(server::Account &&) override;
+  void operator()(server::User &&) override;
+  void operator()(server::RateLimit &&) override;
+  void operator()(const std::string_view &key, toml::node &) override;
 
  public:
   std::vector<server::User> users;
   server::Symbols symbols;
   absl::flat_hash_map<std::string, server::Account> accounts;
+  std::string master_account_;
+  absl::flat_hash_map<std::string, server::RateLimit> rate_limits;
 };
 
 }  // namespace okex
 }  // namespace roq
 
 template <>
-struct fmt::formatter<roq::okex::Config> : public roq::formatter {
-  template <typename C>
-  auto format(const roq::okex::Config &value, C &ctx) {
-    using namespace roq::literals;
-    // FIXME(thraneh): proper
-    return roq::format_to(
+struct fmt::formatter<roq::okex::Config> {
+  template <typename Context>
+  constexpr auto parse(Context &ctx) {
+    return std::begin(ctx);
+  }
+  template <typename Context>
+  auto format(const roq::okex::Config &value, Context &ctx) {
+    using namespace std::literals;
+    return fmt::format_to(
         ctx.out(),
-        "{{"
-        "users=[{}], "
-        "accounts=..."
-        "}}"_fmt,
-        roq::join(value.users, ", "_sv));
+        R"({{)"
+        R"(symbols={}, )"
+        R"(accounts=[{}], )"
+        R"(master_account="{}", )"
+        R"(users=[{}], )"
+        R"(rate_limits=[{}])"
+        R"(}})"sv,
+        value.symbols,
+        fmt::join(value.accounts, ", "sv),
+        value.master_account_,
+        fmt::join(value.users, ", "sv),
+        fmt::join(value.rate_limits, ", "sv));
   }
 };

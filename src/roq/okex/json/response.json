@@ -1,8 +1,0 @@
-{
-"name": "Response",
-"type": "struct",
-"values": [
-	{ "name": "id", "type": "RequestType" },
-	{ "name": "result", "type": "bool" }
-]
-}

@@ -1,7 +1,0 @@
-{
-"name": "TradingBalance",
-"type": "array",
-"values": [
-	{ "name": "data", "type": "roq::span<TradingBalanceItem>" }
-]
-}

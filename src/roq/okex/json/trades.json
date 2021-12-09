@@ -1,8 +1,0 @@
-{
-"name": "Trades",
-"type": "comp",
-"values": [
-	{ "name": "data", "type": "roq::span<TradesItem>" },
-	{ "name": "symbol", "type": "std::string_view" }
-]
-}
