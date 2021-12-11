@@ -1,0 +1,13 @@
+{
+"name": "Instrument",
+"type": "item",
+"values": [
+	{ "name": "instrument_id", "type": "std::string_view" },
+	{ "name": "base_currency", "type": "std::string_view" },
+	{ "name": "quote_currency", "type": "std::string_view" },
+	{ "name": "min_size", "type": "double" },
+	{ "name": "size_increment", "type": "double" },
+	{ "name": "tick_size", "type": "double" },
+	{ "name": "category", "type": "int32_t" }
+]
+}

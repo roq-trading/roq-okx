@@ -18,14 +18,14 @@
       "name": "exchange",
       "type": "std::string",
       "validator": "roq::core::flags::NonEmpty<std::string>",
-      "default": "kucoin",
+      "default": "okex",
       "description": "exchange identifier (string)"
     },
     {
       "name": "rest_uri",
       "type": "roq::core::URI",
       "validator": "roq::core::flags::URI<std::string>",
-      "default": "https://openapi-sandbox.kucoin.com",
+      "default": "https://testnet.okex.com",
       "description": "REST end-point (URI)"
     },
     {
@@ -39,7 +39,7 @@
       "name": "rest_ping_path",
       "type": "std::string",
       "validator": "roq::core::flags::Path<std::string>",
-      "default": "/api/v1/status",
+      "default": "/api/general/v3/time",
       "description": "URI path used for REST connection keep-alive messages"
     },
     {
@@ -91,6 +91,13 @@
       "description": "token refresh frequency"
     },
     {
+      "name": "ws_uri",
+      "type": "roq::core::URI",
+      "validator": "roq::core::flags::URI<std::string>",
+      "default": "wss://real.okex.com:8443/ws/v3?BrokerId=181",
+      "description": "WS end-point (URI)"
+    },
+    {
       "name": "ws_ping_freq",
       "type": "std::chrono::nanoseconds",
       "validator": "roq::core::flags::TimePeriod",
@@ -108,7 +115,7 @@
       "name": "ws_max_subscriptions_per_stream",
       "type": "uint32_t",
       "validator": "roq::core::flags::NonZero<uint32_t>",
-      "default": 100,
+      "default": 256,
       "description": "max symbols per connection (count)"
     },
     {

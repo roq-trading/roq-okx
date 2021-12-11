@@ -1,5 +1,4 @@
-# symbols = [ ".*BTC.*", ".*ETH.*" ]
-symbols = [ "KCS-USDT" ]
+symbols = [ ".*" ]
 
 [accounts]
 

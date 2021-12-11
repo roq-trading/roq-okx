@@ -4,7 +4,7 @@
 
 #include "roq/logging.h"
 
-#include "roq/okex/json/message.h"
+#include "roq/okex/json/event_or_table.h"
 
 using namespace std::literals;
 
@@ -17,85 +17,44 @@ bool Parser::dispatch(
     std::string_view const &message,
     core::json::Buffer &buffer,
     server::TraceInfo const &trace_info) {
-  core::json::Parser parser(message);
-  auto root = parser.root();
-  json::Message message_(root, buffer);
-  switch (message_.type) {
-    case json::Type::UNDEFINED:
-    case json::Type::UNKNOWN:
-      log::fatal("Unexpected"sv);
-      break;
-    case json::Type::WELCOME: {
-      core::json::Parser parser(message);
-      auto root = parser.root();
-      json::Welcome welcome(root, buffer);
-      server::create_trace_and_dispatch(handler, trace_info, welcome);
-      break;
+  auto event_or_table = core::json::Parser::create<json::EventOrTable>(message);
+  // note! table is the more likely update
+  switch (event_or_table.table) {
+    case Table::UNDEFINED:
+      break;  // then try table
+    case Table::UNKNOWN:
+      log::warn("Unknown table"sv);
+      return false;
+    case Table::SPOT_TICKER: {
+      log::warn("MUST PARSE"sv);
+      return true;
     }
-    case json::Type::ERROR: {
-      core::json::Parser parser(message);
-      auto root = parser.root();
-      json::Error error(root, buffer);
+  }
+  switch (event_or_table.event) {
+    case EventType::UNDEFINED:
+      log::warn("Expected an event-type"sv);
+      return false;
+    case EventType::UNKNOWN:
+      log::warn("Unknown event-type"sv);
+      return false;
+    case EventType::ERROR: {
+      Error error;
+      error.message = event_or_table.message;
       server::create_trace_and_dispatch(handler, trace_info, error);
       break;
     }
-    case json::Type::PONG: {
-      core::json::Parser parser(message);
-      auto root = parser.root();
-      json::Pong pong(root, buffer);
-      server::create_trace_and_dispatch(handler, trace_info, pong);
+    case EventType::SUBSCRIBE: {
+      Subscribe subscribe;
+      subscribe.channel = event_or_table.channel;
+      server::create_trace_and_dispatch(handler, trace_info, subscribe);
       break;
     }
-    case json::Type::ACK: {
-      core::json::Parser parser(message);
-      auto root = parser.root();
-      json::Ack ack(root, buffer);
-      server::create_trace_and_dispatch(handler, trace_info, ack);
+    case EventType::UNSUBSCRIBE: {
+      Unsubscribe unsubscribe;
+      unsubscribe.channel = event_or_table.channel;
+      server::create_trace_and_dispatch(handler, trace_info, unsubscribe);
       break;
     }
-    case json::Type::MESSAGE:
-      switch (message_.subject) {
-        case json::Subject::UNDEFINED:
-        case json::Subject::UNKNOWN:
-          log::fatal("Unexpected"sv);
-          break;
-        case json::Subject::TRADE_SNAPSHOT: {
-          core::json::Parser parser(message);
-          auto root = parser.root();
-          json::Snapshot snapshot(root, buffer);
-          server::create_trace_and_dispatch(handler, trace_info, snapshot);
-          break;
-        }
-        case json::Subject::TRADE_TICKER: {
-          core::json::Parser parser(message);
-          auto root = parser.root();
-          json::Ticker ticker(root, buffer);
-          server::create_trace_and_dispatch(handler, trace_info, ticker);
-          break;
-        }
-        case json::Subject::TRADE_L2UPDATE: {
-          core::json::Parser parser(message);
-          auto root = parser.root();
-          json::Level2 level2(root, buffer);
-          server::create_trace_and_dispatch(handler, trace_info, level2);
-          break;
-        }
-        case json::Subject::ACCOUNT_BALANCE: {
-          core::json::Parser parser(message);
-          auto root = parser.root();
-          json::AccountBalance account_balance(root, buffer);
-          server::create_trace_and_dispatch(handler, trace_info, account_balance);
-          break;
-        }
-        case json::Subject::ORDER_CHANGE: {
-          core::json::Parser parser(message);
-          auto root = parser.root();
-          json::OrderChange order_change(root, buffer);
-          server::create_trace_and_dispatch(handler, trace_info, order_change);
-          break;
-        }
-      }
-      break;
   }
   return true;
 }

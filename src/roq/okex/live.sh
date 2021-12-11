@@ -8,18 +8,20 @@ else
 	PREFIX=
 fi
 
-NAME="kucoin"
+NAME="okex"
 
 CONFIG_FILE="$CWD/config/$NAME.toml"
 
-URI="api.kucoin.com"
+URI="okex.com"
 
-REST_URI="https://$URI"
+REST_URI="https://www.$URI"
+WS_URI="wss://real.$URI:8443/ws/v3"
 
-$PREFIX ./roq-kucoin \
-	--name "kucoin" \
+$PREFIX ./roq-okex \
+	--name "okex" \
 	--config_file "$CONFIG_FILE" \
 	--client_listen_address $CWD/$NAME.sock \
-	--metrics_listen_address 1234 \
+	--metrics_listen_address 2345 \
 	--rest_uri "$REST_URI" \
+	--ws_uri "$WS_URI" \
 	$@

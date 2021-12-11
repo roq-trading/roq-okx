@@ -2,9 +2,8 @@
 "name": "RestState",
 "type": "enum",
 "values": [
-	{ "name": "public_token" },
-	{ "name": "currencies" },
-	{ "name": "symbols" },
+	{ "name": "status" },
+	{ "name": "instruments" },
 	{ "name": "done" }
 ]
 }

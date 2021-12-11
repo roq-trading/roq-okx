@@ -1,0 +1,7 @@
+{
+"name": "Subscribe",
+"type": "item",
+"values": [
+	{ "name": "channel", "type": "std::string_view" }
+]
+}

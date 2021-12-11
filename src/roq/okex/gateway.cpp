@@ -177,12 +177,6 @@ void Gateway::operator()(const server::Trace<FundsUpdate> &event, bool is_last) 
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Rest::PublicToken const &public_token) {
-  public_ws_uri_ = public_token.uri;
-  public_ws_query_ = public_token.query;
-  public_ws_ping_frequency_ = public_token.ping_frequency;
-}
-
 void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
   auto &symbols = symbols_update.symbols;
   for (auto &iter : market_data_) {
@@ -194,16 +188,7 @@ void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
     if (std::empty(symbols))
       break;
     log::info("Create market-data (public channel)"sv);
-    assert(!std::empty(public_ws_uri_));
-    assert(public_ws_ping_frequency_.count() > 0);
-    auto market_data = std::make_unique<MarketData>(
-        *this,
-        context_,
-        ++stream_id_,
-        shared_,
-        public_ws_uri_,
-        public_ws_query_,
-        public_ws_ping_frequency_);
+    auto market_data = std::make_unique<MarketData>(*this, context_, ++stream_id_, shared_);
     (*market_data).update_subscriptions(symbols);
     MessageInfo message_info;  // XXX something sensible
     Start start;

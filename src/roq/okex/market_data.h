@@ -40,21 +40,14 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
     virtual void operator()(const server::Trace<StatisticsUpdate> &, bool is_last) = 0;
   };
 
-  MarketData(
-      Handler &,
-      core::io::Context &,
-      uint32_t stream_id,
-      Shared &,
-      const std::string_view &uri,
-      const std::string_view &query,
-      std::chrono::nanoseconds ping_frequency);
+  MarketData(Handler &, core::io::Context &, uint32_t stream_id, Shared &);
 
   MarketData(MarketData &&) = delete;
   MarketData(const MarketData &) = delete;
 
   uint16_t stream_id() const { return stream_id_; }
 
-  bool ready() const { return ready_; }
+  bool ready() const { return connection_.ready(); }
 
   void operator()(const Event<Start> &);
   void operator()(const Event<Stop> &);
@@ -80,32 +73,19 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
 
   void subscribe(const roq::span<std::string> &symbols);
 
-  void subscribe(const std::string_view &topic, const roq::span<std::string> &symbols);
-
-  void send_ping(std::chrono::nanoseconds now);
+  void subscribe(const std::string_view &channel, const roq::span<std::string> &symbols);
 
   void parse(const std::string_view &message);
 
-  void operator()(server::Trace<json::Welcome> const &) override;
   void operator()(server::Trace<json::Error> const &) override;
-  void operator()(server::Trace<json::Pong> const &) override;
-  void operator()(server::Trace<json::Ack> const &) override;
-
-  void operator()(server::Trace<json::Snapshot> const &) override;
-  void operator()(server::Trace<json::Ticker> const &) override;
-  void operator()(server::Trace<json::Level2> const &) override;
-
-  void operator()(server::Trace<json::AccountBalance> const &) override;
-  void operator()(server::Trace<json::OrderChange> const &) override;
-
-  void check_subscribe_queue(std::chrono::nanoseconds now);
+  void operator()(server::Trace<json::Subscribe> const &) override;
+  void operator()(server::Trace<json::Unsubscribe> const &) override;
 
  private:
   Handler &handler_;
   // config
   const uint16_t stream_id_;
   const std::string name_;
-  const std::chrono::nanoseconds ping_frequency_;
   // web socket
   core::web::ClientSocket connection_;
   // buffers
@@ -117,7 +97,7 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
     core::metrics::Counter disconnect;
   } counter_;
   struct {
-    core::metrics::Profile parse, welcome, error, pong, ack, snapshot, ticker, level2;
+    core::metrics::Profile parse, error, subscribe, unsubscribe;
   } profile_;
   struct {
     core::metrics::Latency ping, heartbeat;
@@ -126,14 +106,8 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   Shared &shared_;
   std::vector<std::string> symbols_;
   // state
-  bool welcome_ = false;
-  bool ready_ = false;
   ConnectionStatus status_ = {};
   server::Download<MarketDataState> download_;
-  std::chrono::nanoseconds logon_timeout_ = {};
-  std::chrono::nanoseconds next_ping_ = {};
-  // queue
-  std::deque<std::pair<std::chrono::nanoseconds, std::string> > subscribe_queue_;
 };
 
 }  // namespace okex

@@ -25,22 +25,14 @@
 #include "roq/okex/security.h"
 #include "roq/okex/shared.h"
 
-#include "roq/okex/json/currencies.h"
-#include "roq/okex/json/order_book.h"
-#include "roq/okex/json/symbols.h"
-#include "roq/okex/json/token.h"
+#include "roq/okex/json/instruments.h"
+#include "roq/okex/json/status.h"
 
 namespace roq {
 namespace okex {
 
 class Rest final : public core::web::Client::Handler {
  public:
-  struct PublicToken final {
-    std::string_view uri;
-    std::string_view query;
-    std::chrono::nanoseconds ping_frequency = {};
-  };
-
   struct SymbolsUpdate final {
     std::vector<std::string> &symbols;
   };
@@ -51,7 +43,6 @@ class Rest final : public core::web::Client::Handler {
     virtual void operator()(server::Trace<ReferenceData> const &, bool is_last) = 0;
     virtual void operator()(server::Trace<MarketStatus> const &, bool is_last) = 0;
     // cross-communication
-    virtual void operator()(PublicToken const &) = 0;
     virtual void operator()(SymbolsUpdate &) = 0;
   };
 
@@ -77,22 +68,13 @@ class Rest final : public core::web::Client::Handler {
 
   uint32_t download(RestState);
 
-  void get_public_token();
-  void get_public_token_ack(const server::Trace<core::web::Response> &, uint32_t sequence);
-  void operator()(const server::Trace<json::Token> &);
+  void get_status();
+  void get_status_ack(const server::Trace<core::web::Response> &, uint32_t sequence);
+  void operator()(const server::Trace<json::Status> &);
 
-  void get_currencies();
-  void get_currencies_ack(const server::Trace<core::web::Response> &, uint32_t sequence);
-  void operator()(const server::Trace<json::Currencies> &);
-
-  void get_symbols();
-  void get_symbols_ack(const server::Trace<core::web::Response> &, uint32_t sequence);
-  void operator()(const server::Trace<json::Symbols> &);
-
-  void get_order_book(const std::string_view &symbol);
-  void get_order_book_ack(
-      const server::Trace<core::web::Response> &, const std::string_view &symbol);
-  void operator()(server::Trace<json::OrderBook> const &, const std::string_view &symbol);
+  void get_instruments();
+  void get_instruments_ack(const server::Trace<core::web::Response> &, uint32_t sequence);
+  void operator()(const server::Trace<json::Instruments> &);
 
   void check_request_queue(std::chrono::nanoseconds now);
 
@@ -110,10 +92,8 @@ class Rest final : public core::web::Client::Handler {
     core::metrics::Counter disconnect;
   } counter_;
   struct {
-    core::metrics::Profile public_token, public_token_ack,  //
-        currencies, currencies_ack,                         //
-        symbols, symbols_ack,                               //
-        order_book, order_book_ack;
+    core::metrics::Profile status, status_ack,  //
+        instruments, instruments_ack;
   } profile_;
   struct {
     core::metrics::Latency ping;
@@ -127,7 +107,6 @@ class Rest final : public core::web::Client::Handler {
   std::chrono::nanoseconds next_heartbeat_ = {};
   ConnectionStatus status_ = {};
   server::Download<RestState> download_;
-  std::chrono::nanoseconds refresh_token_ = {};
 };
 
 }  // namespace okex

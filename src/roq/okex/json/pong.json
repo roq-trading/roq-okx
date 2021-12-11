@@ -1,8 +1,0 @@
-{
-"name": "Pong",
-"type": "comp",
-"values": [
-	{ "name": "type", "type": "Type" },
-	{ "name": "id", "type": "std::string_view" }
-]
-}

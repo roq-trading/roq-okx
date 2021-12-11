@@ -1,0 +1,14 @@
+{
+"name": "StatusItem",
+"type": "item",
+"values": [
+	{ "name": "status", "type": "int32_t" },
+	{ "name": "start_time", "type": "std::chrono::milliseconds" },
+	{ "name": "end_time", "type": "std::chrono::milliseconds" },
+	{ "name": "href", "type": "std::string_view" },
+	{ "name": "product_type", "type": "std::string_view" },
+	{ "name": "size_increment", "type": "int32_t" },
+	{ "name": "main_type", "type": "std::string_view" },
+	{ "name": "sche_desc", "type": "std::string_view" }
+]
+}

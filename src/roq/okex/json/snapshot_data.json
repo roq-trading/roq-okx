@@ -1,8 +1,0 @@
-{
-"name": "SnapshotData",
-"type": "comp",
-"values": [
-	{ "name": "sequence", "type": "int64_t" },
-	{ "name": "data", "type": "SnapshotDataItem" }
-]
-}

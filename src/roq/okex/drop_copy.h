@@ -64,17 +64,9 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
   void operator()(const core::web::ClientSocket::Text &) override;
   void operator()(const core::web::ClientSocket::Binary &) override;
 
-  void operator()(server::Trace<json::Welcome> const &) override;
   void operator()(server::Trace<json::Error> const &) override;
-  void operator()(server::Trace<json::Pong> const &) override;
-  void operator()(server::Trace<json::Ack> const &) override;
-
-  void operator()(server::Trace<json::Snapshot> const &) override;
-  void operator()(server::Trace<json::Ticker> const &) override;
-  void operator()(server::Trace<json::Level2> const &) override;
-
-  void operator()(server::Trace<json::AccountBalance> const &) override;
-  void operator()(server::Trace<json::OrderChange> const &) override;
+  void operator()(server::Trace<json::Subscribe> const &) override;
+  void operator()(server::Trace<json::Unsubscribe> const &) override;
 
  private:
   void operator()(ConnectionStatus);
@@ -102,7 +94,7 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
     core::metrics::Counter disconnect;
   } counter_;
   struct {
-    core::metrics::Profile parse, welcome, error, pong, ack, account_balance, order_change;
+    core::metrics::Profile parse, error, subscribe, unsubscribe;
   } profile_;
   struct {
     core::metrics::Latency ping, heartbeat;

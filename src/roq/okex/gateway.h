@@ -69,7 +69,6 @@ class Gateway final : public server::Handler,
   void operator()(const server::Trace<TradeUpdate> &, bool is_last, uint8_t user_id) override;
   void operator()(server::Trace<FundsUpdate> const &, bool is_last) override;
 
-  void operator()(Rest::PublicToken const &) override;
   void operator()(Rest::SymbolsUpdate &) override;
 
   void operator()(OrderEntry::PrivateToken const &) override;
@@ -95,11 +94,6 @@ class Gateway final : public server::Handler,
   absl::flat_hash_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
   absl::flat_hash_map<std::string, std::unique_ptr<DropCopy>> drop_copy_;
   std::vector<std::unique_ptr<MarketData>> market_data_;
-  // websocket uri's
-  std::string public_ws_uri_;
-  std::string public_ws_query_;
-  std::chrono::nanoseconds public_ws_ping_frequency_;
-  std::string private_ws_uri_;
 };
 
 }  // namespace okex

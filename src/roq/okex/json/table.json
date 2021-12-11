@@ -1,0 +1,7 @@
+{
+"name": "Table",
+"type": "enum",
+"values": [
+	{ "raw": "spot/ticker", "name": "spot_ticker" }
+]
+}

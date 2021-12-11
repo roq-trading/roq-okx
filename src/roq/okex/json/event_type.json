@@ -1,0 +1,9 @@
+{
+"name": "EventType",
+"type": "enum",
+"values": [
+	{ "name": "error" },
+	{ "name": "subscribe" },
+	{ "name": "unsubscribe" }
+]
+}

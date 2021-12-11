@@ -6,62 +6,53 @@ include(RoqAutogen)
 
 set(AUTOGEN_SCHEMAS
     account.json
-    account_balance.json
-    account_balance_data.json
-    account_type.json
     accounts.json
-    ack.json
-    cancel_all_orders_ack.json
+    account_type.json
     cancel_all_orders_ack_data.json
-    cancel_order_ack.json
+    cancel_all_orders_ack.json
     cancel_order_ack_data.json
-    create_order_ack.json
+    cancel_order_ack.json
     create_order_ack_data.json
+    create_order_ack.json
     currencies.json
     currency.json
     error.json
-    fills.json
-    fills_data.json
+    event_or_table.json
+    event_type.json
     fills_data_item.json
+    fills_data.json
+    fills.json
     instance_server.json
-    level2.json
-    level2_data.json
-    level2_data_changes.json
-    level2_data_changes_item.json
+    instrument.json
+    instruments.json
     liquidity.json
     message.json
-    order_book.json
-    order_book_data.json
     order_book_data_item.json
-    order_change.json
-    order_change_data.json
-    order_change_type.json
+    order_book_data.json
+    order_book.json
     order_operation_type.json
+    orders_data_item.json
+    orders_data.json
+    orders.json
     order_status.json
     order_type.json
-    orders.json
-    orders_data.json
-    orders_data_item.json
-    pong.json
     relation_context.json
     relation_event.json
     self_trade_prevention.json
     side.json
-    snapshot.json
-    snapshot_data.json
-    snapshot_data_item.json
+    status_item.json
+    status.json
     subject.json
+    subscribe.json
     symbol.json
     symbols.json
-    ticker.json
-    ticker_data.json
-    ticker_data.json
+    table.json
     time_in_force.json
-    token.json
     token_data.json
+    token.json
     trade_type.json
     type.json
-    welcome.json)
+    unsubscribe.json)
 
 roq_autogen(
   OUTPUT

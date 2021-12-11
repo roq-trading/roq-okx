@@ -1,0 +1,12 @@
+{
+"name": "EventOrTable",
+"type": "item",
+"values": [
+	{ "name": "event", "type": "EventType" },
+	{ "name": "table", "type": "Table" },
+	{ "name": "channel", "type": "std::string_view" },
+	{ "name": "action", "type": "std::string_view" },
+	{ "name": "message", "type": "std::string_view" },
+	{ "name": "data", "comment": "two-pass because implied by channel" }
+]
+}
