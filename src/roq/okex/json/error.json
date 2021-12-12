@@ -2,6 +2,7 @@
 "name": "Error",
 "type": "item",
 "values": [
-	{ "name": "message", "type": "std::string_view" }
+	{ "name": "code", "type": "int32_t" },
+	{ "name": "msg", "type": "std::string_view" }
 ]
 }

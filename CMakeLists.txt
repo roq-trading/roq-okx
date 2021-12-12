@@ -54,7 +54,6 @@ find_package(roq-core REQUIRED)
 find_package(roq-logging REQUIRED)
 find_package(roq-server REQUIRED)
 find_package(uuid REQUIRED)
-find_package(zlib REQUIRED)
 
 if(UNIX AND NOT APPLE)
   find_package(rt REQUIRED)

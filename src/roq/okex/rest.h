@@ -72,8 +72,13 @@ class Rest final : public core::web::Client::Handler {
   void get_status_ack(const server::Trace<core::web::Response> &, uint32_t sequence);
   void operator()(const server::Trace<json::Status> &);
 
-  void get_instruments();
-  void get_instruments_ack(const server::Trace<core::web::Response> &, uint32_t sequence);
+  void get_instruments_spot();
+  void get_instruments_margin();
+  void get_instruments_swap();
+  void get_instruments_futures();
+  void get_instruments_option();
+  void get_instruments_ack(
+      const server::Trace<core::web::Response> &, uint32_t sequence, RestState);
   void operator()(const server::Trace<json::Instruments> &);
 
   void check_request_queue(std::chrono::nanoseconds now);
@@ -93,7 +98,8 @@ class Rest final : public core::web::Client::Handler {
   } counter_;
   struct {
     core::metrics::Profile status, status_ack,  //
-        instruments, instruments_ack;
+        instruments_spot, instruments_margin, instruments_swap, instruments_futures,
+        instruments_option, instruments_ack;
   } profile_;
   struct {
     core::metrics::Latency ping;

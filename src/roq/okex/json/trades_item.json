@@ -1,0 +1,12 @@
+{
+"name": "TradesItem",
+"type": "item",
+"values": [
+	{ "name": "instId", "type": "std::string_view" },
+	{ "name": "tradeId", "type": "std::string_view", "comment": "we need the string" },
+	{ "name": "px", "type": "double" },
+	{ "name": "sz", "type": "double" },
+	{ "name": "side", "type": "Side" },
+	{ "name": "ts", "type": "std::chrono::milliseconds" }
+]
+}

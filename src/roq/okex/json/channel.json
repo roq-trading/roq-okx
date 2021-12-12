@@ -1,0 +1,10 @@
+{
+"name": "Channel",
+"type": "enum",
+"values": [
+	{ "name": "instruments" },
+	{ "name": "tickers" },
+	{ "name": "trades" },
+	{ "raw": "books-l2-tbt", "name": "books_l2_tbt" }
+]
+}

@@ -1,0 +1,11 @@
+{
+"name": "InstrumentType",
+"type": "enum",
+"values": [
+	{ "name": "SPOT" },
+	{ "name": "MARGIN" },
+	{ "name": "SWAP" },
+	{ "name": "FUTURES" },
+	{ "name": "OPTION" }
+]
+}

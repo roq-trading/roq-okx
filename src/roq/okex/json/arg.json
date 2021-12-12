@@ -1,5 +1,5 @@
 {
-"name": "Subscribe",
+"name": "Arg",
 "type": "item",
 "values": [
 	{ "name": "channel", "type": "Channel" },

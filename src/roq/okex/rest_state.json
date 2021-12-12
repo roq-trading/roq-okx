@@ -3,7 +3,11 @@
 "type": "enum",
 "values": [
 	{ "name": "status" },
-	{ "name": "instruments" },
+	{ "name": "instruments_spot" },
+	{ "name": "instruments_margin" },
+	{ "name": "instruments_swap" },
+	{ "name": "instruments_futures" },
+	{ "name": "instruments_option" },
 	{ "name": "done" }
 ]
 }

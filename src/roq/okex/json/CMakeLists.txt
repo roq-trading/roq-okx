@@ -8,20 +8,26 @@ set(AUTOGEN_SCHEMAS
     accounts_item.json
     accounts.json
     action.json
+    arg.json
+    books_l2_tbt_item.json
+    books_l2_tbt.json
+    channel.json
+    contract_type.json
     error.json
-    event_or_table.json
     event_type.json
-    instrument.json
+    instruments_item.json
     instruments.json
+    instrument_type.json
+    option_type.json
     side.json
-    spot_depth_l2_tbt_item.json
-    spot_depth_l2_tbt.json
-    spot_ticker.json
-    spot_trade.json
+    state.json
     status_item.json
     status.json
     subscribe.json
-    table.json
+    tickers_item.json
+    tickers.json
+    trades_item.json
+    trades.json
     unsubscribe.json)
 
 roq_autogen(

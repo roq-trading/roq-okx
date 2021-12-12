@@ -1,0 +1,8 @@
+{
+"name": "ContractType",
+"type": "enum",
+"values": [
+	{ "name": "linear" },
+	{ "name": "inverse" }
+]
+}

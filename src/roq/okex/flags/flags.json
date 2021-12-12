@@ -39,7 +39,7 @@
       "name": "rest_ping_path",
       "type": "std::string",
       "validator": "roq::core::flags::Path<std::string>",
-      "default": "/api/general/v3/time",
+      "default": "/api/v5/public/time",
       "description": "URI path used for REST connection keep-alive messages"
     },
     {
@@ -91,7 +91,14 @@
       "description": "token refresh frequency"
     },
     {
-      "name": "ws_uri",
+      "name": "ws_public_uri",
+      "type": "roq::core::URI",
+      "validator": "roq::core::flags::URI<std::string>",
+      "default": "wss://real.okex.com:8443/ws/v3?BrokerId=181",
+      "description": "WS end-point (URI)"
+    },
+    {
+      "name": "ws_private_uri",
       "type": "roq::core::URI",
       "validator": "roq::core::flags::URI<std::string>",
       "default": "wss://real.okex.com:8443/ws/v3?BrokerId=181",
@@ -115,7 +122,7 @@
       "name": "ws_max_subscriptions_per_stream",
       "type": "uint32_t",
       "validator": "roq::core::flags::NonZero<uint32_t>",
-      "default": 128,
+      "default": 64,
       "description": "max symbols per connection (count)"
     },
     {

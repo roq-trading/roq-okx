@@ -2,7 +2,7 @@
 "name": "Action",
 "type": "enum",
 "values": [
-	{ "name": "partial" },
+	{ "name": "snapshot" },
 	{ "name": "update" }
 ]
 }

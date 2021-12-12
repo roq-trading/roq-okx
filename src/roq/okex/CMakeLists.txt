@@ -64,7 +64,6 @@ target_link_libraries(
   absl::flags
   absl::flat_hash_map
   absl::flat_hash_set
-  ${ZLIB_LIBRARIES}
   ${UUID_LIBRARIES}
   ${RT_LIBRARIES})
 

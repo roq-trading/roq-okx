@@ -1,9 +1,0 @@
-{
-"name": "Table",
-"type": "enum",
-"values": [
-	{ "raw": "spot/ticker", "name": "spot_ticker" },
-	{ "raw": "spot/trade", "name": "spot_trade" },
-	{ "raw": "spot/depth_l2_tbt", "name": "spot_depth_l2_tbt" }
-]
-}

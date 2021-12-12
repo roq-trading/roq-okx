@@ -1,5 +1,5 @@
 {
-"name": "SpotDepthL2TbtItem",
+"name": "BooksL2TbtItem",
 "type": "array_item",
 "values": [
 	{ "name": "price", "type": "double" },

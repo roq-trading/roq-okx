@@ -235,15 +235,16 @@ void DropCopy::operator()(server::Trace<json::Unsubscribe> const &event) {
   });
 }
 
-void DropCopy::operator()(server::Trace<json::SpotTicker> const &) {
+void DropCopy::operator()(server::Trace<json::Tickers> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(server::Trace<json::SpotTrade> const &) {
+void DropCopy::operator()(server::Trace<json::Trades> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(server::Trace<json::SpotDepthL2Tbt> const &, json::Action) {
+void DropCopy::operator()(
+    server::Trace<json::BooksL2Tbt> const &, const std::string_view &inst_id, json::Action) {
   log::fatal("Unexpected"sv);
 }
 

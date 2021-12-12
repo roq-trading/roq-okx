@@ -1,7 +1,9 @@
 {
 "name": "Instruments",
-"type": "array",
+"type": "comp",
 "values": [
-	{ "name": "data", "type": "roq::span<Instrument>" }
+	{ "name": "code", "type": "int32_t" },
+	{ "name": "msg", "type": "std::string_view" },
+	{ "name": "data", "type": "roq::span<InstrumentsItem>" }
 ]
 }

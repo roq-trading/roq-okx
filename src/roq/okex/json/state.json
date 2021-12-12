@@ -1,0 +1,10 @@
+{
+"name": "State",
+"type": "enum",
+"values": [
+	{ "name": "live" },
+	{ "name": "suspended" },
+	{ "name": "preopen" },
+	{ "name": "settlement" }
+]
+}

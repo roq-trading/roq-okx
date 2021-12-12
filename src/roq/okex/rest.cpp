@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "roq/utils/mask.h"
+#include "roq/utils/safe_cast.h"
 #include "roq/utils/update.h"
 
 #include "roq/core/back_emplacer.h"
@@ -64,7 +65,11 @@ Rest::Rest(
       profile_{
           .status = create_metrics(name_, "status"sv),
           .status_ack = create_metrics(name_, "status_ack"sv),
-          .instruments = create_metrics(name_, "instruments"sv),
+          .instruments_spot = create_metrics(name_, "instruments_spot"sv),
+          .instruments_margin = create_metrics(name_, "instruments_margin"sv),
+          .instruments_swap = create_metrics(name_, "instruments_swap"sv),
+          .instruments_futures = create_metrics(name_, "instruments_futures"sv),
+          .instruments_option = create_metrics(name_, "instruments_option"sv),
           .instruments_ack = create_metrics(name_, "instruments_ack"sv),
       },
       latency_{
@@ -94,7 +99,11 @@ void Rest::operator()(metrics::Writer &writer) {
       // counter
       .write(counter_.disconnect, metrics::COUNTER)
       // profile
-      .write(profile_.instruments, metrics::PROFILE)
+      .write(profile_.instruments_spot, metrics::PROFILE)
+      .write(profile_.instruments_margin, metrics::PROFILE)
+      .write(profile_.instruments_swap, metrics::PROFILE)
+      .write(profile_.instruments_futures, metrics::PROFILE)
+      .write(profile_.instruments_option, metrics::PROFILE)
       .write(profile_.instruments_ack, metrics::PROFILE)
       // latency
       .write(latency_.ping, metrics::LATENCY);
@@ -148,12 +157,22 @@ uint32_t Rest::download(RestState state) {
       assert(false);
       break;
     case RestState::STATUS:
-      // note! the URL doesn't work
-      // get_status();
-      // return 1;
-      return {};
-    case RestState::INSTRUMENTS:
-      get_instruments();
+      get_status();
+      return 1;
+    case RestState::INSTRUMENTS_SPOT:
+      get_instruments_spot();
+      return 1;
+    case RestState::INSTRUMENTS_MARGIN:
+      get_instruments_margin();
+      return 1;
+    case RestState::INSTRUMENTS_SWAP:
+      get_instruments_swap();
+      return 1;
+    case RestState::INSTRUMENTS_FUTURES:
+      get_instruments_futures();
+      return 1;
+    case RestState::INSTRUMENTS_OPTION:
+      get_instruments_option();
       return 1;
     case RestState::DONE:
       (*this)(ConnectionStatus::READY);
@@ -168,7 +187,7 @@ uint32_t Rest::download(RestState state) {
 void Rest::get_status() {
   profile_.status([&]() {
     auto method = core::http::Method::GET;
-    auto path = "/api/spot/v3/status"sv;
+    auto path = "/api/v5/system/status"sv;
     core::web::Request request{
         .method = method,
         .path = path,
@@ -220,10 +239,10 @@ void Rest::operator()(const server::Trace<json::Status> &event) {
 
 // instruments
 
-void Rest::get_instruments() {
-  profile_.instruments([&]() {
+void Rest::get_instruments_spot() {
+  profile_.instruments_spot([&]() {
     auto method = core::http::Method::GET;
-    auto path = "/api/spot/v3/instruments"sv;
+    auto path = "/api/v5/public/instruments?instType=SPOT"sv;
     core::web::Request request{
         .method = method,
         .path = path,
@@ -241,15 +260,119 @@ void Rest::get_instruments() {
         [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
           auto trace_info = server::create_trace_info();
           server::Trace event(trace_info, response);
-          get_instruments_ack(event, sequence);
+          get_instruments_ack(event, sequence, RestState::INSTRUMENTS_SPOT);
         });
   });
 }
 
-void Rest::get_instruments_ack(const server::Trace<core::web::Response> &event, uint32_t sequence) {
+void Rest::get_instruments_margin() {
+  profile_.instruments_margin([&]() {
+    auto method = core::http::Method::GET;
+    auto path = "/api/v5/public/instruments?instType=MARGIN"sv;
+    core::web::Request request{
+        .method = method,
+        .path = path,
+        .query = {},
+        .accept = core::http::Accept::JSON,
+        .content_type = {},
+        .headers = {},
+        .body = {},
+        .quality_of_service = {},
+    };
+    auto sequence = download_.sequence();
+    connection_(
+        "instruments"sv,
+        request,
+        [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
+          auto trace_info = server::create_trace_info();
+          server::Trace event(trace_info, response);
+          get_instruments_ack(event, sequence, RestState::INSTRUMENTS_MARGIN);
+        });
+  });
+}
+
+void Rest::get_instruments_swap() {
+  profile_.instruments_swap([&]() {
+    auto method = core::http::Method::GET;
+    auto path = "/api/v5/public/instruments?instType=SWAP"sv;
+    core::web::Request request{
+        .method = method,
+        .path = path,
+        .query = {},
+        .accept = core::http::Accept::JSON,
+        .content_type = {},
+        .headers = {},
+        .body = {},
+        .quality_of_service = {},
+    };
+    auto sequence = download_.sequence();
+    connection_(
+        "instruments"sv,
+        request,
+        [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
+          auto trace_info = server::create_trace_info();
+          server::Trace event(trace_info, response);
+          get_instruments_ack(event, sequence, RestState::INSTRUMENTS_SWAP);
+        });
+  });
+}
+
+void Rest::get_instruments_futures() {
+  profile_.instruments_futures([&]() {
+    auto method = core::http::Method::GET;
+    auto path = "/api/v5/public/instruments?instType=FUTURES"sv;
+    core::web::Request request{
+        .method = method,
+        .path = path,
+        .query = {},
+        .accept = core::http::Accept::JSON,
+        .content_type = {},
+        .headers = {},
+        .body = {},
+        .quality_of_service = {},
+    };
+    auto sequence = download_.sequence();
+    connection_(
+        "instruments"sv,
+        request,
+        [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
+          auto trace_info = server::create_trace_info();
+          server::Trace event(trace_info, response);
+          get_instruments_ack(event, sequence, RestState::INSTRUMENTS_FUTURES);
+        });
+  });
+}
+
+void Rest::get_instruments_option() {
+  profile_.instruments_option([&]() {
+    auto method = core::http::Method::GET;
+    auto path = "/api/v5/public/instruments?instType=OPTION"sv;
+    core::web::Request request{
+        .method = method,
+        .path = path,
+        .query = {},
+        .accept = core::http::Accept::JSON,
+        .content_type = {},
+        .headers = {},
+        .body = {},
+        .quality_of_service = {},
+    };
+    auto sequence = download_.sequence();
+    connection_(
+        "instruments"sv,
+        request,
+        [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
+          auto trace_info = server::create_trace_info();
+          server::Trace event(trace_info, response);
+          get_instruments_ack(event, sequence, RestState::INSTRUMENTS_OPTION);
+        });
+  });
+}
+
+void Rest::get_instruments_ack(
+    const server::Trace<core::web::Response> &event, uint32_t sequence, RestState state) {
   profile_.instruments_ack([&]() {
     auto &[trace_info, response] = event;
-    auto state = RestState::INSTRUMENTS;
     try {
       auto [status, category, body] = response.result();
       log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
@@ -259,8 +382,8 @@ void Rest::get_instruments_ack(const server::Trace<core::web::Response> &event, 
       }
       response.expect(core::http::Status::OK);
       core::json::Buffer buffer(decode_buffer_);
-      auto instruments = core::json::Parser::create<json::Instruments>(body, buffer);
-      server::Trace event(trace_info, instruments);
+      auto tickers = core::json::Parser::create<json::Instruments>(body, buffer);
+      server::Trace event(trace_info, tickers);
       (*this)(event);
       download_.check_relaxed(state);
     } catch (core::NetworkError &e) {
@@ -278,7 +401,7 @@ void Rest::operator()(const server::Trace<json::Instruments> &event) {
   size_t counter = {};
   for (auto &item : instruments.data) {
     log::info<2>("item={}"sv, item);
-    auto symbol = item.instrument_id;
+    auto symbol = item.inst_id;
     if (shared_.discard_symbol(symbol))
       continue;
     if (all_symbols_.emplace(symbol).second)  // only include new
@@ -289,26 +412,33 @@ void Rest::operator()(const server::Trace<json::Instruments> &event) {
         .exchange = Flags::exchange(),
         .symbol = symbol,
         .description = {},
-        .security_type = {},
-        .base_currency = item.base_currency,
-        .quote_currency = item.quote_currency,
+        .security_type = {},  // XXX HANS item.inst_type
+        .base_currency = item.base_ccy,
+        .quote_currency = item.quote_ccy,
         .commission_currency = {},
-        .tick_size = item.tick_size,
-        .multiplier = 1.0,
-        .min_trade_vol = item.min_size,
+        .tick_size = item.tick_sz,
+        .multiplier = item.ct_mult,
+        .min_trade_vol = item.min_sz,
         .max_trade_vol = NaN,
-        .trade_vol_step_size = item.size_increment,
-        .option_type = {},
+        .trade_vol_step_size = NaN,
+        .option_type = {},  // XXX HANS item.opt_type,
         .strike_currency = {},
-        .strike_price = NaN,
-        .underlying = {},
+        .strike_price = item.stk,
+        .underlying = item.uly,
         .time_zone = {},
-        .issue_date = {},
+        .issue_date = utils::safe_cast(item.list_time),
         .settlement_date = {},
-        .expiry_datetime = {},
-        .expiry_datetime_utc = {},
+        .expiry_datetime = utils::safe_cast(item.exp_time),
+        .expiry_datetime_utc = utils::safe_cast(item.exp_time),
     };
     server::create_trace_and_dispatch(handler_, trace_info, reference_data, true);
+    MarketStatus market_status{
+        .stream_id = stream_id_,
+        .exchange = Flags::exchange(),
+        .symbol = item.inst_id,
+        .trading_status = {},  // XXX HANS item.state
+    };
+    server::create_trace_and_dispatch(handler_, trace_info, market_status, true);
   }
   log::info("Instruments {} / {}"sv, counter, std::size(instruments.data));
   if (!std::empty(symbols)) {
