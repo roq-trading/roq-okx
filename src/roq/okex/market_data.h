@@ -16,8 +16,6 @@
 
 #include "roq/core/web/client_socket.h"
 
-#include "roq/core/zlib/inflate.h"
-
 #include "roq/download.h"
 #include "roq/server.h"
 
