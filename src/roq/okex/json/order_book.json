@@ -1,8 +1,0 @@
-{
-"name": "OrderBook",
-"type": "comp",
-"values": [
-	{ "name": "code", "type": "int32_t" },
-	{ "name": "data", "type": "OrderBookData" }
-]
-}

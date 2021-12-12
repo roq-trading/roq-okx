@@ -1,9 +1,0 @@
-{
-"name": "RelationContext",
-"type": "item",
-"values": [
-	{ "name": "symbol", "type": "std::string_view" },
-	{ "name": "orderId", "type": "std::string_view" },
-	{ "name": "tradeId", "type": "std::string_view" }
-]
-}

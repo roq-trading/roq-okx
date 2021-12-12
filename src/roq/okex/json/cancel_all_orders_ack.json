@@ -1,9 +1,0 @@
-{
-"name": "CancelAllOrdersAck",
-"type": "comp",
-"values": [
-	{ "name": "code", "type": "int32_t" },
-	{ "name": "msg", "type": "std::string_view" },
-	{ "name": "data", "type": "CancelAllOrdersAckData" }
-]
-}

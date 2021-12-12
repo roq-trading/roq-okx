@@ -1,7 +1,0 @@
-{
-"name": "OrderOperationType",
-"type": "enum",
-"values": [
-	{ "name": "DEAL" }
-]
-}

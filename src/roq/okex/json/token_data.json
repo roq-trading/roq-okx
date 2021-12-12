@@ -1,8 +1,0 @@
-{
-"name": "TokenData",
-"type": "comp",
-"values": [
-	{ "name": "instanceServers", "type": "roq::span<InstanceServer>" },
-	{ "name": "token", "type": "std::string_view" }
-]
-}

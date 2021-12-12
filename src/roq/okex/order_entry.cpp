@@ -123,10 +123,6 @@ void OrderEntry::operator()(const Event<Stop> &) {
 void OrderEntry::operator()(const Event<Timer> &event) {
   auto now = event.value.now;
   connection_.refresh(now);
-  if (refresh_token_.count() && refresh_token_ < now) {
-    refresh_token_ = now + Flags::rest_token_refresh_freq();
-    get_private_token();
-  }
 }
 
 void OrderEntry::operator()(metrics::Writer &writer) {
@@ -195,7 +191,6 @@ void OrderEntry::operator()(const core::web::Client::Disconnected &) {
   (*this)(ConnectionStatus::DISCONNECTED);
   if (!download_.downloading())
     download_.reset();
-  refresh_token_ = {};
 }
 
 void OrderEntry::operator()(const core::web::Client::Latency &latency) {
@@ -229,22 +224,9 @@ uint32_t OrderEntry::download(OrderEntryState state) {
     case OrderEntryState::UNDEFINED:
       assert(false);
       break;
-    case OrderEntryState::PRIVATE_TOKEN:
-      get_private_token();
-      return 1;
     case OrderEntryState::ACCOUNTS:
       get_accounts();
       return 1;
-    case OrderEntryState::ORDERS: {
-      auto now = core::get_realtime_clock();  // note! should be download begin
-      get_orders(now, 1);
-      return 1;  // paginated: at least 1
-    }
-    case OrderEntryState::FILLS: {
-      auto now = core::get_realtime_clock();  // note! should be download begin
-      get_fills(now, 1);
-      return 1;  // paginated: at least 1
-    }
     case OrderEntryState::DONE:
       (*this)(ConnectionStatus::READY);
       return {};
@@ -253,83 +235,14 @@ uint32_t OrderEntry::download(OrderEntryState state) {
   return {};
 }
 
-// private-token
-
-void OrderEntry::get_private_token() {
-  profile_.private_token([&]() {
-    auto method = core::http::Method::POST;
-    auto path = "/api/v1/bullet-private"sv;
-    auto headers = security_.create_signature_api_v2(method, path, {}, {});
-    core::web::Request request{
-        .method = method,
-        .path = path,
-        .query = {},
-        .accept = core::http::Accept::JSON,
-        .content_type = {},
-        .headers = headers,
-        .body = {},
-        .quality_of_service = {},
-    };
-    auto sequence = download_.sequence();
-    connection_(
-        "private_token"sv,
-        request,
-        [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
-          auto trace_info = server::create_trace_info();
-          server::Trace event(trace_info, response);
-          get_private_token_ack(event, sequence);
-        });
-  });
-}
-
-void OrderEntry::get_private_token_ack(
-    const server::Trace<core::web::Response> &event, [[maybe_unused]] uint32_t sequence) {
-  profile_.private_token_ack([&]() {
-    auto &[trace_info, response] = event;
-    auto state = OrderEntryState::PRIVATE_TOKEN;
-    try {
-      auto [status, category, body] = response.result();
-      log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
-      response.expect(core::http::Status::OK);
-      core::json::Buffer buffer(decode_buffer_);
-      auto private_token = core::json::Parser::create<json::Token>(body, buffer);
-      server::Trace event(trace_info, private_token);
-      (*this)(event);
-      download_.check_relaxed(state);
-      auto now = core::get_system_clock();
-      refresh_token_ = now + Flags::rest_token_refresh_freq();
-    } catch (core::NetworkError &e) {
-      log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
-      download_.retry(state);
-    }
-  });
-}
-
-void OrderEntry::operator()(const server::Trace<json::Token> &event) {
-  auto &[trace_info, token] = event;
-  log::info<2>("token={}"sv, token);
-  if (std::empty(token.data.instance_servers))
-    log::fatal("Unexpected: no instance servers"sv);
-  auto &instance_server = token.data.instance_servers[0];
-  auto query = fmt::format("?token={}"sv, token.data.token);
-  PrivateToken const private_token{
-      .account = security_.get_account(),
-      .uri = instance_server.endpoint,
-      .query = query,
-      .ping_frequency = instance_server.ping_interval,
-  };
-  if (private_token.ping_frequency.count() == 0)
-    log::fatal("Unexpected: ping_interval={}"sv, instance_server.ping_interval);
-  handler_(private_token);
-}
-
 // accounts
 
 void OrderEntry::get_accounts() {
   profile_.accounts([&]() {
     auto method = core::http::Method::GET;
-    auto path = "/api/v1/accounts"sv;
-    auto headers = security_.create_signature_api_v2(method, path, {}, {});
+    auto path = "/api/spot/v3/accounts"sv;
+    auto headers = security_.create_signature(method, path, {});
+    log::debug(R"(HERE headers="{}")"sv, headers);
     core::web::Request request{
         .method = method,
         .path = path,
@@ -378,226 +291,17 @@ void OrderEntry::get_accounts_ack(
 void OrderEntry::operator()(const server::Trace<json::Accounts> &event) {
   auto &[trace_info, accounts] = event;
   log::info<4>("accounts={}"sv, accounts);
-  if (accounts.code == 200000) {
-    for (auto &item : accounts.data) {
-      log::info<2>("item={}"sv, item);
-      if (item.type != json::AccountType::TRADE)
-        continue;
-      FundsUpdate funds_update{
-          .stream_id = stream_id_,
-          .account = security_.get_account(),
-          .currency = item.currency,
-          .balance = item.balance,  // XXX HANS item.available?
-          .hold = item.holds,
-          .external_account = {},
-      };
-      server::create_trace_and_dispatch(handler_, trace_info, funds_update, true);
-    }
-  } else {
-    // what now?
-  }
-}
-
-// orders
-
-void OrderEntry::get_orders(std::chrono::nanoseconds now, size_t current_page) {
-  profile_.orders([&]() {
-    log::info("Downloading orders... (page={})"sv, current_page);
-    auto method = core::http::Method::GET;
-    auto path = "/api/v1/orders"sv;
-    auto query = create_query_string(
-        now,
-        Flags::rest_download_orders_begin(),
-        current_page,
-        Flags::rest_download_orders_page_size(),
-        Flags::rest_download_only_active_orders());
-    auto headers = security_.create_signature_api_v2(method, path, query, {});
-    core::web::Request request{
-        .method = method,
-        .path = path,
-        .query = query,
-        .accept = core::http::Accept::JSON,
-        .content_type = {},
-        .headers = headers,
-        .body = {},
-        .quality_of_service = {},
+  for (auto &item : accounts.data) {
+    log::info<2>("item={}"sv, item);
+    FundsUpdate funds_update{
+        .stream_id = stream_id_,
+        .account = security_.get_account(),
+        .currency = item.currency,
+        .balance = item.balance,
+        .hold = item.hold,
+        .external_account = item.id,
     };
-    auto sequence = download_.sequence();
-    connection_(
-        "orders"sv,
-        request,
-        [this, sequence, now, current_page]([[maybe_unused]] auto &request_id, auto &response) {
-          auto trace_info = server::create_trace_info();
-          server::Trace event(trace_info, response);
-          get_orders_ack(event, sequence, now, current_page);
-        });
-  });
-}
-
-void OrderEntry::get_orders_ack(
-    const server::Trace<core::web::Response> &event,
-    uint32_t sequence,
-    std::chrono::nanoseconds now,
-    size_t current_page) {
-  profile_.orders_ack([&]() {
-    auto &[trace_info, response] = event;
-    auto state = OrderEntryState::ORDERS;
-    try {
-      auto [status, category, body] = response.result();
-      log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
-      if (download_.skip(sequence, state)) {
-        log::info("Download state={} has already been processed"sv, state);
-        return;
-      }
-      response.expect(core::http::Status::OK);
-      core::json::Buffer buffer(decode_buffer_);
-      auto orders = core::json::Parser::create<json::Orders>(body, buffer);
-      server::Trace event(trace_info, orders);
-      (*this)(event, now, current_page);
-    } catch (core::NetworkError &e) {
-      log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
-      download_.retry(state);
-    }
-  });
-}
-
-void OrderEntry::operator()(
-    const server::Trace<json::Orders> &event, std::chrono::nanoseconds now, size_t current_page) {
-  auto &[trace_info, orders] = event;
-  log::info<4>("orders={}"sv, orders);
-  auto state = OrderEntryState::ORDERS;
-  if (orders.code == 200000) {
-    auto &data = orders.data;
-    log::debug("current_page={}, total_page={}"sv, data.current_page, data.total_page);
-    for (auto &order : data.items) {
-      log::info<2>("order={}"sv, order);
-      if (std::empty(order.client_oid))  // XXX HANS maybe we need a utility function to validate?
-        continue;
-      auto side = json::map(order.side);
-      auto order_type = json::map(order.type);
-      auto time_in_force = json::map(order.time_in_force);
-      auto order_status = compute_order_status(order.size, order.deal_size, order.is_active);
-      oms::OrderUpdate order_update{
-          .account = security_.get_account(),
-          .exchange = Flags::exchange(),
-          .symbol = order.symbol,
-          .side = side,
-          .position_effect = {},
-          .max_show_quantity = order.visible_size,
-          .order_type = order_type,
-          .time_in_force = time_in_force,
-          .execution_instruction = {},
-          .order_template = {},
-          .create_time_utc = order.created_at,
-          .update_time_utc = {},
-          .external_account = {},
-          .external_order_id = order.id,
-          .status = order_status,
-          .quantity = order.size,
-          .price = order.price,
-          .stop_price = order.stop_price,
-          .remaining_quantity = order.size - order.deal_size,
-          .traded_quantity = order.deal_size,
-          .average_traded_price = {},
-          .last_traded_quantity = {},
-          .last_traded_price = {},
-          .last_liquidity = {},
-      };
-      shared_.create_order(order.client_oid, stream_id_, trace_info, order_update);
-    }
-    if (data.current_page == 1 && data.total_page > 1)
-      download_.update(state, data.total_page);
-    download_.check_relaxed(state);
-    if (data.current_page < data.total_page)
-      get_orders(now, current_page + 1);
-  } else {
-    log::warn("orders={}"sv, orders);
-    log::fatal("*** ORDER DOWNLOAD FAILED ***"sv);
-  }
-}
-
-// fills
-
-void OrderEntry::get_fills(std::chrono::nanoseconds now, size_t current_page) {
-  profile_.fills([&]() {
-    log::info("Downloading fills... (page={})"sv, current_page);
-    auto method = core::http::Method::GET;
-    auto path = "/api/v1/fills"sv;
-    auto query = create_query_string(
-        now,
-        Flags::rest_download_orders_begin(),
-        current_page,
-        Flags::rest_download_orders_page_size(),
-        false);
-    auto headers = security_.create_signature_api_v2(method, path, query, {});
-    core::web::Request request{
-        .method = method,
-        .path = path,
-        .query = query,
-        .accept = core::http::Accept::JSON,
-        .content_type = {},
-        .headers = headers,
-        .body = {},
-        .quality_of_service = {},
-    };
-    auto sequence = download_.sequence();
-    connection_(
-        "fills"sv,
-        request,
-        [this, sequence, now, current_page]([[maybe_unused]] auto &request_id, auto &response) {
-          auto trace_info = server::create_trace_info();
-          server::Trace event(trace_info, response);
-          get_fills_ack(event, sequence, now, current_page);
-        });
-  });
-}
-
-void OrderEntry::get_fills_ack(
-    const server::Trace<core::web::Response> &event,
-    uint32_t sequence,
-    std::chrono::nanoseconds now,
-    size_t current_page) {
-  profile_.fills_ack([&]() {
-    auto &[trace_info, response] = event;
-    auto state = OrderEntryState::FILLS;
-    try {
-      auto [status, category, body] = response.result();
-      log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
-      if (download_.skip(sequence, state)) {
-        log::info("Download state={} has already been processed"sv, state);
-        return;
-      }
-      response.expect(core::http::Status::OK);
-      log::debug(R"(body="{}")"sv, body);
-      core::json::Buffer buffer(decode_buffer_);
-      auto fills = core::json::Parser::create<json::Fills>(body, buffer);
-      server::Trace event(trace_info, fills);
-      (*this)(event, now, current_page);
-    } catch (core::NetworkError &e) {
-      log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
-      download_.retry(state);
-    }
-  });
-}
-
-void OrderEntry::operator()(
-    const server::Trace<json::Fills> &event, std::chrono::nanoseconds now, size_t current_page) {
-  auto &[trace_info, fills] = event;
-  log::info<4>("fills={}"sv, fills);
-  auto state = OrderEntryState::FILLS;
-  if (fills.code == 200000) {
-    auto &data = fills.data;
-    log::debug("current_page={}, total_page={}"sv, data.current_page, data.total_page);
-    for (auto &item : data.items)
-      log::info<2>("fill={}"sv, item);
-    if (data.current_page == 1 && data.total_page > 1)
-      download_.update(state, data.total_page);
-    download_.check_relaxed(state);
-    if (data.current_page < data.total_page)
-      get_fills(now, current_page + 1);
-  } else {
-    log::warn("fills={}"sv, fills);
-    log::fatal("*** FILLS DOWNLOAD FAILED ***"sv);
+    server::create_trace_and_dispatch(handler_, trace_info, funds_update, true);
   }
 }
 
@@ -608,6 +312,7 @@ void OrderEntry::create_order(
   profile_.create_order([&]() {
     if (!ready())
       throw oms::NotReadyException();
+    /*
     auto &[message_info, create_order] = event;
     auto method = core::http::Method::POST;
     auto path = "/api/v1/orders"sv;
@@ -665,6 +370,7 @@ void OrderEntry::create_order(
           uint32_t version = 1;
           create_order_ack(event, user_id, order_id, version);
         });
+    */
   });
 }
 
@@ -680,9 +386,11 @@ void OrderEntry::create_order_ack(
       auto [status, category, body] = response.result();
       log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
       core::json::Buffer buffer(decode_buffer_);
+      /*
       auto create_order_ack = core::json::Parser::create<json::CreateOrderAck>(body, buffer);
       server::Trace event(trace_info, create_order_ack);
       (*this)(event, status, user_id, order_id, version);
+      */
     } catch (core::NetworkError &e) {
       log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
       oms::Response response{
@@ -710,6 +418,7 @@ void OrderEntry::create_order_ack(
   });
 }
 
+/*
 void OrderEntry::operator()(
     const server::Trace<json::CreateOrderAck> &event,
     core::http::Status status,
@@ -828,6 +537,7 @@ void OrderEntry::operator()(
       break;
   }
 }
+*/
 
 // cancel-order
 
@@ -844,7 +554,7 @@ void OrderEntry::cancel_order(
     auto &[message_info, cancel_order] = event;
     auto method = core::http::Method::DELETE;
     auto path = fmt::format("/api/v1/orders/{}"sv, order.external_order_id);
-    auto headers = security_.create_signature_api_v2(method, path, {}, {});
+    auto headers = security_.create_signature(method, path, {});
     core::web::Request request{
         .method = method,
         .path = path,
@@ -881,9 +591,11 @@ void OrderEntry::cancel_order_ack(
       auto [status, category, body] = response.result();
       log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
       core::json::Buffer buffer(decode_buffer_);
+      /*
       auto cancel_order_ack = core::json::Parser::create<json::CancelOrderAck>(body, buffer);
       server::Trace event(trace_info, cancel_order_ack);
       (*this)(event, status, user_id, order_id, version);
+      */
     } catch (core::NetworkError &e) {
       log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
       oms::Response response{
@@ -915,6 +627,7 @@ void OrderEntry::cancel_order_ack(
   });
 }
 
+/*
 void OrderEntry::operator()(
     const server::Trace<json::CancelOrderAck> &event,
     core::http::Status status,
@@ -1018,6 +731,7 @@ void OrderEntry::operator()(
       break;
   }
 }
+*/
 
 // cancel-all-orders
 
@@ -1027,7 +741,7 @@ void OrderEntry::cancel_all_orders(
     if (ready()) {
       auto method = core::http::Method::DELETE;
       auto path = "/api/v1/orders"sv;
-      auto headers = security_.create_signature_api_v2(method, path, {}, {});
+      auto headers = security_.create_signature(method, path, {});
       core::web::Request request{
           .method = method,
           .path = path,
@@ -1059,11 +773,13 @@ void OrderEntry::cancel_all_orders_ack(const server::Trace<core::web::Response> 
       auto [status, category, body] = response.result();
       log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
       core::json::Buffer buffer(decode_buffer_);
+      /*
       auto cancel_all_orders_ack =
           core::json::Parser::create<json::CancelAllOrdersAck>(body, buffer);
       log::debug("cancel_all_orders_ack={}"sv, cancel_all_orders_ack);
       server::Trace event(trace_info, cancel_all_orders_ack);
       (*this)(event, status);
+      */
     } catch (core::NetworkError &e) {
       log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
       // note! this event does not require a response
@@ -1071,6 +787,7 @@ void OrderEntry::cancel_all_orders_ack(const server::Trace<core::web::Response> 
   });
 }
 
+/*
 void OrderEntry::operator()(
     const server::Trace<json::CancelAllOrdersAck> &event, core::http::Status status) {
   auto &[trace_info, cancel_all_orders_ack] = event;
@@ -1087,6 +804,7 @@ void OrderEntry::operator()(
       break;
   }
 }
+*/
 
 }  // namespace okex
 }  // namespace roq

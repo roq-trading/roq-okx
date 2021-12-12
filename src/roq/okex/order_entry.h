@@ -26,12 +26,6 @@
 #include "roq/okex/shared.h"
 
 #include "roq/okex/json/accounts.h"
-#include "roq/okex/json/cancel_all_orders_ack.h"
-#include "roq/okex/json/cancel_order_ack.h"
-#include "roq/okex/json/create_order_ack.h"
-#include "roq/okex/json/fills.h"
-#include "roq/okex/json/orders.h"
-#include "roq/okex/json/token.h"
 
 namespace roq {
 namespace okex {
@@ -90,31 +84,9 @@ class OrderEntry final : public core::web::Client::Handler {
 
   uint32_t download(OrderEntryState state);
 
-  void get_private_token();
-  void get_private_token_ack(const server::Trace<core::web::Response> &, uint32_t sequence);
-  void operator()(const server::Trace<json::Token> &);
-
   void get_accounts();
   void get_accounts_ack(const server::Trace<core::web::Response> &, uint32_t sequence);
   void operator()(const server::Trace<json::Accounts> &);
-
-  void get_orders(std::chrono::nanoseconds now, size_t current_page);
-  void get_orders_ack(
-      const server::Trace<core::web::Response> &,
-      uint32_t sequence,
-      std::chrono::nanoseconds now,
-      size_t current_page);
-  void operator()(
-      const server::Trace<json::Orders> &, std::chrono::nanoseconds now, size_t current_page);
-
-  void get_fills(std::chrono::nanoseconds now, size_t current_page);
-  void get_fills_ack(
-      const server::Trace<core::web::Response> &,
-      uint32_t sequence,
-      std::chrono::nanoseconds now,
-      size_t current_page);
-  void operator()(
-      const server::Trace<json::Fills> &, std::chrono::nanoseconds now, size_t current_page);
 
   void create_order(
       const Event<CreateOrder> &, const oms::Order &, const std::string_view &request_id);
@@ -123,12 +95,14 @@ class OrderEntry final : public core::web::Client::Handler {
       uint8_t user_id,
       uint32_t order_id,
       uint32_t version);
+  /*
   void operator()(
       const server::Trace<json::CreateOrderAck> &,
       core::http::Status,
       uint8_t user_id,
       uint32_t order_id,
       uint32_t version);
+  */
 
   void cancel_order(
       const Event<CancelOrder> &,
@@ -140,16 +114,18 @@ class OrderEntry final : public core::web::Client::Handler {
       uint8_t user_id,
       uint32_t order_id,
       uint32_t version);
+  /*
   void operator()(
       const server::Trace<json::CancelOrderAck> &,
       core::http::Status,
       uint8_t user_id,
       uint32_t order_id,
       uint32_t version);
+  */
 
   void cancel_all_orders(const Event<CancelAllOrders> &, const std::string_view &request_id);
   void cancel_all_orders_ack(const server::Trace<core::web::Response> &);
-  void operator()(const server::Trace<json::CancelAllOrdersAck> &, core::http::Status);
+  // void operator()(const server::Trace<json::CancelAllOrdersAck> &, core::http::Status);
 
  private:
   Handler &handler_;
@@ -183,7 +159,6 @@ class OrderEntry final : public core::web::Client::Handler {
   // state
   ConnectionStatus status_ = {};
   server::Download<OrderEntryState> download_;
-  std::chrono::nanoseconds refresh_token_ = {};
 };
 
 }  // namespace okex

@@ -23,16 +23,8 @@ class Security final {
 
   std::string_view get_account() const { return account_; }
 
-  std::string create_signature_api_v1(
-      core::http::Method,
-      const std::string_view &path,
-      const std::string_view &query,
-      const std::string_view &body);
-  std::string create_signature_api_v2(
-      core::http::Method,
-      const std::string_view &path,
-      const std::string_view &query,
-      const std::string_view &body);
+  std::string create_signature(
+      core::http::Method, const std::string_view &path, const std::string_view &body);
 
  private:
   const std::string account_;

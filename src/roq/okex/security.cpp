@@ -16,22 +16,10 @@ Security::Security(const Config &config, const std::string_view &account)
                              config.get_passphrase(account_)) {
 }
 
-std::string Security::create_signature_api_v1(
-    core::http::Method method,
-    const std::string_view &path,
-    const std::string_view &query,
-    const std::string_view &body) {
+std::string Security::create_signature(
+    core::http::Method method, const std::string_view &path, const std::string_view &body) {
   auto now = core::get_realtime_clock();
-  return hasher_.create_headers_v1(method, path, query, body, utils::safe_cast(now));
-}
-
-std::string Security::create_signature_api_v2(
-    core::http::Method method,
-    const std::string_view &path,
-    const std::string_view &query,
-    const std::string_view &body) {
-  auto now = core::get_realtime_clock();
-  return hasher_.create_headers_v2(method, path, query, body, utils::safe_cast(now));
+  return hasher_.create_headers(method, path, body, utils::safe_cast(now));
 }
 
 }  // namespace okex

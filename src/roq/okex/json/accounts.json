@@ -1,9 +1,7 @@
 {
 "name": "Accounts",
-"type": "comp",
+"type": "array",
 "values": [
-	{ "name": "code", "type": "int32_t" },
-	{ "name": "msg", "type": "std::string_view", "optional": true },
-	{ "name": "data", "type": "roq::span<Account>" }
+	{ "name": "data", "type": "roq::span<AccountsItem>" }
 ]
 }

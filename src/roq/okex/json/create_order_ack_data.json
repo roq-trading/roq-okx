@@ -1,7 +1,0 @@
-{
-"name": "CreateOrderAckData",
-"type": "item",
-"values": [
-	{ "name": "orderId", "type": "std::string_view" }
-]
-}

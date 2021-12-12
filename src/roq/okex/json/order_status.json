@@ -1,9 +1,0 @@
-{
-"name": "OrderStatus",
-"type": "enum",
-"values": [
-	{ "name": "open" },
-	{ "name": "match" },
-	{ "name": "done" }
-]
-}
