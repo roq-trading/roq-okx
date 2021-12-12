@@ -36,16 +36,6 @@ struct create_metrics final : public core::metrics::Factory {
   explicit create_metrics(const std::string_view &group, const std::string_view &function)
       : core::metrics::Factory(server::Flags::name(), group, function) {}
 };
-
-void emplace(MBPUpdate &result, double price, double size) {
-  new (&result) MBPUpdate{
-      .price = price,
-      .quantity = size,
-      .implied_quantity = NaN,
-      .price_level = {},
-      .number_of_orders = {},
-  };
-}
 }  // namespace
 
 Rest::Rest(

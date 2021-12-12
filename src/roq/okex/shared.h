@@ -8,6 +8,7 @@
 #include <deque>
 #include <string>
 #include <utility>
+#include <vector>
 
 #include "roq/api.h"
 #include "roq/server.h"
@@ -65,6 +66,9 @@ struct Shared final {
   server::Dispatcher &dispatcher_;
 
   core::limit::RateLimiter rate_limiter_;
+
+ public:
+  std::vector<std::byte> generic_buffer;
 };
 
 }  // namespace okex

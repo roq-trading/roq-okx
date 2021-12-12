@@ -5,6 +5,7 @@ set(SOURCES parser.cpp utils.cpp)
 include(RoqAutogen)
 
 set(AUTOGEN_SCHEMAS
+    action.json
     account.json
     accounts.json
     account_type.json
@@ -40,6 +41,10 @@ set(AUTOGEN_SCHEMAS
     relation_event.json
     self_trade_prevention.json
     side.json
+    spot_depth_l2_tbt_item.json
+    spot_depth_l2_tbt.json
+    spot_ticker.json
+    spot_trade.json
     status_item.json
     status.json
     subject.json

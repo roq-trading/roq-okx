@@ -1,3 +1,5 @@
+action.h
+action.cpp
 account.h
 account.cpp
 accounts.h
@@ -68,6 +70,14 @@ self_trade_prevention.h
 self_trade_prevention.cpp
 side.h
 side.cpp
+spot_depth_l2_tbt_item.h
+spot_depth_l2_tbt_item.cpp
+spot_depth_l2_tbt.h
+spot_depth_l2_tbt.cpp
+spot_ticker.h
+spot_ticker.cpp
+spot_trade.h
+spot_trade.cpp
 status_item.h
 status_item.cpp
 status.h

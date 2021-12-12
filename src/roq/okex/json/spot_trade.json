@@ -1,0 +1,12 @@
+{
+"name": "SpotTrade",
+"type": "item",
+"values": [
+	{ "name": "trade_id", "type": "std::string_view", "comment": "we need the string" },
+	{ "name": "price", "type": "double" },
+	{ "name": "size", "type": "double" },
+	{ "name": "side", "type": "Side" },
+	{ "name": "instrument_id", "type": "std::string_view" },
+	{ "name": "timestamp", "type": "std::chrono::milliseconds" }
+]
+}

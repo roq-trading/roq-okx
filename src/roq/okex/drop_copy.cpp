@@ -235,5 +235,17 @@ void DropCopy::operator()(server::Trace<json::Unsubscribe> const &event) {
   });
 }
 
+void DropCopy::operator()(server::Trace<json::SpotTicker> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void DropCopy::operator()(server::Trace<json::SpotTrade> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void DropCopy::operator()(server::Trace<json::SpotDepthL2Tbt> const &, json::Action) {
+  log::fatal("Unexpected"sv);
+}
+
 }  // namespace okex
 }  // namespace roq

@@ -16,6 +16,8 @@
 
 #include "roq/core/web/client_socket.h"
 
+#include "roq/core/zlib/inflate.h"
+
 #include "roq/download.h"
 #include "roq/server.h"
 
@@ -81,6 +83,10 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   void operator()(server::Trace<json::Subscribe> const &) override;
   void operator()(server::Trace<json::Unsubscribe> const &) override;
 
+  void operator()(server::Trace<json::SpotTicker> const &) override;
+  void operator()(server::Trace<json::SpotTrade> const &) override;
+  void operator()(server::Trace<json::SpotDepthL2Tbt> const &, json::Action) override;
+
  private:
   Handler &handler_;
   // config
@@ -97,7 +103,8 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
     core::metrics::Counter disconnect;
   } counter_;
   struct {
-    core::metrics::Profile parse, error, subscribe, unsubscribe;
+    core::metrics::Profile parse, error, subscribe, unsubscribe, spot_ticker, spot_trade,
+        spot_depth_l2_tbt;
   } profile_;
   struct {
     core::metrics::Latency ping, heartbeat;
@@ -108,6 +115,8 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   // state
   ConnectionStatus status_ = {};
   server::Download<MarketDataState> download_;
+  // zlib
+  core::zlib::Inflate inflate_;
 };
 
 }  // namespace okex
