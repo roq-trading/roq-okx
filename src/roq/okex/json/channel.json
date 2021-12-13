@@ -2,7 +2,11 @@
 "name": "Channel",
 "type": "enum",
 "values": [
+	{ "name": "status" },
 	{ "name": "instruments" },
+	{ "name": "estimated_price" },
+	{ "name": "price_limit" },
+	{ "name": "mark_price" },
 	{ "name": "tickers" },
 	{ "name": "trades" },
 	{ "raw": "books-l2-tbt", "name": "books_l2_tbt" },

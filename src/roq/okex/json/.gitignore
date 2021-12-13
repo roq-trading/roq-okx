@@ -24,6 +24,10 @@ contract_type.h
 contract_type.cpp
 error.h
 error.cpp
+estimated_price_item.h
+estimated_price_item.cpp
+estimated_price.h
+estimated_price.cpp
 event_type.h
 event_type.cpp
 instruments_item.h
@@ -36,6 +40,10 @@ login.h
 login.cpp
 margin_mode.h
 margin_mode.cpp
+mark_price_item.h
+mark_price_item.cpp
+mark_price.h
+mark_price.cpp
 option_type.h
 option_type.cpp
 order_flow_type.h
@@ -54,6 +62,10 @@ positions_item.h
 positions_item.cpp
 positions.h
 positions.cpp
+price_limit_item.h
+price_limit_item.cpp
+price_limit.h
+price_limit.cpp
 side.h
 side.cpp
 state.h

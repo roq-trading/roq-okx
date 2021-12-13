@@ -18,12 +18,16 @@ set(AUTOGEN_SCHEMAS
     channel.json
     contract_type.json
     error.json
+    estimated_price_item.json
+    estimated_price.json
     event_type.json
     instruments_item.json
     instruments.json
     instrument_type.json
     login.json
     margin_mode.json
+    mark_price_item.json
+    mark_price.json
     option_type.json
     order_flow_type.json
     orders_item.json
@@ -33,6 +37,8 @@ set(AUTOGEN_SCHEMAS
     position_side.json
     positions_item.json
     positions.json
+    price_limit_item.json
+    price_limit.json
     side.json
     state.json
     status_item.json

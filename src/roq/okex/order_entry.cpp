@@ -477,7 +477,23 @@ void OrderEntry::operator()(server::Trace<json::Unsubscribe> const &event) {
   });
 }
 
+void OrderEntry::operator()(server::Trace<json::Status> const &) {
+  log::fatal("Unexpected"sv);
+}
+
 void OrderEntry::operator()(server::Trace<json::Instruments> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void OrderEntry::operator()(server::Trace<json::EstimatedPrice> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void OrderEntry::operator()(server::Trace<json::PriceLimit> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void OrderEntry::operator()(server::Trace<json::MarkPrice> const &) {
   log::fatal("Unexpected"sv);
 }
 

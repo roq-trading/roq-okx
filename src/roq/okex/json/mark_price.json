@@ -1,0 +1,7 @@
+{
+"name": "MarkPrice",
+"type": "array",
+"values": [
+	{ "name": "data", "type": "roq::span<MarkPriceItem>" }
+]
+}

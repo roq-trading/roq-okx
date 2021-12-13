@@ -1,0 +1,7 @@
+{
+"name": "EstimatedPrice",
+"type": "array",
+"values": [
+	{ "name": "data", "type": "roq::span<EstimatedPriceItem>" }
+]
+}

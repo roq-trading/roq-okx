@@ -73,7 +73,11 @@ MarketData::MarketData(
           .error = create_metrics(name_, "error"sv),
           .subscribe = create_metrics(name_, "subscribe"sv),
           .unsubscribe = create_metrics(name_, "unsubscribe"sv),
+          .status = create_metrics(name_, "status"sv),
           .instruments = create_metrics(name_, "instruments"sv),
+          .estimated_price = create_metrics(name_, "estimated_price"sv),
+          .price_limit = create_metrics(name_, "price_limit"sv),
+          .mark_price = create_metrics(name_, "mark_price"sv),
           .tickers = create_metrics(name_, "tickers"sv),
           .trades = create_metrics(name_, "trades"sv),
           .books_l2_tbt = create_metrics(name_, "books_l2_tbt"sv),
@@ -107,7 +111,11 @@ void MarketData::operator()(metrics::Writer &writer) {
       .write(profile_.error, metrics::PROFILE)
       .write(profile_.subscribe, metrics::PROFILE)
       .write(profile_.unsubscribe, metrics::PROFILE)
+      .write(profile_.status, metrics::PROFILE)
       .write(profile_.instruments, metrics::PROFILE)
+      .write(profile_.estimated_price, metrics::PROFILE)
+      .write(profile_.price_limit, metrics::PROFILE)
+      .write(profile_.mark_price, metrics::PROFILE)
       .write(profile_.tickers, metrics::PROFILE)
       .write(profile_.trades, metrics::PROFILE)
       .write(profile_.books_l2_tbt, metrics::PROFILE)
@@ -218,21 +226,63 @@ uint32_t MarketData::download(MarketDataState state) {
 
 void MarketData::subscribe(const roq::span<std::string const> &symbols) {
   if (master_) {
-    static const std::array<std::string, 4> symbols = {"SPOT"s, "SWAP"s, "FUTURES"s, "OPTION"s};
-    subscribe("instruments"sv, "instType"sv, symbols);
+    // XXX HANS careful -- only at connection time
+    subscribe("status"sv);
+    subscribe("instruments"sv, "instType"sv, "SPOT"sv);
+    subscribe("instruments"sv, "instType"sv, "SWAP"sv);
+    subscribe("instruments"sv, "instType"sv, "FUTURES"sv);
+    subscribe("instruments"sv, "instType"sv, "OPTION"sv);
+    // subscribe("estimated-price"sv, "instType"sv, "FUTURES"sv);
+    // subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
   }
   if (std::empty(symbols))
     return;
+  // subscribe("price-limit"sv, "instType"sv, symbols);
+  // subscribe("mark-price"sv, "instType"sv, symbols);
   subscribe("tickers"sv, "instId"sv, symbols);
   subscribe("trades"sv, "instId"sv, symbols);
   subscribe("books-l2-tbt"sv, "instId"sv, symbols);
 }
 
+void MarketData::subscribe(const std::string_view &channel) {
+  auto message = fmt::format(
+      R"({{)"
+      R"("op":"subscribe",)"
+      R"("args":[{{)"
+      R"("channel":"{}")"
+      R"(}})"
+      R"(])"
+      R"(}})"sv,
+      channel);
+  log::debug("message={}"sv, message);
+  connection_.send_text(message);
+}
+
 void MarketData::subscribe(
     const std::string_view &channel,
     const std::string_view &selector,
-    const roq::span<std::string const> &symbols) {
-  assert(!std::empty(symbols));
+    const std::string_view &value) {
+  auto message = fmt::format(
+      R"({{)"
+      R"("op":"subscribe",)"
+      R"("args":[{{)"
+      R"("channel":"{}",)"
+      R"("{}":"{}")"
+      R"(}})"
+      R"(])"
+      R"(}})"sv,
+      channel,
+      selector,
+      value);
+  log::debug("message={}"sv, message);
+  connection_.send_text(message);
+}
+
+void MarketData::subscribe(
+    const std::string_view &channel,
+    const std::string_view &selector,
+    const roq::span<std::string const> &values) {
+  assert(!std::empty(values));
   auto prefix = fmt::format(
       R"({{)"
       R"("channel":"{}",)"
@@ -248,7 +298,7 @@ void MarketData::subscribe(
       R"(])"
       R"(}})"sv,
       prefix,
-      fmt::join(symbols, separator));
+      fmt::join(values, separator));
   log::debug("message={}"sv, message);
   connection_.send_text(message);
 }
@@ -286,6 +336,14 @@ void MarketData::operator()(server::Trace<json::Unsubscribe> const &event) {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("event={{trace_info={}, unsubscribe={}}}"sv, trace_info, unsubscribe);
     log::debug("event={{trace_info={}, unsubscribe={}}}"sv, trace_info, unsubscribe);
+  });
+}
+
+void MarketData::operator()(server::Trace<json::Status> const &event) {
+  profile_.status([&]() {
+    auto &[trace_info, status] = event;
+    log::info<3>("event={{trace_info={}, status={}}}"sv, trace_info, status);
+    log::debug("event={{trace_info={}, status={}}}"sv, trace_info, status);
   });
 }
 
@@ -344,6 +402,33 @@ void MarketData::operator()(server::Trace<json::Instruments> const &event) {
       };
       handler_(symbols_update);
     }
+  });
+}
+
+void MarketData::operator()(server::Trace<json::EstimatedPrice> const &event) {
+  profile_.estimated_price([&]() {
+    auto &[trace_info, estimated_price] = event;
+    log::info<3>("event={{trace_info={}, estimated_price={}}}"sv, trace_info, estimated_price);
+    log::debug("event={{trace_info={}, estimated_price={}}}"sv, trace_info, estimated_price);
+    log::fatal("here"sv);
+  });
+}
+
+void MarketData::operator()(server::Trace<json::PriceLimit> const &event) {
+  profile_.price_limit([&]() {
+    auto &[trace_info, price_limit] = event;
+    log::info<3>("event={{trace_info={}, price_limit={}}}"sv, trace_info, price_limit);
+    log::debug("event={{trace_info={}, price_limit={}}}"sv, trace_info, price_limit);
+    log::fatal("here"sv);
+  });
+}
+
+void MarketData::operator()(server::Trace<json::MarkPrice> const &event) {
+  profile_.mark_price([&]() {
+    auto &[trace_info, mark_price] = event;
+    log::info<3>("event={{trace_info={}, mark_price={}}}"sv, trace_info, mark_price);
+    log::debug("event={{trace_info={}, mark_price={}}}"sv, trace_info, mark_price);
+    log::fatal("here"sv);
   });
 }
 

@@ -51,9 +51,29 @@ bool Parser::dispatch(
           case Channel::UNKNOWN:
             assert(false);
             break;
+          case Channel::STATUS: {
+            Status status{value, buffer};
+            server::create_trace_and_dispatch(handler, trace_info, status);
+            return true;
+          }
           case Channel::INSTRUMENTS: {
             Instruments instruments{value, buffer};
             server::create_trace_and_dispatch(handler, trace_info, instruments);
+            return true;
+          }
+          case Channel::ESTIMATED_PRICE: {
+            EstimatedPrice estimated_price{value, buffer};
+            server::create_trace_and_dispatch(handler, trace_info, estimated_price);
+            return true;
+          }
+          case Channel::PRICE_LIMIT: {
+            PriceLimit price_limit{value, buffer};
+            server::create_trace_and_dispatch(handler, trace_info, price_limit);
+            return true;
+          }
+          case Channel::MARK_PRICE: {
+            MarkPrice mark_price{value, buffer};
+            server::create_trace_and_dispatch(handler, trace_info, mark_price);
             return true;
           }
           case Channel::TICKERS: {

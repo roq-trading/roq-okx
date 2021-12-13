@@ -14,7 +14,11 @@
 #include "roq/okex/json/unsubscribe.h"
 
 #include "roq/okex/json/books_l2_tbt.h"
+#include "roq/okex/json/estimated_price.h"
 #include "roq/okex/json/instruments.h"
+#include "roq/okex/json/mark_price.h"
+#include "roq/okex/json/price_limit.h"
+#include "roq/okex/json/status.h"
 #include "roq/okex/json/tickers.h"
 #include "roq/okex/json/trades.h"
 
@@ -38,7 +42,11 @@ struct Parser final {
     virtual void operator()(server::Trace<json::Unsubscribe> const &) = 0;
     // push
     // - public
+    virtual void operator()(server::Trace<json::Status> const &) = 0;
     virtual void operator()(server::Trace<json::Instruments> const &) = 0;
+    virtual void operator()(server::Trace<json::EstimatedPrice> const &) = 0;
+    virtual void operator()(server::Trace<json::PriceLimit> const &) = 0;
+    virtual void operator()(server::Trace<json::MarkPrice> const &) = 0;
     virtual void operator()(server::Trace<json::Tickers> const &) = 0;
     virtual void operator()(server::Trace<json::Trades> const &) = 0;
     virtual void operator()(

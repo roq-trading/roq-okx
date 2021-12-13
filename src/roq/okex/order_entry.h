@@ -75,7 +75,11 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
   void operator()(server::Trace<json::Subscribe> const &) override;
   void operator()(server::Trace<json::Unsubscribe> const &) override;
 
+  void operator()(server::Trace<json::Status> const &) override;
   void operator()(server::Trace<json::Instruments> const &) override;
+  void operator()(server::Trace<json::EstimatedPrice> const &) override;
+  void operator()(server::Trace<json::PriceLimit> const &) override;
+  void operator()(server::Trace<json::MarkPrice> const &) override;
   void operator()(server::Trace<json::Tickers> const &) override;
   void operator()(server::Trace<json::Trades> const &) override;
   void operator()(
