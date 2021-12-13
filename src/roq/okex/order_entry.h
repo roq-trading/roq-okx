@@ -93,8 +93,11 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
   void login();
 
   void subscribe();
-
   void subscribe(const std::string_view &channel);
+  void subscribe(
+      const std::string_view &channel,
+      const std::string_view &selector,
+      const std::string_view &value);
 
   void parse(const std::string_view &message);
 

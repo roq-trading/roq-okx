@@ -2,9 +2,13 @@
 
 #include "roq/okex/order_entry.h"
 
+#include <utility>
+
 #include "roq/utils/mask.h"
 #include "roq/utils/safe_cast.h"
 #include "roq/utils/update.h"
+
+#include "roq/oms/exceptions.h"
 
 #include "roq/core/metrics/factory.h"
 
@@ -12,6 +16,7 @@
 
 #include "roq/okex/flags.h"
 
+#include "roq/okex/json/ord_type.h"
 #include "roq/okex/json/utils.h"
 
 using namespace std::literals;
@@ -105,27 +110,183 @@ void OrderEntry::operator()(metrics::Writer &writer) {
       .write(latency_.heartbeat, metrics::LATENCY);
 }
 
+namespace {
+static std::pair<json::OrdType, bool> compute_order_attributes(
+    OrderType order_type, TimeInForce time_in_force, ExecutionInstruction execution_instruction) {
+  bool reduce_only = false;
+  json::OrdType ord_type;
+  switch (execution_instruction) {
+    case ExecutionInstruction::UNDEFINED:
+      break;
+    case ExecutionInstruction::PARTICIPATE_DO_NOT_INITIATE:
+      ord_type = json::OrdType::POST_ONLY;
+      break;
+    case ExecutionInstruction::DO_NOT_INCREASE:
+      reduce_only = true;
+      break;
+    default:
+      throw oms::NotSupportedException();
+  }
+  switch (time_in_force) {
+    case TimeInForce::GTC:
+      break;
+    case TimeInForce::FOK:
+      if (ord_type != json::OrdType{})
+        ord_type = json::OrdType::FOK;
+      break;
+    case TimeInForce::IOC:
+      if (ord_type != json::OrdType{})
+        ord_type = json::OrdType::IOC;
+      break;
+    default:
+      throw oms::NotSupportedException();
+  }
+  if (ord_type == json::OrdType{}) {
+    switch (order_type) {
+      case OrderType::MARKET:
+        ord_type = json::OrdType::MARKET;
+        break;
+      case OrderType::LIMIT:
+        ord_type = json::OrdType::LIMIT;
+        break;
+      default:
+        throw oms::NotSupportedException();
+    }
+  }
+  return {ord_type, reduce_only};
+}
+}  // namespace
+
 uint16_t OrderEntry::operator()(
-    const Event<CreateOrder> &,
-    const oms::Order &,
-    [[maybe_unused]] const std::string_view &request_id) {
+    const Event<CreateOrder> &event, const oms::Order &, const std::string_view &request_id) {
   throw oms::NotSupportedException();
+  auto &[message_info, create_order] = event;
+  // notes:
+  // - tdMode -- do we need this? (maybe different for spot/futures)
+  // - posSide -- we could probably infer it from PositionEffect + Side
+  auto side = json::map(create_order.side);
+  auto [ord_type, reduce_only] = compute_order_attributes(
+      create_order.order_type, create_order.time_in_force, create_order.execution_instruction);
+  switch (ord_type) {
+    case json::OrdType::MARKET: {
+      auto message = fmt::format(
+          R"({{)"
+          R"("id":"{}",)"
+          R"("op":"order",)"
+          R"("args":[{{)"
+          R"("clOrdId":"{}",)"
+          R"("tdMode":"isolated",)"
+          R"("instId":"{}",)"
+          R"("side":"{}",)"
+          R"("ordType":"{}",)"
+          R"("reduceOnly":{},)"
+          R"("sz":"{}")"
+          R"(}})"
+          R"(])"
+          R"(}})"sv,
+          request_id,
+          request_id,
+          create_order.symbol,
+          side.as_raw_text(),
+          ord_type.as_raw_text(),
+          reduce_only,
+          create_order.quantity);
+      log::debug("message={}"sv, message);
+      connection_.send_text(message);
+      break;
+    }
+    default: {
+      auto message = fmt::format(
+          R"({{)"
+          R"("id":"{}",)"
+          R"("op":"order",)"
+          R"("args":[{{)"
+          R"("clOrdId":"{}",)"
+          R"("tdMode":"isolated")"
+          R"("instId":"{}",)"
+          R"("side":"{}",)"
+          R"("ordType":"{}",)"
+          R"("reduceOnly":{},)"
+          R"("sz":"{}",)"
+          R"("px":"{}")"
+          R"(}})"
+          R"(])"
+          R"(}})"sv,
+          request_id,
+          request_id,
+          create_order.symbol,
+          side.as_raw_text(),
+          ord_type.as_raw_text(),
+          reduce_only,
+          create_order.quantity,
+          create_order.price);
+      log::debug("message={}"sv, message);
+      connection_.send_text(message);
+    }
+  }
+  return stream_id_;
 }
 
 uint16_t OrderEntry::operator()(
-    const Event<ModifyOrder> &,
-    const oms::Order &,
-    [[maybe_unused]] const std::string_view &request_id,
-    [[maybe_unused]] const std::string_view &previous_request_id) {
-  throw oms::NotSupportedException();
+    const Event<ModifyOrder> &event,
+    const oms::Order &order,
+    const std::string_view &request_id,
+    const std::string_view &previous_request_id) {
+  auto &[message_info, modify_order] = event;
+  auto has_external_order_id = !std::empty(order.external_order_id);
+  auto order_id_type = has_external_order_id ? "ordId"sv : "clOrdId"sv;
+  auto order_id =
+      has_external_order_id ? std::string_view{order.external_order_id} : previous_request_id;
+  auto new_sz = std::isnan(modify_order.quantity) ? order.quantity : modify_order.quantity;
+  auto new_px = std::isnan(modify_order.price) ? order.price : modify_order.price;
+  auto message = fmt::format(
+      R"({)"
+      R"("id":"{}",)"
+      R"("op":"amend-order",)"
+      R"("args":[{)"
+      R"("{}":"{}",)"
+      R"("instId":"{}",)"
+      R"("newSz":"{}",)"
+      R"("newPx":"{}")"
+      R"(})"
+      R"(])"
+      R"(})"sv,
+      request_id,
+      order_id_type,
+      order_id,
+      order.symbol,
+      new_sz,
+      new_px);
+  return stream_id_;
 }
 
 uint16_t OrderEntry::operator()(
     const Event<CancelOrder> &,
-    const oms::Order &,
-    [[maybe_unused]] const std::string_view &request_id,
-    [[maybe_unused]] const std::string_view &previous_request_id) {
+    const oms::Order &order,
+    const std::string_view &request_id,
+    const std::string_view &previous_request_id) {
   throw oms::NotSupportedException();
+  auto has_external_order_id = !std::empty(order.external_order_id);
+  auto order_id_type = has_external_order_id ? "ordId"sv : "clOrdId"sv;
+  auto order_id =
+      has_external_order_id ? std::string_view{order.external_order_id} : previous_request_id;
+  auto message = fmt::format(
+      R"({{)"
+      R"("id":"",)"
+      R"("op":"cancel-order",)"
+      R"("args":[{{)"
+      R"("{}":"{},")"
+      R"("instId":"{}")"
+      R"(}})"
+      R"(])"
+      R"(}})"sv,
+      request_id,
+      order_id_type,
+      order_id,
+      order.symbol);
+  log::debug("message={}"sv, message);
+  connection_.send_text(message);
+  return stream_id_;
 }
 
 uint16_t OrderEntry::operator()(
@@ -229,8 +390,8 @@ void OrderEntry::login() {
 void OrderEntry::subscribe() {
   subscribe("account"sv);
   subscribe("balance_and_position"sv);
-  subscribe("positions"sv);
-  subscribe("orders"sv);
+  subscribe("positions"sv, "instType"sv, "ANY"sv);
+  subscribe("orders"sv, "instType"sv, "ANY"sv);
 }
 
 void OrderEntry::subscribe(const std::string_view &channel) {
@@ -243,6 +404,26 @@ void OrderEntry::subscribe(const std::string_view &channel) {
       R"(])"
       R"(}})"sv,
       channel);
+  log::debug("message={}"sv, message);
+  connection_.send_text(message);
+}
+
+void OrderEntry::subscribe(
+    const std::string_view &channel,
+    const std::string_view &selector,
+    const std::string_view &value) {
+  auto message = fmt::format(
+      R"({{)"
+      R"("op":"subscribe",)"
+      R"("args":[{{)"
+      R"("channel":"{}",)"
+      R"("{}":"{}")"
+      R"(}})"
+      R"(])"
+      R"(}})"sv,
+      channel,
+      selector,
+      value);
   log::debug("message={}"sv, message);
   connection_.send_text(message);
 }

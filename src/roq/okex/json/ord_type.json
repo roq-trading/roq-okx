@@ -1,0 +1,12 @@
+{
+"name": "OrdType",
+"type": "enum",
+"values": [
+	{ "name": "market" },
+	{ "name": "limit" },
+	{ "name": "post_only" },
+	{ "name": "fok" },
+	{ "name": "ioc" },
+	{ "name": "optimal_limit_ioc" }
+]
+}

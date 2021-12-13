@@ -20,6 +20,7 @@ set(AUTOGEN_SCHEMAS
     instrument_type.json
     login.json
     option_type.json
+    ord_type.json
     side.json
     state.json
     status_item.json

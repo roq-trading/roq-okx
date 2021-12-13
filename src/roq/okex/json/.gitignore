@@ -28,6 +28,8 @@ login.h
 login.cpp
 option_type.h
 option_type.cpp
+ord_type.h
+ord_type.cpp
 side.h
 side.cpp
 state.h

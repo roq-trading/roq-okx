@@ -153,6 +153,24 @@ inline roq::TradingStatus map(json::State value) {
   return {};
 }
 
+/*
+// ord type
+
+inline roq::OrderType map(json::OrdType value) {
+  switch (value) {
+    case json::OrdType::UNDEFINED:
+      break;
+    case json::OrdType::UNKNOWN:
+      break;
+    case json::OrdType::MARKET:
+      return roq::OrderType::MARKET;
+    case json::OrdType::LIMIT:
+      return roq::OrderType::LIMIT;
+  }
+  return {};
+}
+*/
+
 }  // namespace json
 }  // namespace okex
 }  // namespace roq
