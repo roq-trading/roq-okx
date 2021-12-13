@@ -43,31 +43,11 @@
       "description": "ping frequency"
     },
     {
-      "name": "ws_request_timeout",
-      "type": "std::chrono::nanoseconds",
-      "validator": "roq::core::flags::TimePeriod",
-      "default": "15s",
-      "description": "request: timeout"
-    },
-    {
       "name": "ws_max_subscriptions_per_stream",
       "type": "uint32_t",
       "validator": "roq::core::flags::NonZero<uint32_t>",
       "default": 64,
       "description": "max symbols per connection (count)"
-    },
-    {
-      "name": "ws_mbp_request_delay",
-      "type": "std::chrono::nanoseconds",
-      "validator": "roq::core::flags::TimePeriod",
-      "default": "500ms",
-      "description": "request delay"
-    },
-    {
-      "name": "ws_mbp_request_max_retries",
-      "type": "uint32_t",
-      "default": 3,
-      "description": "request max retries"
     },
     {
       "name": "request_limit",
@@ -81,12 +61,6 @@
       "validator": "roq::core::flags::TimePeriod",
       "default": "10s",
       "description": "request limit monitor interval"
-    },
-    {
-      "name": "self_trade_prevention",
-      "type": "std::string",
-      "default": "CN",
-      "description": "self-trade prevention: CN, CO, CB, DC"
     },
     {
       "name": "encode_buffer_size",
