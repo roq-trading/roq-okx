@@ -232,13 +232,13 @@ void MarketData::subscribe(const roq::span<std::string const> &symbols) {
     subscribe("instruments"sv, "instType"sv, "SWAP"sv);
     subscribe("instruments"sv, "instType"sv, "FUTURES"sv);
     subscribe("instruments"sv, "instType"sv, "OPTION"sv);
-    // subscribe("estimated-price"sv, "instType"sv, "FUTURES"sv);
-    // subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
+    subscribe("estimated-price"sv, "instType"sv, "FUTURES"sv);
+    subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
   }
   if (std::empty(symbols))
     return;
-  // subscribe("price-limit"sv, "instType"sv, symbols);
-  // subscribe("mark-price"sv, "instType"sv, symbols);
+  subscribe("price-limit"sv, "instType"sv, symbols);
+  subscribe("mark-price"sv, "instType"sv, symbols);
   subscribe("tickers"sv, "instId"sv, symbols);
   subscribe("trades"sv, "instId"sv, symbols);
   subscribe("books-l2-tbt"sv, "instId"sv, symbols);
