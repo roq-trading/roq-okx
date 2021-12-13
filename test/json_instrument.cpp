@@ -14,10 +14,7 @@ using namespace std::chrono_literals;
 
 // note! reduced
 TEST(json_instruments_swaps, simple) {
-  auto message = R"({)"
-                 R"("code":"0",)"
-                 R"("msg":"",)"
-                 R"("data":[{)"
+  auto message = R"([{)"
                  R"("alias":"",)"
                  R"("baseCcy":"",)"
                  R"("category":"1",)"
@@ -62,8 +59,7 @@ TEST(json_instruments_swaps, simple) {
                  R"("tickSz":"0.01",)"
                  R"("uly":"ETH-USD")"
                  R"(})"
-                 R"(])"
-                 R"(})";
+                 R"(])";
   core::Buffer buffer(8192);
   core::json::Buffer buffer_(buffer);
   auto obj = core::json::Parser::create<json::Instruments>(message, buffer_);

@@ -52,17 +52,17 @@ void emplace(MBPUpdate &result, const T &item) {
 }  // namespace
 
 MarketData::MarketData(
-    Handler &handler, core::io::Context &context, uint32_t stream_id, Shared &shared)
+    Handler &handler, core::io::Context &context, uint32_t stream_id, Shared &shared, bool master)
     : handler_(handler), stream_id_(stream_id), name_(fmt::format("{}:{}"sv, stream_id_, NAME)),
-      connection_(
-          *this,
-          context,
-          core::URI{Flags::ws_public_uri()},
-          {},  // query
-          Flags::ws_ping_freq(),
-          Flags::decode_buffer_size(),
-          Flags::encode_buffer_size(),
-          []() { return std::string(); }),
+      master_(master), connection_(
+                           *this,
+                           context,
+                           core::URI{Flags::ws_public_uri()},
+                           {},  // query
+                           Flags::ws_ping_freq(),
+                           Flags::decode_buffer_size(),
+                           Flags::encode_buffer_size(),
+                           []() { return std::string(); }),
       decode_buffer_(Flags::decode_buffer_size()),
       request_id_(static_cast<uint64_t>(stream_id_) * 1000000),  // scale (debugging)
       counter_{
@@ -73,6 +73,7 @@ MarketData::MarketData(
           .error = create_metrics(name_, "error"sv),
           .subscribe = create_metrics(name_, "subscribe"sv),
           .unsubscribe = create_metrics(name_, "unsubscribe"sv),
+          .instruments = create_metrics(name_, "instruments"sv),
           .tickers = create_metrics(name_, "tickers"sv),
           .trades = create_metrics(name_, "trades"sv),
           .books_l2_tbt = create_metrics(name_, "books_l2_tbt"sv),
@@ -95,17 +96,6 @@ void MarketData::operator()(const Event<Stop> &) {
 void MarketData::operator()(const Event<Timer> &event) {
   auto now = event.value.now;
   connection_.refresh(now);
-  /*
-  if (connection_.ready()) {
-    if (welcome_ && next_ping_ < now)
-      send_ping(now);
-    check_subscribe_queue(now);
-  } else if (logon_timeout_.count() && logon_timeout_ < now) {
-    assert(!welcome_);
-    log::warn("Did not receive the welcome message, disconnecting now..."sv);
-    connection_.close();
-  }
-  */
 }
 
 void MarketData::operator()(metrics::Writer &writer) {
@@ -117,6 +107,7 @@ void MarketData::operator()(metrics::Writer &writer) {
       .write(profile_.error, metrics::PROFILE)
       .write(profile_.subscribe, metrics::PROFILE)
       .write(profile_.unsubscribe, metrics::PROFILE)
+      .write(profile_.instruments, metrics::PROFILE)
       .write(profile_.tickers, metrics::PROFILE)
       .write(profile_.trades, metrics::PROFILE)
       .write(profile_.books_l2_tbt, metrics::PROFILE)
@@ -225,21 +216,29 @@ uint32_t MarketData::download(MarketDataState state) {
   return {};
 }
 
-void MarketData::subscribe(const roq::span<std::string> &symbols) {
+void MarketData::subscribe(const roq::span<std::string const> &symbols) {
+  if (master_) {
+    static const std::array<std::string, 4> symbols = {"SPOT"s, "SWAP"s, "FUTURES"s, "OPTION"s};
+    subscribe("instruments"sv, "instType"sv, symbols);
+  }
   if (std::empty(symbols))
     return;
-  subscribe("tickers"sv, symbols);
-  subscribe("trades"sv, symbols);
-  subscribe("books-l2-tbt"sv, symbols);
+  subscribe("tickers"sv, "instId"sv, symbols);
+  subscribe("trades"sv, "instId"sv, symbols);
+  subscribe("books-l2-tbt"sv, "instId"sv, symbols);
 }
 
-void MarketData::subscribe(const std::string_view &channel, const roq::span<std::string> &symbols) {
+void MarketData::subscribe(
+    const std::string_view &channel,
+    const std::string_view &selector,
+    const roq::span<std::string const> &symbols) {
   assert(!std::empty(symbols));
   auto prefix = fmt::format(
       R"({{)"
       R"("channel":"{}",)"
-      R"("instId":")"sv,
-      channel);
+      R"("{}":")"sv,
+      channel,
+      selector);
   auto separator = fmt::format(R"("}},{})", prefix);
   auto message = fmt::format(
       R"({{)"
@@ -270,7 +269,7 @@ void MarketData::parse(const std::string_view &message) {
 void MarketData::operator()(server::Trace<json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
-    log::info<1>("event={{trace_info={}, error={}}}"sv, trace_info, error);
+    log::warn("event={{trace_info={}, error={}}}"sv, trace_info, error);
   });
 }
 
@@ -278,6 +277,7 @@ void MarketData::operator()(server::Trace<json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
     log::info<1>("event={{trace_info={}, subscribe={}}}"sv, trace_info, subscribe);
+    log::debug("event={{trace_info={}, subscribe={}}}"sv, trace_info, subscribe);
   });
 }
 
@@ -285,6 +285,65 @@ void MarketData::operator()(server::Trace<json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("event={{trace_info={}, unsubscribe={}}}"sv, trace_info, unsubscribe);
+    log::debug("event={{trace_info={}, unsubscribe={}}}"sv, trace_info, unsubscribe);
+  });
+}
+
+void MarketData::operator()(server::Trace<json::Instruments> const &event) {
+  profile_.instruments([&]() {
+    auto &[trace_info, instruments] = event;
+    log::info<1>("event={{trace_info={}, instruments={}}}"sv, trace_info, instruments);
+    std::vector<std::string> symbols;
+    symbols.reserve(std::size(instruments.data));
+    size_t counter = {};
+    for (auto &item : instruments.data) {
+      log::info<2>("item={}"sv, item);
+      auto symbol = item.inst_id;
+      if (shared_.discard_symbol(symbol))
+        continue;
+      if (all_symbols_.emplace(symbol).second)  // only include new
+        symbols.emplace_back(symbol);
+      ++counter;
+      ReferenceData reference_data{
+          .stream_id = stream_id_,
+          .exchange = Flags::exchange(),
+          .symbol = symbol,
+          .description = {},
+          .security_type = json::map(item.inst_type),
+          .base_currency = item.base_ccy,
+          .quote_currency = item.quote_ccy,
+          .commission_currency = {},
+          .tick_size = item.tick_sz,
+          .multiplier = item.ct_mult,
+          .min_trade_vol = item.min_sz,
+          .max_trade_vol = NaN,
+          .trade_vol_step_size = NaN,
+          .option_type = json::map(item.opt_type),
+          .strike_currency = {},
+          .strike_price = item.stk,
+          .underlying = item.uly,
+          .time_zone = {},
+          .issue_date = utils::safe_cast(item.list_time),
+          .settlement_date = {},
+          .expiry_datetime = utils::safe_cast(item.exp_time),
+          .expiry_datetime_utc = utils::safe_cast(item.exp_time),
+      };
+      server::create_trace_and_dispatch(handler_, trace_info, reference_data, true);
+      MarketStatus market_status{
+          .stream_id = stream_id_,
+          .exchange = Flags::exchange(),
+          .symbol = item.inst_id,
+          .trading_status = json::map(item.state),
+      };
+      server::create_trace_and_dispatch(handler_, trace_info, market_status, true);
+    }
+    log::info("Instruments {} / {}"sv, counter, std::size(instruments.data));
+    if (!std::empty(symbols)) {
+      SymbolsUpdate symbols_update{
+          .symbols = symbols,
+      };
+      handler_(symbols_update);
+    }
   });
 }
 
@@ -408,6 +467,10 @@ void MarketData::operator()(
       // resubscribe_order_book_l2(symbol);
     }
   });
+}
+
+void MarketData::operator()(server::Trace<json::Login> const &) {
+  log::fatal("Unexpected"sv);
 }
 
 }  // namespace okex

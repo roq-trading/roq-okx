@@ -4,6 +4,7 @@
 "values": [
 	{ "name": "error" },
 	{ "name": "subscribe" },
-	{ "name": "unsubscribe" }
+	{ "name": "unsubscribe" },
+	{ "name": "login" }
 ]
 }

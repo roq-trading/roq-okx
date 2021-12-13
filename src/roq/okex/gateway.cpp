@@ -31,27 +31,26 @@ static auto create_security(const Config &config) {
 }
 
 template <typename T>
-static auto create_order_entry(
+static auto create_drop_copy(
     Gateway &gateway,
     core::io::Context &context,
     uint16_t &stream_id,
     T &security,
     Shared &shared) {
-  absl::flat_hash_map<std::string, std::unique_ptr<OrderEntry>> result;
+  absl::flat_hash_map<std::string, std::unique_ptr<DropCopy>> result;
   for (auto &iter : security) {
     result.try_emplace(
         iter.first,
-        std::make_unique<OrderEntry>(gateway, context, ++stream_id, *iter.second, shared));
+        std::make_unique<DropCopy>(gateway, context, ++stream_id, *iter.second, shared));
   }
   return result;
 }
 
-template <typename T>
-static auto create_drop_copy(T &security) {
-  absl::flat_hash_map<std::string, std::unique_ptr<DropCopy>> result;
-  for (auto &iter : security) {
-    result.try_emplace(iter.first, nullptr);
-  }
+static auto create_market_data(
+    Gateway &gateway, core::io::Context &context, uint16_t &stream_id, Shared &shared) {
+  std::vector<std::unique_ptr<MarketData>> result;
+  auto market_data = std::make_unique<MarketData>(gateway, context, ++stream_id, shared, true);
+  result.emplace_back(std::move(market_data));
   return result;
 }
 }  // namespace
@@ -59,44 +58,34 @@ static auto create_drop_copy(T &security) {
 Gateway::Gateway(server::Dispatcher &dispatcher, const Config &config)
     : dispatcher_(dispatcher), master_account_(config.get_master_account()),
       security_(create_security(config)), shared_(dispatcher),
-      rest_(*this, context_, ++stream_id_, *security_[master_account_], shared_),
-      order_entry_(create_order_entry(*this, context_, stream_id_, security_, shared_)),
-      drop_copy_(create_drop_copy(security_)) {
+      drop_copy_(create_drop_copy(*this, context_, stream_id_, security_, shared_)),
+      market_data_(create_market_data(*this, context_, stream_id_, shared_)) {
 }
 
 void Gateway::operator()(const Event<Start> &event) {
   log::info("Starting the gateway..."sv);
-  rest_(event);
-  for (auto &[_, order_entry] : order_entry_)
-    (*order_entry)(event);
   for (auto &[_, drop_copy] : drop_copy_)
     if (static_cast<bool>(drop_copy))
       (*drop_copy)(event);
-  assert(std::empty(market_data_));
-  // order_entry_.download.begin();
+  for (auto &market_data : market_data_)
+    (*market_data)(event);
 }
 
 void Gateway::operator()(const Event<Stop> &event) {
   log::info("Stopping the gateway..."sv);
-  for (auto &iter : market_data_)
-    (*iter)(event);
+  for (auto &market_data : market_data_)
+    (*market_data)(event);
   for (auto &[_, drop_copy] : drop_copy_)
     if (static_cast<bool>(drop_copy))
       (*drop_copy)(event);
-  for (auto &[_, order_entry] : order_entry_)
-    (*order_entry)(event);
-  rest_(event);
 }
 
 void Gateway::operator()(const Event<Timer> &event) {
-  rest_(event);
-  for (auto &[_, order_entry] : order_entry_)
-    (*order_entry)(event);
   for (auto &[_, drop_copy] : drop_copy_)
     if (static_cast<bool>(drop_copy))
       (*drop_copy)(event);
-  for (auto &iter : market_data_)
-    (*iter)(event);
+  for (auto &market_data : market_data_)
+    (*market_data)(event);
   context_.dispatch(true);
 }
 
@@ -117,14 +106,14 @@ void Gateway::operator()(const Event<Disconnected> &event) {
       break;
     case OrderCancelPolicy::BY_ACCOUNT:
       log::warn("*** CANCEL ALL ACCOUNT ORDERS ***"sv);
-      for (auto &[account, order_entry] : order_entry_) {
+      for (auto &[account, drop_copy] : drop_copy_) {
         if (dispatcher_.can_user_trade_account(account, message_info.source)) {
           log::warn(R"(- account="{}")"sv, account);
           CancelAllOrders cancel_all_orders{
               .account = account,
           };
           Event event(message_info, cancel_all_orders);
-          (*order_entry)(event, {});
+          (*drop_copy)(event, {});
         }
       }
   }
@@ -177,7 +166,7 @@ void Gateway::operator()(const server::Trace<FundsUpdate> &event, bool is_last) 
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
+void Gateway::operator()(MarketData::SymbolsUpdate &symbols_update) {
   auto &symbols = symbols_update.symbols;
   for (auto &iter : market_data_) {
     if (std::empty(symbols))
@@ -188,7 +177,7 @@ void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
     if (std::empty(symbols))
       break;
     log::info("Create market-data (public channel)"sv);
-    auto market_data = std::make_unique<MarketData>(*this, context_, ++stream_id_, shared_);
+    auto market_data = std::make_unique<MarketData>(*this, context_, ++stream_id_, shared_, false);
     (*market_data).update_subscriptions(symbols);
     MessageInfo message_info;  // XXX something sensible
     Start start;
@@ -197,30 +186,10 @@ void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
   }
 }
 
-void Gateway::operator()(OrderEntry::PrivateToken const &private_token) {
-  auto account = private_token.account;
-  auto &drop_copy = drop_copy_[account];
-  if (!drop_copy) {
-    auto tmp = std::make_unique<DropCopy>(
-        *this,
-        context_,
-        ++stream_id_,
-        *security_[account],
-        shared_,
-        private_token.uri,
-        private_token.query,
-        private_token.ping_frequency);
-    MessageInfo message_info;  // XXX something sensible
-    Start start;
-    create_event_and_dispatch(*tmp, message_info, start);
-    drop_copy = std::move(tmp);
-  }
-}
-
 uint16_t Gateway::operator()(
     const Event<CreateOrder> &event, const oms::Order &order, const std::string_view &request_id) {
   assert(!std::empty(event.value.account));
-  return get_order_entry(event.value.account)(event, order, request_id);
+  return get_drop_copy(event.value.account)(event, order, request_id);
 }
 
 uint16_t Gateway::operator()(
@@ -230,7 +199,7 @@ uint16_t Gateway::operator()(
     const std::string_view &previous_request_id) {
   assert(!std::empty(event.value.account));
   assert(event.value.account == order.account);
-  return get_order_entry(event.value.account)(event, order, request_id, previous_request_id);
+  return get_drop_copy(event.value.account)(event, order, request_id, previous_request_id);
 }
 
 uint16_t Gateway::operator()(
@@ -240,18 +209,16 @@ uint16_t Gateway::operator()(
     const std::string_view &previous_request_id) {
   assert(!std::empty(event.value.account));
   assert(event.value.account == order.account);
-  return get_order_entry(event.value.account)(event, order, request_id, previous_request_id);
+  return get_drop_copy(event.value.account)(event, order, request_id, previous_request_id);
 }
 
 uint16_t Gateway::operator()(
     const Event<CancelAllOrders> &event, const std::string_view &request_id) {
   assert(!std::empty(event.value.account));
-  return get_order_entry(event.value.account)(event, request_id);
+  return get_drop_copy(event.value.account)(event, request_id);
 }
 
 void Gateway::operator()(metrics::Writer &writer) {
-  for (auto &[_, order_entry] : order_entry_)
-    (*order_entry)(writer);
   for (auto &[_, drop_copy] : drop_copy_)
     if (static_cast<bool>(drop_copy))
       (*drop_copy)(writer);
@@ -259,9 +226,9 @@ void Gateway::operator()(metrics::Writer &writer) {
     (*iter)(writer);
 }
 
-OrderEntry &Gateway::get_order_entry(const std::string_view &account) {
-  auto iter = order_entry_.find(account);
-  if (iter != std::end(order_entry_))
+DropCopy &Gateway::get_drop_copy(const std::string_view &account) {
+  auto iter = drop_copy_.find(account);
+  if (iter != std::end(drop_copy_))
     return *(*iter).second;
   throw RuntimeErrorException(R"(Unknown account="{}")"sv, account);
 }

@@ -24,16 +24,16 @@ class Hasher final {
   Hasher(Hasher &&) = delete;
   Hasher(const Hasher &) = delete;
 
-  std::string create_headers(
-      core::http::Method,
-      const std::string_view &path,
-      const std::string_view &body,
-      std::chrono::milliseconds now);
+  std::string_view get_key() const { return key_; }
+  std::string_view get_passphrase() const { return passphrase_; }
+
+  std::string create_sign(const std::string_view &timestamp);
 
  private:
   const std::string key_;
   core::crypto::HMAC_SHA256 hmac_;
   const std::string passphrase_;
+  const std::string secret_;
 };
 
 }  // namespace tools

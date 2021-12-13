@@ -21,7 +21,7 @@ bool Parser::dispatch(
     server::TraceInfo const &trace_info) {
   // all
   Channel channel;
-  std::string_view inst_id;
+  std::string_view inst_id, inst_type;
   // event
   EventType event;
   int64_t code = {};
@@ -39,33 +39,36 @@ bool Parser::dispatch(
         Arg arg{value};
         channel = arg.channel;
         inst_id = arg.inst_id;
+        inst_type = arg.inst_type;
       } else if (key.compare("action"sv) == 0) {
         action = Action{value};
       } else if (key.compare("data"sv) == 0) {
         if (ROQ_UNLIKELY(event != EventType{}))
           log::fatal("Unexpected"sv);
-        if (!std::empty(inst_id)) {
-          switch (channel) {
-            case Channel::UNDEFINED:
-              break;
-            case Channel::UNKNOWN:
-              assert(false);
-              break;
-            case Channel::INSTRUMENTS:
-              log::fatal("NOT IMPLEMENTED"sv);
-              break;
-            case Channel::TICKERS: {
-              Tickers tickers{value, buffer};
-              server::create_trace_and_dispatch(handler, trace_info, tickers);
-              return true;
-            }
-            case Channel::TRADES: {
-              Trades trades{value, buffer};
-              server::create_trace_and_dispatch(handler, trace_info, trades);
-              return true;
-            }
-            case Channel::BOOKS_L2_TBT: {
-              if (action != Action{}) {
+        switch (channel) {
+          case Channel::UNDEFINED:
+            break;
+          case Channel::UNKNOWN:
+            assert(false);
+            break;
+          case Channel::INSTRUMENTS: {
+            Instruments instruments{value, buffer};
+            server::create_trace_and_dispatch(handler, trace_info, instruments);
+            return true;
+          }
+          case Channel::TICKERS: {
+            Tickers tickers{value, buffer};
+            server::create_trace_and_dispatch(handler, trace_info, tickers);
+            return true;
+          }
+          case Channel::TRADES: {
+            Trades trades{value, buffer};
+            server::create_trace_and_dispatch(handler, trace_info, trades);
+            return true;
+          }
+          case Channel::BOOKS_L2_TBT: {
+            if (action != Action{}) {
+              if (!std::empty(inst_id)) {
                 auto count = 0;
                 for (auto item : std::get<core::json::array_t>(value)) {
                   ++count;
@@ -76,17 +79,20 @@ bool Parser::dispatch(
                 if (count > 1)
                   log::warn("*** MORE BOOKS-L2-TBT ***"sv);
                 return true;
+              } else {
+                log::warn("*** NO INST_ID ??? ***"sv);
+                return false;
               }
-              break;
             }
+            break;
           }
-        } else if (key.compare("code"sv) == 0) {
-          // msg = std::get<int32_t>(value); // XXX HANS missing
-        } else if (key.compare("msg"sv) == 0) {
-          msg = std::get<std::string_view>(value);
-        } else {
-          log::fatal(R"(Unexpected: key="{}")"sv, key);
         }
+      } else if (key.compare("code"sv) == 0) {
+        // msg = std::get<int32_t>(value); // XXX HANS missing
+      } else if (key.compare("msg"sv) == 0) {
+        msg = std::get<std::string_view>(value);
+      } else {
+        log::fatal(R"(Unexpected: key="{}")"sv, key);
       }
     }
     switch (event) {
@@ -116,6 +122,13 @@ bool Parser::dispatch(
         unsubscribe.channel = channel;
         unsubscribe.inst_id = inst_id;
         server::create_trace_and_dispatch(handler, trace_info, unsubscribe);
+        return true;
+      }
+      case EventType::LOGIN: {
+        Login login;
+        login.code = code;  // note! could be lost -- do we care?
+        login.msg = msg;    // note! could be lost -- do we care?
+        server::create_trace_and_dispatch(handler, trace_info, login);
         return true;
       }
     }

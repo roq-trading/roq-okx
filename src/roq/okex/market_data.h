@@ -29,18 +29,25 @@ namespace okex {
 
 class MarketData final : public core::web::ClientSocket::Handler, public json::Parser::Handler {
  public:
+  struct SymbolsUpdate final {
+    std::vector<std::string> &symbols;
+  };
+
   struct Handler {
     virtual void operator()(const server::Trace<StreamStatus> &) = 0;
     virtual void operator()(const server::Trace<ExternalLatency> &) = 0;
+    virtual void operator()(server::Trace<ReferenceData> const &, bool is_last) = 0;
     virtual void operator()(const server::Trace<MarketStatus> &, bool is_last) = 0;
     virtual void operator()(const server::Trace<TopOfBook> &, bool is_last) = 0;
     virtual void operator()(
         const server::Trace<MarketByPriceUpdate> &, bool is_last, bool refresh) = 0;
     virtual void operator()(const server::Trace<TradeSummary> &, bool is_last) = 0;
     virtual void operator()(const server::Trace<StatisticsUpdate> &, bool is_last) = 0;
+    // cross-communication
+    virtual void operator()(SymbolsUpdate &) = 0;
   };
 
-  MarketData(Handler &, core::io::Context &, uint32_t stream_id, Shared &);
+  MarketData(Handler &, core::io::Context &, uint32_t stream_id, Shared &, bool master);
 
   MarketData(MarketData &&) = delete;
   MarketData(const MarketData &) = delete;
@@ -71,9 +78,12 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
 
   uint32_t download(MarketDataState);
 
-  void subscribe(const roq::span<std::string> &symbols);
+  void subscribe(const roq::span<std::string const> &symbols);
 
-  void subscribe(const std::string_view &channel, const roq::span<std::string> &symbols);
+  void subscribe(
+      const std::string_view &channel,
+      const std::string_view &selector,
+      const roq::span<std::string const> &symbols);
 
   void parse(const std::string_view &message);
 
@@ -81,6 +91,7 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   void operator()(server::Trace<json::Subscribe> const &) override;
   void operator()(server::Trace<json::Unsubscribe> const &) override;
 
+  void operator()(server::Trace<json::Instruments> const &) override;
   void operator()(server::Trace<json::Tickers> const &) override;
   void operator()(server::Trace<json::Trades> const &) override;
   void operator()(
@@ -88,11 +99,14 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
       const std::string_view &inst_id,
       json::Action) override;
 
+  void operator()(server::Trace<json::Login> const &) override;
+
  private:
   Handler &handler_;
   // config
   const uint16_t stream_id_;
   const std::string name_;
+  const bool master_;
   // web socket
   core::web::ClientSocket connection_;
   // buffers
@@ -104,13 +118,15 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
     core::metrics::Counter disconnect;
   } counter_;
   struct {
-    core::metrics::Profile parse, error, subscribe, unsubscribe, tickers, trades, books_l2_tbt;
+    core::metrics::Profile parse, error, subscribe, unsubscribe, instruments, tickers, trades,
+        books_l2_tbt;
   } profile_;
   struct {
     core::metrics::Latency ping, heartbeat;
   } latency_;
   // cache
   Shared &shared_;
+  absl::flat_hash_set<std::string> all_symbols_;  // only master
   std::vector<std::string> symbols_;
   // state
   ConnectionStatus status_ = {};

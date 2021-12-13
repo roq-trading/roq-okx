@@ -1,8 +1,0 @@
-{
-"name": "OrderEntryState",
-"type": "enum",
-"values": [
-	{ "name": "accounts" },
-	{ "name": "done" }
-]
-}

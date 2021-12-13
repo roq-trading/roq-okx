@@ -10,7 +10,10 @@
 
 #include "roq/core/charconv/datetime.h"
 
+#include "roq/okex/json/instrument_type.h"
+#include "roq/okex/json/option_type.h"
 #include "roq/okex/json/side.h"
+#include "roq/okex/json/state.h"
 
 namespace roq {
 namespace okex {
@@ -88,6 +91,64 @@ inline json::Side map(roq::Side value) {
       return json::Side::BUY;
     case roq::Side::SELL:
       return json::Side::SELL;
+  }
+  return {};
+}
+
+// instrument type
+
+inline roq::SecurityType map(json::InstrumentType value) {
+  switch (value) {
+    case json::InstrumentType::UNDEFINED:
+      break;
+    case json::InstrumentType::UNKNOWN:
+      break;
+    case json::InstrumentType::SPOT:
+      return roq::SecurityType::SPOT;
+    case json::InstrumentType::MARGIN:
+      break;
+    case json::InstrumentType::SWAP:
+      break;
+    case json::InstrumentType::FUTURES:
+      return roq::SecurityType::FUTURES;
+    case json::InstrumentType::OPTION:
+      return roq::SecurityType::OPTION;
+  }
+  return {};
+}
+
+// option type
+
+inline roq::OptionType map(json::OptionType value) {
+  switch (value) {
+    case json::OptionType::UNDEFINED:
+      break;
+    case json::OptionType::UNKNOWN:
+      break;
+    case json::OptionType::CALL:
+      return roq::OptionType::CALL;
+    case json::OptionType::PUT:
+      return roq::OptionType::PUT;
+  }
+  return {};
+}
+
+// state
+
+inline roq::TradingStatus map(json::State value) {
+  switch (value) {
+    case json::State::UNDEFINED:
+      break;
+    case json::State::UNKNOWN:
+      break;
+    case json::State::LIVE:
+      return roq::TradingStatus::OPEN;
+    case json::State::SUSPENDED:
+      return roq::TradingStatus::HALT;
+    case json::State::PREOPEN:
+      return roq::TradingStatus::PRE_OPEN;
+    case json::State::SETTLEMENT:
+      break;
   }
   return {};
 }

@@ -34,15 +34,7 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
     virtual void operator()(const server::Trace<FundsUpdate> &, bool is_last) = 0;
   };
 
-  DropCopy(
-      Handler &,
-      core::io::Context &,
-      uint16_t stream_id,
-      Security &,
-      Shared &,
-      const std::string_view &uri,
-      const std::string_view &query,
-      std::chrono::nanoseconds ping_frequency);
+  DropCopy(Handler &, core::io::Context &, uint16_t stream_id, Security &, Shared &);
 
   DropCopy(DropCopy &&) = delete;
   DropCopy(const DropCopy &) = delete;
@@ -54,6 +46,21 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
   void operator()(const Event<Timer> &);
 
   void operator()(metrics::Writer &);
+
+  uint16_t operator()(
+      const Event<CreateOrder> &, const oms::Order &, const std::string_view &request_id);
+  uint16_t operator()(
+      const Event<ModifyOrder> &,
+      const oms::Order &,
+      const std::string_view &request_id,
+      const std::string_view &previous_request_id);
+  uint16_t operator()(
+      const Event<CancelOrder> &,
+      const oms::Order &,
+      const std::string_view &request_id,
+      const std::string_view &previous_request_id);
+
+  uint16_t operator()(const Event<CancelAllOrders> &, const std::string_view &request_id);
 
  protected:
   void operator()(const core::web::ClientSocket::Connected &) override;
@@ -68,6 +75,7 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
   void operator()(server::Trace<json::Subscribe> const &) override;
   void operator()(server::Trace<json::Unsubscribe> const &) override;
 
+  void operator()(server::Trace<json::Instruments> const &) override;
   void operator()(server::Trace<json::Tickers> const &) override;
   void operator()(server::Trace<json::Trades> const &) override;
   void operator()(
@@ -75,14 +83,18 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
       const std::string_view &inst_id,
       json::Action) override;
 
+  void operator()(server::Trace<json::Login> const &) override;
+
  private:
   void operator()(ConnectionStatus);
 
   uint32_t download(DropCopyState);
 
+  void login();
+
   void subscribe();
 
-  void subscribe(const std::string_view &topic);
+  void subscribe(const std::string_view &channel);
 
   void parse(const std::string_view &message);
 
@@ -93,7 +105,6 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
   const std::string name_;
   // web socket
   core::web::ClientSocket connection_;
-  const std::chrono::nanoseconds ping_frequency_;
   // buffers
   core::Buffer decode_buffer_;
   // metrics
@@ -101,7 +112,8 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
     core::metrics::Counter disconnect;
   } counter_;
   struct {
-    core::metrics::Profile parse, error, subscribe, unsubscribe;
+    core::metrics::Profile parse, error, subscribe, unsubscribe, login, create_order, modify_order,
+        cancel_order;
   } profile_;
   struct {
     core::metrics::Latency ping, heartbeat;
@@ -116,7 +128,6 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
   ConnectionStatus status_ = {};
   server::Download<DropCopyState> download_;
   std::chrono::nanoseconds logon_timeout_ = {};
-  std::chrono::nanoseconds next_ping_ = {};
 };
 
 }  // namespace okex

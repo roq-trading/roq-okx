@@ -24,6 +24,8 @@ instruments.h
 instruments.cpp
 instrument_type.h
 instrument_type.cpp
+login.h
+login.cpp
 option_type.h
 option_type.cpp
 side.h
