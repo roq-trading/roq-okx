@@ -106,9 +106,9 @@ inline roq::SecurityType map(json::InstrumentType value) {
     case json::InstrumentType::SPOT:
       return roq::SecurityType::SPOT;
     case json::InstrumentType::MARGIN:
-      break;
+      return roq::SecurityType::SPOT;
     case json::InstrumentType::SWAP:
-      break;
+      return roq::SecurityType::SWAP;
     case json::InstrumentType::FUTURES:
       return roq::SecurityType::FUTURES;
     case json::InstrumentType::OPTION:
