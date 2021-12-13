@@ -16,7 +16,7 @@
 #include "roq/download.h"
 #include "roq/server.h"
 
-#include "roq/okex/drop_copy_state.h"
+#include "roq/okex/order_entry_state.h"
 #include "roq/okex/security.h"
 #include "roq/okex/shared.h"
 
@@ -25,7 +25,7 @@
 namespace roq {
 namespace okex {
 
-class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Handler {
+class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::Handler {
  public:
   struct Handler {
     virtual void operator()(const server::Trace<StreamStatus> &) = 0;
@@ -34,10 +34,10 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
     virtual void operator()(const server::Trace<FundsUpdate> &, bool is_last) = 0;
   };
 
-  DropCopy(Handler &, core::io::Context &, uint16_t stream_id, Security &, Shared &);
+  OrderEntry(Handler &, core::io::Context &, uint16_t stream_id, Security &, Shared &);
 
-  DropCopy(DropCopy &&) = delete;
-  DropCopy(const DropCopy &) = delete;
+  OrderEntry(OrderEntry &&) = delete;
+  OrderEntry(const OrderEntry &) = delete;
 
   bool ready() const;
 
@@ -88,7 +88,7 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
  private:
   void operator()(ConnectionStatus);
 
-  uint32_t download(DropCopyState);
+  uint32_t download(OrderEntryState);
 
   void login();
 
@@ -123,11 +123,8 @@ class DropCopy final : public core::web::ClientSocket::Handler, json::Parser::Ha
   // cache
   Shared &shared_;
   // state
-  bool welcome_ = false;
-  bool ready_ = false;
   ConnectionStatus status_ = {};
-  server::Download<DropCopyState> download_;
-  std::chrono::nanoseconds logon_timeout_ = {};
+  server::Download<OrderEntryState> download_;
 };
 
 }  // namespace okex

@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include "roq/okex/drop_copy.h"
+#include "roq/okex/order_entry.h"
 
 #include "roq/utils/mask.h"
 #include "roq/utils/safe_cast.h"
@@ -33,7 +33,7 @@ struct create_metrics final : public core::metrics::Factory {
 };
 }  // namespace
 
-DropCopy::DropCopy(
+OrderEntry::OrderEntry(
     Handler &handler,
     core::io::Context &context,
     uint16_t stream_id,
@@ -71,23 +71,23 @@ DropCopy::DropCopy(
       download_({}, [this](auto state) { return download(state); }) {
 }
 
-bool DropCopy::ready() const {
+bool OrderEntry::ready() const {
   return connection_.ready();
 }
 
-void DropCopy::operator()(const Event<Start> &) {
+void OrderEntry::operator()(const Event<Start> &) {
   connection_.start();
 }
 
-void DropCopy::operator()(const Event<Stop> &) {
+void OrderEntry::operator()(const Event<Stop> &) {
   connection_.stop();
 }
 
-void DropCopy::operator()(const Event<Timer> &event) {
+void OrderEntry::operator()(const Event<Timer> &event) {
   connection_.refresh(event.value.now);
 }
 
-void DropCopy::operator()(metrics::Writer &writer) {
+void OrderEntry::operator()(metrics::Writer &writer) {
   writer
       // counter
       .write(counter_.disconnect, metrics::COUNTER)
@@ -105,14 +105,14 @@ void DropCopy::operator()(metrics::Writer &writer) {
       .write(latency_.heartbeat, metrics::LATENCY);
 }
 
-uint16_t DropCopy::operator()(
+uint16_t OrderEntry::operator()(
     const Event<CreateOrder> &,
     const oms::Order &,
     [[maybe_unused]] const std::string_view &request_id) {
   throw oms::NotSupportedException();
 }
 
-uint16_t DropCopy::operator()(
+uint16_t OrderEntry::operator()(
     const Event<ModifyOrder> &,
     const oms::Order &,
     [[maybe_unused]] const std::string_view &request_id,
@@ -120,7 +120,7 @@ uint16_t DropCopy::operator()(
   throw oms::NotSupportedException();
 }
 
-uint16_t DropCopy::operator()(
+uint16_t OrderEntry::operator()(
     const Event<CancelOrder> &,
     const oms::Order &,
     [[maybe_unused]] const std::string_view &request_id,
@@ -128,35 +128,29 @@ uint16_t DropCopy::operator()(
   throw oms::NotSupportedException();
 }
 
-uint16_t DropCopy::operator()(
+uint16_t OrderEntry::operator()(
     const Event<CancelAllOrders> &, [[maybe_unused]] const std::string_view &request_id) {
   throw oms::NotSupportedException();
 }
 
-void DropCopy::operator()(const core::web::ClientSocket::Connected &) {
-  assert(logon_timeout_.count() == 0);
-  auto now = core::get_system_clock();
-  logon_timeout_ = now + Flags::ws_request_timeout();
+void OrderEntry::operator()(const core::web::ClientSocket::Connected &) {
 }
 
-void DropCopy::operator()(const core::web::ClientSocket::Disconnected &) {
+void OrderEntry::operator()(const core::web::ClientSocket::Disconnected &) {
   ++counter_.disconnect;
-  ready_ = false;
   (*this)(ConnectionStatus::DISCONNECTED);
   download_.reset();
-  welcome_ = false;
-  logon_timeout_ = {};
 }
 
-void DropCopy::operator()(const core::web::ClientSocket::Ready &) {
+void OrderEntry::operator()(const core::web::ClientSocket::Ready &) {
   (*this)(ConnectionStatus::DOWNLOADING);
   download_.begin();
 }
 
-void DropCopy::operator()(const core::web::ClientSocket::Close &) {
+void OrderEntry::operator()(const core::web::ClientSocket::Close &) {
 }
 
-void DropCopy::operator()(const core::web::ClientSocket::Latency &latency) {
+void OrderEntry::operator()(const core::web::ClientSocket::Latency &latency) {
   auto trace_info = server::create_trace_info();
   ExternalLatency external_latency{
       .stream_id = stream_id_,
@@ -166,15 +160,15 @@ void DropCopy::operator()(const core::web::ClientSocket::Latency &latency) {
   latency_.ping.update(latency.sample);
 }
 
-void DropCopy::operator()(const core::web::ClientSocket::Text &text) {
+void OrderEntry::operator()(const core::web::ClientSocket::Text &text) {
   parse(text.payload);
 }
 
-void DropCopy::operator()(const core::web::ClientSocket::Binary &) {
+void OrderEntry::operator()(const core::web::ClientSocket::Binary &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(ConnectionStatus status) {
+void OrderEntry::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
     auto trace_info = server::create_trace_info();
     StreamStatus stream_status{
@@ -190,28 +184,26 @@ void DropCopy::operator()(ConnectionStatus status) {
   }
 }
 
-uint32_t DropCopy::download(DropCopyState state) {
+uint32_t OrderEntry::download(OrderEntryState state) {
   switch (state) {
-    case DropCopyState::UNDEFINED:
+    case OrderEntryState::UNDEFINED:
       assert(false);
       break;
-    case DropCopyState::LOGIN:
+    case OrderEntryState::LOGIN:
       login();
       return 1;
-    case DropCopyState::SUBSCRIBE:
+    case OrderEntryState::SUBSCRIBE:
       subscribe();
       return {};
-    case DropCopyState::DONE:
+    case OrderEntryState::DONE:
       (*this)(ConnectionStatus::READY);
-      assert(!ready_);
-      ready_ = true;
       return {};
   }
   assert(false);
   return {};
 }
 
-void DropCopy::login() {
+void OrderEntry::login() {
   std::chrono::seconds now = utils::safe_cast(core::get_realtime_clock());
   auto timestamp = fmt::format("{}"sv, now.count());
   auto sign = security_.create_sign(timestamp);
@@ -234,14 +226,14 @@ void DropCopy::login() {
   connection_.send_text(message);
 }
 
-void DropCopy::subscribe() {
+void OrderEntry::subscribe() {
   subscribe("account"sv);
   subscribe("balance_and_position"sv);
   subscribe("positions"sv);
   subscribe("orders"sv);
 }
 
-void DropCopy::subscribe(const std::string_view &channel) {
+void OrderEntry::subscribe(const std::string_view &channel) {
   auto message = fmt::format(
       R"({{)"
       R"("op":"subscribe",)"
@@ -255,7 +247,7 @@ void DropCopy::subscribe(const std::string_view &channel) {
   connection_.send_text(message);
 }
 
-void DropCopy::parse(const std::string_view &message) {
+void OrderEntry::parse(const std::string_view &message) {
   profile_.parse([&]() {
     try {
       auto trace_info = server::create_trace_info();
@@ -268,14 +260,14 @@ void DropCopy::parse(const std::string_view &message) {
   });
 }
 
-void DropCopy::operator()(server::Trace<json::Error> const &event) {
+void OrderEntry::operator()(server::Trace<json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
     log::warn("event={{trace_info={}, error={}}}"sv, trace_info, error);
   });
 }
 
-void DropCopy::operator()(server::Trace<json::Subscribe> const &event) {
+void OrderEntry::operator()(server::Trace<json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
     log::info<1>("event={{trace_info={}, subscribe={}}}"sv, trace_info, subscribe);
@@ -283,7 +275,7 @@ void DropCopy::operator()(server::Trace<json::Subscribe> const &event) {
   });
 }
 
-void DropCopy::operator()(server::Trace<json::Unsubscribe> const &event) {
+void OrderEntry::operator()(server::Trace<json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("event={{trace_info={}, unsubscribe={}}}"sv, trace_info, unsubscribe);
@@ -291,31 +283,31 @@ void DropCopy::operator()(server::Trace<json::Unsubscribe> const &event) {
   });
 }
 
-void DropCopy::operator()(server::Trace<json::Instruments> const &) {
+void OrderEntry::operator()(server::Trace<json::Instruments> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(server::Trace<json::Tickers> const &) {
+void OrderEntry::operator()(server::Trace<json::Tickers> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(server::Trace<json::Trades> const &) {
+void OrderEntry::operator()(server::Trace<json::Trades> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(
+void OrderEntry::operator()(
     server::Trace<json::BooksL2Tbt> const &,
     [[maybe_unused]] const std::string_view &inst_id,
     json::Action) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(server::Trace<json::Login> const &event) {
+void OrderEntry::operator()(server::Trace<json::Login> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
     log::info<1>("event={{trace_info={}, login={}}}"sv, trace_info, login);
     log::debug("event={{trace_info={}, login={}}}"sv, trace_info, login);
-    auto state = DropCopyState::LOGIN;
+    auto state = OrderEntryState::LOGIN;
     download_.check_relaxed(state);
   });
 }

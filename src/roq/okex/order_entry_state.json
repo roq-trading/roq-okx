@@ -1,5 +1,5 @@
 {
-"name": "DropCopyState",
+"name": "OrderEntryState",
 "type": "enum",
 "values": [
 	{ "name": "login" },
