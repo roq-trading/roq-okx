@@ -20,7 +20,11 @@
 
 #include "roq/okex/json/action.h"
 
+#include "roq/okex/json/account.h"
+#include "roq/okex/json/balance_and_position.h"
 #include "roq/okex/json/login.h"
+#include "roq/okex/json/orders.h"
+#include "roq/okex/json/positions.h"
 
 namespace roq {
 namespace okex {
@@ -41,6 +45,10 @@ struct Parser final {
         server::Trace<json::BooksL2Tbt> const &, const std::string_view &inst_id, Action) = 0;
     // - private
     virtual void operator()(server::Trace<json::Login> const &) = 0;
+    virtual void operator()(server::Trace<json::Account> const &) = 0;
+    virtual void operator()(server::Trace<json::BalanceAndPosition> const &) = 0;
+    virtual void operator()(server::Trace<json::Positions> const &) = 0;
+    virtual void operator()(server::Trace<json::Orders> const &) = 0;
   };
 
   static bool dispatch(

@@ -1,0 +1,17 @@
+{
+"name": "BalanceAndPositionPositionItem",
+"type": "item",
+"values": [
+	{ "name": "posId", "type": "std::string_view" },
+	{ "name": "tradeId", "type": "std::string_view" },
+	{ "name": "instId", "type": "std::string_view" },
+	{ "name": "instType", "type": "InstrumentType" },
+	{ "name": "mgnMode", "type": "MarginMode" },
+	{ "name": "avgPx", "type": "double" },
+	{ "name": "ccy", "type": "std::string_view" },
+	{ "name": "posSide", "type": "Side" },
+	{ "name": "pos", "type": "double" },
+	{ "name": "posCcy", "type": "std::string_view" },
+	{ "name": "uTime", "type": "std::chrono::milliseconds" }
+]
+}

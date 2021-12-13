@@ -1,0 +1,9 @@
+{
+"name": "PositionSide",
+"type": "enum",
+"values": [
+	{ "name": "net" },
+	{ "name": "long" },
+	{ "name": "short" }
+]
+}

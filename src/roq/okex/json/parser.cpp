@@ -77,7 +77,7 @@ bool Parser::dispatch(
                       handler, trace_info, books_l2_tbt, inst_id, action);
                 }
                 if (count > 1)
-                  log::warn("*** MORE BOOKS-L2-TBT ***"sv);
+                  log::warn("*** PLEASE REPORT: MORE BOOKS-L2-TBT ***"sv);
                 return true;
               } else {
                 log::warn("*** NO INST_ID ??? ***"sv);
@@ -85,6 +85,40 @@ bool Parser::dispatch(
               }
             }
             break;
+          }
+          case Channel::ACCOUNT: {
+            auto count = 0;
+            for (auto item : std::get<core::json::array_t>(value)) {
+              ++count;
+              Account account{item, buffer};
+              server::create_trace_and_dispatch(handler, trace_info, account);
+            }
+            if (count > 1)
+              log::warn("*** PLEASE REPORT: MORE ACCOUNT ***"sv);
+            return true;
+            break;
+          }
+          case Channel::BALANCE_AND_POSITION: {
+            auto count = 0;
+            for (auto item : std::get<core::json::array_t>(value)) {
+              ++count;
+              BalanceAndPosition balance_and_position{item, buffer};
+              server::create_trace_and_dispatch(handler, trace_info, balance_and_position);
+            }
+            if (count > 1)
+              log::warn("*** PLEASE REPORT: MORE BALANCE_AND_POSITION ***"sv);
+            return true;
+            break;
+          }
+          case Channel::POSITIONS: {
+            Positions positions{value, buffer};
+            server::create_trace_and_dispatch(handler, trace_info, positions);
+            return true;
+          }
+          case Channel::ORDERS: {
+            Orders orders{value, buffer};
+            server::create_trace_and_dispatch(handler, trace_info, orders);
+            return true;
           }
         }
       } else if (key.compare("code"sv) == 0) {

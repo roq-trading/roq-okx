@@ -1,0 +1,8 @@
+{
+"name": "OrderFlowType",
+"type": "enum",
+"values": [
+	{ "raw": "T", "name": "taker" },
+	{ "raw": "M", "name": "maker" }
+]
+}

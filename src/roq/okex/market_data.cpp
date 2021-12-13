@@ -473,5 +473,21 @@ void MarketData::operator()(server::Trace<json::Login> const &) {
   log::fatal("Unexpected"sv);
 }
 
+void MarketData::operator()(server::Trace<json::Account> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void MarketData::operator()(server::Trace<json::BalanceAndPosition> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void MarketData::operator()(server::Trace<json::Positions> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void MarketData::operator()(server::Trace<json::Orders> const &) {
+  log::fatal("Unexpected"sv);
+}
+
 }  // namespace okex
 }  // namespace roq

@@ -5,12 +5,16 @@ set(SOURCES parser.cpp utils.cpp)
 include(RoqAutogen)
 
 set(AUTOGEN_SCHEMAS
-    accounts_item.json
-    accounts.json
+    account_item.json
+    account.json
     action.json
     arg.json
+    balance_and_position_balance_item.json
+    balance_and_position.json
+    balance_and_position_position_item.json
     books_l2_tbt_item.json
     books_l2_tbt.json
+    category.json
     channel.json
     contract_type.json
     error.json
@@ -19,8 +23,16 @@ set(AUTOGEN_SCHEMAS
     instruments.json
     instrument_type.json
     login.json
+    margin_mode.json
     option_type.json
-    ord_type.json
+    order_flow_type.json
+    orders_item.json
+    orders.json
+    order_state.json
+    order_type.json
+    position_side.json
+    positions_item.json
+    positions.json
     side.json
     state.json
     status_item.json
@@ -28,8 +40,10 @@ set(AUTOGEN_SCHEMAS
     subscribe.json
     tickers_item.json
     tickers.json
+    trade_mode.json
     trades_item.json
     trades.json
+    trigger_price_type.json
     unsubscribe.json)
 
 roq_autogen(

@@ -1,0 +1,7 @@
+{
+"name": "Orders",
+"type": "array",
+"values": [
+	{ "name": "data", "type": "roq::span<OrdersItem>" }
+]
+}

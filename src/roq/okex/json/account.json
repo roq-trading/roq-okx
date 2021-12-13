@@ -1,0 +1,15 @@
+{
+"name": "Account",
+"type": "comp",
+"values": [
+	{ "name": "uTime", "type": "std::chrono::milliseconds" },
+	{ "name": "totalEq", "type": "double" },
+	{ "name": "isoEq", "type": "double" },
+	{ "name": "ordFroz", "type": "double" },
+	{ "name": "imr", "type": "double" },
+	{ "name": "mmr", "type": "double" },
+	{ "name": "mgnRatio", "type": "double" },
+	{ "name": "notionalUsd", "type": "double" },
+	{ "name": "details", "type": "roq::span<AccountItem>" }
+]
+}

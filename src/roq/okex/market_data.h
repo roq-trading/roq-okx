@@ -100,6 +100,10 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
       json::Action) override;
 
   void operator()(server::Trace<json::Login> const &) override;
+  void operator()(server::Trace<json::Account> const &) override;
+  void operator()(server::Trace<json::BalanceAndPosition> const &) override;
+  void operator()(server::Trace<json::Positions> const &) override;
+  void operator()(server::Trace<json::Orders> const &) override;
 
  private:
   Handler &handler_;

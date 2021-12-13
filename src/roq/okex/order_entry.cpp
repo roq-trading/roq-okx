@@ -16,7 +16,9 @@
 
 #include "roq/okex/flags.h"
 
-#include "roq/okex/json/ord_type.h"
+#include "roq/okex/json/order_type.h"
+#include "roq/okex/json/position_side.h"
+#include "roq/okex/json/trade_mode.h"
 #include "roq/okex/json/utils.h"
 
 using namespace std::literals;
@@ -64,6 +66,10 @@ OrderEntry::OrderEntry(
           .subscribe = create_metrics(name_, "subscribe"sv),
           .unsubscribe = create_metrics(name_, "unsubscribe"sv),
           .login = create_metrics(name_, "login"sv),
+          .account = create_metrics(name_, "account"sv),
+          .balance_and_position = create_metrics(name_, "balance_and_position"sv),
+          .positions = create_metrics(name_, "positions"sv),
+          .orders = create_metrics(name_, "orders"sv),
           .create_order = create_metrics(name_, "create_order"sv),
           .modify_order = create_metrics(name_, "modify_order"sv),
           .cancel_order = create_metrics(name_, "cancel_order"sv),
@@ -102,6 +108,10 @@ void OrderEntry::operator()(metrics::Writer &writer) {
       .write(profile_.subscribe, metrics::PROFILE)
       .write(profile_.unsubscribe, metrics::PROFILE)
       .write(profile_.login, metrics::PROFILE)
+      .write(profile_.account, metrics::PROFILE)
+      .write(profile_.balance_and_position, metrics::PROFILE)
+      .write(profile_.positions, metrics::PROFILE)
+      .write(profile_.orders, metrics::PROFILE)
       .write(profile_.create_order, metrics::PROFILE)
       .write(profile_.modify_order, metrics::PROFILE)
       .write(profile_.cancel_order, metrics::PROFILE)
@@ -111,15 +121,15 @@ void OrderEntry::operator()(metrics::Writer &writer) {
 }
 
 namespace {
-static std::pair<json::OrdType, bool> compute_order_attributes(
+static std::pair<json::OrderType, bool> compute_order_attributes(
     OrderType order_type, TimeInForce time_in_force, ExecutionInstruction execution_instruction) {
   bool reduce_only = false;
-  json::OrdType ord_type;
+  json::OrderType order_type_;
   switch (execution_instruction) {
     case ExecutionInstruction::UNDEFINED:
       break;
     case ExecutionInstruction::PARTICIPATE_DO_NOT_INITIATE:
-      ord_type = json::OrdType::POST_ONLY;
+      order_type_ = json::OrderType::POST_ONLY;
       break;
     case ExecutionInstruction::DO_NOT_INCREASE:
       reduce_only = true;
@@ -131,29 +141,29 @@ static std::pair<json::OrdType, bool> compute_order_attributes(
     case TimeInForce::GTC:
       break;
     case TimeInForce::FOK:
-      if (ord_type != json::OrdType{})
-        ord_type = json::OrdType::FOK;
+      if (order_type_ != json::OrderType{})
+        order_type_ = json::OrderType::FOK;
       break;
     case TimeInForce::IOC:
-      if (ord_type != json::OrdType{})
-        ord_type = json::OrdType::IOC;
+      if (order_type_ != json::OrderType{})
+        order_type_ = json::OrderType::IOC;
       break;
     default:
       throw oms::NotSupportedException();
   }
-  if (ord_type == json::OrdType{}) {
+  if (order_type_ == json::OrderType{}) {
     switch (order_type) {
       case OrderType::MARKET:
-        ord_type = json::OrdType::MARKET;
+        order_type_ = json::OrderType::MARKET;
         break;
       case OrderType::LIMIT:
-        ord_type = json::OrdType::LIMIT;
+        order_type_ = json::OrderType::LIMIT;
         break;
       default:
         throw oms::NotSupportedException();
     }
   }
-  return {ord_type, reduce_only};
+  return {order_type_, reduce_only};
 }
 }  // namespace
 
@@ -161,21 +171,22 @@ uint16_t OrderEntry::operator()(
     const Event<CreateOrder> &event, const oms::Order &, const std::string_view &request_id) {
   throw oms::NotSupportedException();
   auto &[message_info, create_order] = event;
-  // notes:
-  // - tdMode -- do we need this? (maybe different for spot/futures)
-  // - posSide -- we could probably infer it from PositionEffect + Side
+  json::TradeMode trade_mode = json::TradeMode::ISOLATED;  // XXX maybe different for spot/futures
+  json::PositionSide position_side =
+      json::PositionSide::NET;  // XXX maybe infer from side + pos eff
   auto side = json::map(create_order.side);
-  auto [ord_type, reduce_only] = compute_order_attributes(
+  auto [order_type, reduce_only] = compute_order_attributes(
       create_order.order_type, create_order.time_in_force, create_order.execution_instruction);
-  switch (ord_type) {
-    case json::OrdType::MARKET: {
+  switch (order_type) {
+    case json::OrderType::MARKET: {
       auto message = fmt::format(
           R"({{)"
           R"("id":"{}",)"
           R"("op":"order",)"
           R"("args":[{{)"
           R"("clOrdId":"{}",)"
-          R"("tdMode":"isolated",)"
+          R"("tdMode":"{}",)"
+          R"("posSide":"{}",)"
           R"("instId":"{}",)"
           R"("side":"{}",)"
           R"("ordType":"{}",)"
@@ -186,9 +197,11 @@ uint16_t OrderEntry::operator()(
           R"(}})"sv,
           request_id,
           request_id,
+          trade_mode.as_raw_text(),
+          position_side.as_raw_text(),
           create_order.symbol,
           side.as_raw_text(),
-          ord_type.as_raw_text(),
+          order_type.as_raw_text(),
           reduce_only,
           create_order.quantity);
       log::debug("message={}"sv, message);
@@ -216,7 +229,7 @@ uint16_t OrderEntry::operator()(
           request_id,
           create_order.symbol,
           side.as_raw_text(),
-          ord_type.as_raw_text(),
+          order_type.as_raw_text(),
           reduce_only,
           create_order.quantity,
           create_order.price);
@@ -490,6 +503,44 @@ void OrderEntry::operator()(server::Trace<json::Login> const &event) {
     log::debug("event={{trace_info={}, login={}}}"sv, trace_info, login);
     auto state = OrderEntryState::LOGIN;
     download_.check_relaxed(state);
+  });
+}
+
+void OrderEntry::operator()(server::Trace<json::Account> const &event) {
+  profile_.account([&]() {
+    auto &[trace_info, account] = event;
+    log::info<1>("event={{trace_info={}, account={}}}"sv, trace_info, account);
+    log::debug("event={{trace_info={}, account={}}}"sv, trace_info, account);
+    // XXX HANS
+  });
+}
+
+void OrderEntry::operator()(server::Trace<json::BalanceAndPosition> const &event) {
+  profile_.balance_and_position([&]() {
+    auto &[trace_info, balance_and_position] = event;
+    log::info<1>(
+        "event={{trace_info={}, balance_and_position={}}}"sv, trace_info, balance_and_position);
+    log::debug(
+        "event={{trace_info={}, balance_and_position={}}}"sv, trace_info, balance_and_position);
+    // XXX HANS
+  });
+}
+
+void OrderEntry::operator()(server::Trace<json::Positions> const &event) {
+  profile_.positions([&]() {
+    auto &[trace_info, positions] = event;
+    log::info<1>("event={{trace_info={}, positions={}}}"sv, trace_info, positions);
+    log::debug("event={{trace_info={}, positions={}}}"sv, trace_info, positions);
+    // XXX HANS
+  });
+}
+
+void OrderEntry::operator()(server::Trace<json::Orders> const &event) {
+  profile_.orders([&]() {
+    auto &[trace_info, orders] = event;
+    log::info<1>("event={{trace_info={}, orders={}}}"sv, trace_info, orders);
+    log::debug("event={{trace_info={}, orders={}}}"sv, trace_info, orders);
+    // XXX HANS
   });
 }
 

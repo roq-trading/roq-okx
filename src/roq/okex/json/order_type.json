@@ -1,5 +1,5 @@
 {
-"name": "OrdType",
+"name": "OrderType",
 "type": "enum",
 "values": [
 	{ "name": "market" },
