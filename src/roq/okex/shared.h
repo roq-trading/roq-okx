@@ -57,6 +57,7 @@ struct Shared final {
 
  public:
   core::page_aligned_vector<MBPUpdate> bids, asks, final_bids, final_asks;
+  core::page_aligned_vector<Trade> trades;
 
   absl::flat_hash_map<std::string, core::market::MBP_Sequencer> mbp_collector;
 

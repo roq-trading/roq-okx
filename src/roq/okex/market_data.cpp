@@ -40,6 +40,16 @@ struct create_metrics final : public core::metrics::Factory {
 };
 
 template <typename T>
+void emplace(Trade &result, const T &value) {
+  new (&result) Trade{
+      .side = json::map(value.side),
+      .price = value.px,
+      .quantity = value.sz,
+      .trade_id = value.trade_id,
+  };
+}
+
+template <typename T>
 void emplace(MBPUpdate &result, const T &item) {
   new (&result) MBPUpdate{
       .price = item.price,
@@ -494,23 +504,34 @@ void MarketData::operator()(server::Trace<json::Trades> const &event) {
   profile_.trades([&]() {
     auto &[trace_info, trades] = event;
     log::info<3>("event={{trace_info={}, trades={}}}"sv, trace_info, trades);
-    // XXX HANS proper would be to aggregate the trades
-    if (std::size(trades.data) > 1) {
-      log::fatal("{}"sv, trades);
-    }
+    core::back_emplacer trades_(shared_.trades);
+    std::string_view symbol;
+    std::chrono::nanoseconds exchange_time_utc = {};
     for (auto &item : trades.data) {
-      Trade trade{
-          .side = json::map(item.side),
-          .price = item.px,
-          .quantity = item.sz,
-          .trade_id = item.trade_id,
-      };
+      if (utils::update(symbol, item.inst_id) && !std::empty(trades_)) {
+        assert(!std::empty(symbol));
+        const TradeSummary trade_summary{
+            .stream_id = stream_id_,
+            .exchange = Flags::exchange(),
+            .symbol = symbol,
+            .trades = trades_,
+            .exchange_time_utc = exchange_time_utc,
+        };
+        server::create_trace_and_dispatch(handler_, trace_info, trade_summary, false);
+        trades_.clear();
+        exchange_time_utc = {};
+      }
+      utils::update_max(exchange_time_utc, item.ts);
+      trades_.emplace_back([&item](auto &result) { emplace(result, item); });
+    }
+    if (!std::empty(trades_)) {
+      assert(!std::empty(symbol));
       const TradeSummary trade_summary{
           .stream_id = stream_id_,
           .exchange = Flags::exchange(),
-          .symbol = item.inst_id,
-          .trades = {&trade, 1},
-          .exchange_time_utc = utils::safe_cast(item.ts),
+          .symbol = symbol,
+          .trades = trades_,
+          .exchange_time_utc = exchange_time_utc,
       };
       server::create_trace_and_dispatch(handler_, trace_info, trade_summary, true);
     }
