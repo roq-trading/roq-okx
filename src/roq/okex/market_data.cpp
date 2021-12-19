@@ -62,17 +62,17 @@ void emplace(MBPUpdate &result, const T &item) {
 }  // namespace
 
 MarketData::MarketData(
-    Handler &handler, core::io::Context &context, uint32_t stream_id, Shared &shared, bool master)
+    Handler &handler, core::io::Context &context, uint32_t stream_id, Shared &shared, size_t index)
     : handler_(handler), stream_id_(stream_id), name_(fmt::format("{}:{}"sv, stream_id_, NAME)),
-      master_(master), connection_(
-                           *this,
-                           context,
-                           core::URI{Flags::ws_public_uri()},
-                           {},  // query
-                           Flags::ws_ping_freq(),
-                           Flags::decode_buffer_size(),
-                           Flags::encode_buffer_size(),
-                           []() { return std::string(); }),
+      index_(index), connection_(
+                         *this,
+                         context,
+                         core::URI{Flags::ws_public_uri()},
+                         {},  // query
+                         Flags::ws_ping_freq(),
+                         Flags::decode_buffer_size(),
+                         Flags::encode_buffer_size(),
+                         []() { return std::string(); }),
       decode_buffer_(Flags::decode_buffer_size()),
       request_id_(static_cast<uint64_t>(stream_id_) * 1000000),  // scale (debugging)
       counter_{
@@ -96,7 +96,7 @@ MarketData::MarketData(
           .ping = create_metrics(name_, "ping"sv),
           .heartbeat = create_metrics(name_, "heartbeat"sv),
       },
-      shared_(shared), download_({}, [this](auto state) { return download(state); }) {
+      shared_(shared) {
 }
 
 void MarketData::operator()(const Event<Start> &) {
@@ -134,24 +134,9 @@ void MarketData::operator()(metrics::Writer &writer) {
       .write(latency_.heartbeat, metrics::LATENCY);
 }
 
-void MarketData::update_subscriptions(std::vector<std::string> &symbols) {
-  assert(&symbols != &symbols_);
-  auto max_size = Flags::ws_max_subscriptions_per_stream();
-  auto offset = std::size(symbols_);
-  if (max_size <= offset)
-    return;
-  if (std::empty(symbols))
-    return;
-  symbols_.reserve(max_size);
-  auto length = std::min(max_size - offset, std::size(symbols));
-  assert(length > 0);
-  for (size_t i = 0; i < length; ++i) {
-    symbols_.emplace_back(symbols.back());
-    symbols.pop_back();
-  }
-  assert(length == (std::size(symbols_) - offset));
+void MarketData::subscribe(size_t start_from) {
   if (ready())
-    subscribe({&symbols_[offset], length});
+    subscribe(shared_.symbols.get_slice(index_, start_from));
 }
 
 void MarketData::operator()(const core::web::ClientSocket::Connected &) {
@@ -160,14 +145,12 @@ void MarketData::operator()(const core::web::ClientSocket::Connected &) {
 void MarketData::operator()(const core::web::ClientSocket::Disconnected &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
-  download_.reset();
-  // experimental
-  shared_.mbp_collector.clear();  // XXX HANS this is SHARED !!!
 }
 
 void MarketData::operator()(const core::web::ClientSocket::Ready &) {
-  (*this)(ConnectionStatus::DOWNLOADING);
-  download_.begin();
+  (*this)(ConnectionStatus::READY);
+  subscribe_static();
+  subscribe();
 }
 
 void MarketData::operator()(const core::web::ClientSocket::Close &) {
@@ -189,17 +172,6 @@ void MarketData::operator()(const core::web::ClientSocket::Text &text) {
 
 void MarketData::operator()(const core::web::ClientSocket::Binary &) {
   log::fatal("Unexpected: binary"sv);
-  /*
-  if (inflate_.decode(binary.payload, shared_.generic_buffer, [this](auto &payload) {
-        std::string_view message{
-            reinterpret_cast<char *const>(std::data(payload)), std::size(payload)};
-        log::info<5>(R"(message="{}")"sv, message);
-        parse(message);
-      })) {
-  } else {
-    log::fatal("Unexpected: incomplete zlib message"sv);
-  }
-  */
 }
 
 void MarketData::operator()(ConnectionStatus status) {
@@ -218,33 +190,19 @@ void MarketData::operator()(ConnectionStatus status) {
   }
 }
 
-uint32_t MarketData::download(MarketDataState state) {
-  switch (state) {
-    case MarketDataState::UNDEFINED:
-      assert(false);
-      break;
-    case MarketDataState::SUBSCRIBE:
-      subscribe(symbols_);
-      return {};
-    case MarketDataState::DONE:
-      (*this)(ConnectionStatus::READY);
-      return {};
-  }
-  assert(false);
-  return {};
+void MarketData::subscribe_static() {
+  if (index_ != 0)
+    return;
+  subscribe("status"sv);
+  subscribe("instruments"sv, "instType"sv, "SPOT"sv);
+  subscribe("instruments"sv, "instType"sv, "SWAP"sv);
+  subscribe("instruments"sv, "instType"sv, "FUTURES"sv);
+  subscribe("instruments"sv, "instType"sv, "OPTION"sv);
+  subscribe("estimated-price"sv, "instType"sv, "FUTURES"sv);
+  subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
 }
 
 void MarketData::subscribe(const roq::span<std::string const> &symbols) {
-  if (master_) {
-    // XXX HANS careful -- only at connection time
-    subscribe("status"sv);
-    subscribe("instruments"sv, "instType"sv, "SPOT"sv);
-    subscribe("instruments"sv, "instType"sv, "SWAP"sv);
-    subscribe("instruments"sv, "instType"sv, "FUTURES"sv);
-    subscribe("instruments"sv, "instType"sv, "OPTION"sv);
-    subscribe("estimated-price"sv, "instType"sv, "FUTURES"sv);
-    subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
-  }
   if (std::empty(symbols))
     return;
   subscribe("price-limit"sv, "instType"sv, symbols);

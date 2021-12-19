@@ -67,6 +67,8 @@ class Gateway final : public server::Handler,
 
   void operator()(MarketData::SymbolsUpdate &) override;
 
+  void ensure_symbol_slices(size_t size);
+
   // utilities
 
   OrderEntry &get_order_entry(const std::string_view &account);

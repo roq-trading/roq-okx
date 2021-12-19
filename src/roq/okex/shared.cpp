@@ -12,7 +12,8 @@ Shared::Shared(server::Dispatcher &dispatcher)
       final_bids(server::Flags::cache_mbp_max_depth()),
       final_asks(server::Flags::cache_mbp_max_depth()),
       trades(server::Flags::cache_trades_max_depth()), dispatcher_(dispatcher),
-      rate_limiter_(Flags::request_limit(), Flags::request_limit_interval()), generic_buffer(4096) {
+      rate_limiter_(Flags::request_limit(), Flags::request_limit_interval()),
+      symbols(Flags::ws_max_subscriptions_per_stream()) {
 }
 
 }  // namespace okex

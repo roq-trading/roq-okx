@@ -14,10 +14,9 @@
 #include "roq/server.h"
 
 #include "roq/core/memory.h"
+#include "roq/core/symbols.h"
 
 #include "roq/core/limit/rate_limiter.h"
-
-#include "roq/core/market/mbp_sequencer.h"
 
 namespace roq {
 namespace okex {
@@ -59,8 +58,6 @@ struct Shared final {
   core::page_aligned_vector<MBPUpdate> bids, asks, final_bids, final_asks;
   core::page_aligned_vector<Trade> trades;
 
-  absl::flat_hash_map<std::string, core::market::MBP_Sequencer> mbp_collector;
-
   std::deque<std::pair<std::chrono::nanoseconds, std::string> > request_queue;
 
  private:
@@ -69,7 +66,7 @@ struct Shared final {
   core::limit::RateLimiter rate_limiter_;
 
  public:
-  std::vector<std::byte> generic_buffer;
+  core::Symbols symbols;
 };
 
 }  // namespace okex

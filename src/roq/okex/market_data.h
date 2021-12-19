@@ -19,7 +19,6 @@
 #include "roq/download.h"
 #include "roq/server.h"
 
-#include "roq/okex/market_data_state.h"
 #include "roq/okex/shared.h"
 
 #include "roq/okex/json/parser.h"
@@ -47,14 +46,14 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
     virtual void operator()(SymbolsUpdate &) = 0;
   };
 
-  MarketData(Handler &, core::io::Context &, uint32_t stream_id, Shared &, bool master);
+  MarketData(Handler &, core::io::Context &, uint32_t stream_id, Shared &, size_t index);
 
   MarketData(MarketData &&) = delete;
   MarketData(const MarketData &) = delete;
 
   uint16_t stream_id() const { return stream_id_; }
 
-  bool ready() const { return connection_.ready(); }
+  bool ready() const { return status_ == ConnectionStatus::READY; }
 
   void operator()(const Event<Start> &);
   void operator()(const Event<Stop> &);
@@ -62,7 +61,7 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
 
   void operator()(metrics::Writer &);
 
-  void update_subscriptions(std::vector<std::string> &symbols);
+  void subscribe(size_t start_from = 0);
 
  protected:
   void operator()(const core::web::ClientSocket::Connected &) override;
@@ -76,7 +75,7 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
  private:
   void operator()(ConnectionStatus);
 
-  uint32_t download(MarketDataState);
+  void subscribe_static();
 
   void subscribe(const roq::span<std::string const> &symbols);
 
@@ -119,7 +118,7 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   // config
   const uint16_t stream_id_;
   const std::string name_;
-  const bool master_;
+  const size_t index_;
   // web socket
   core::web::ClientSocket connection_;
   // buffers
@@ -139,11 +138,9 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   } latency_;
   // cache
   Shared &shared_;
-  absl::flat_hash_set<std::string> all_symbols_;  // only master
-  std::vector<std::string> symbols_;
+  absl::flat_hash_set<std::string> all_symbols_;  // only master (index 0)
   // state
   ConnectionStatus status_ = {};
-  server::Download<MarketDataState> download_;
 };
 
 }  // namespace okex
