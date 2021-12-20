@@ -5,7 +5,6 @@
 #include <absl/container/flat_hash_map.h>
 
 #include <chrono>
-#include <deque>
 #include <string>
 #include <utility>
 #include <vector>
@@ -46,26 +45,15 @@ struct Shared final {
     return dispatcher_(std::forward<Args>(args)...);
   }
 
-  template <typename F>
-  bool can_request(std::chrono::nanoseconds now, F callback) {
-    return rate_limiter_.can_request(now, callback);
-  }
-
- protected:
-  bool can_request_helper(std::chrono::nanoseconds now);
-
  public:
   core::page_aligned_vector<MBPUpdate> bids, asks, final_bids, final_asks;
   core::page_aligned_vector<Trade> trades;
 
-  std::deque<std::pair<std::chrono::nanoseconds, std::string> > request_queue;
-
  private:
   server::Dispatcher &dispatcher_;
 
-  core::limit::RateLimiter rate_limiter_;
-
  public:
+  core::limit::RateLimiter rate_limiter;
   core::Symbols symbols;
 };
 
