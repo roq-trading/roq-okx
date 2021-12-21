@@ -457,7 +457,7 @@ void OrderEntry::parse(const std::string_view &message) {
 void OrderEntry::operator()(server::Trace<json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
-    log::warn("event={{trace_info={}, error={}}}"sv, trace_info, error);
+    log::fatal("event={{trace_info={}, error={}}}"sv, trace_info, error);
   });
 }
 

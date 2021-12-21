@@ -6,6 +6,8 @@
 
 #include <array>
 
+#include "roq/logging.h"
+
 #include "roq/utils/chrono.h"
 
 #include "roq/core/binascii/base64.h"
@@ -30,10 +32,10 @@ Hasher::Hasher(
 }
 
 std::string Hasher::create_sign(const std::string_view &timestamp) {
+  log::debug(R"(timestamp="{}", secret="{}")"sv, timestamp, secret_);
   hmac_.clear();
   hmac_.update(timestamp);
   hmac_.update("GET/users/self/verify"sv);
-  hmac_.update(secret_);
   std::array<char, 32> buffer;
   auto length = hmac_.digest(buffer);
   assert(length == std::size(buffer));

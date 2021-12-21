@@ -2,6 +2,7 @@
 "name": "Account",
 "type": "comp",
 "values": [
+	{ "name": "adjEq", "type": "std::string_view" },
 	{ "name": "uTime", "type": "std::chrono::milliseconds" },
 	{ "name": "totalEq", "type": "double" },
 	{ "name": "isoEq", "type": "double" },
