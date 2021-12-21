@@ -29,6 +29,10 @@ namespace okex {
 namespace {
 static const auto NAME = "ex"sv;
 static const auto SUPPORTS = utils::Mask{
+    SupportType::CREATE_ORDER,
+    SupportType::MODIFY_ORDER,
+    SupportType::CANCEL_ORDER,
+    SupportType::ORDER_ACK,
     SupportType::ORDER,
     SupportType::TRADE,
     SupportType::FUNDS,
@@ -57,6 +61,7 @@ OrderEntry::OrderEntry(
           Flags::encode_buffer_size(),
           []() { return std::string(); }),
       decode_buffer_(Flags::decode_buffer_size()),
+      request_id_(static_cast<uint64_t>(stream_id_) * 1000000),  // scale (debugging)
       counter_{
           .disconnect = create_metrics(name_, "disconnect"sv),
       },
@@ -169,14 +174,16 @@ static std::pair<json::OrderType, bool> compute_order_attributes(
 
 uint16_t OrderEntry::operator()(
     const Event<CreateOrder> &event, const oms::Order &, const std::string_view &request_id) {
-  throw oms::NotSupportedException();
   auto &[message_info, create_order] = event;
   json::TradeMode trade_mode = json::TradeMode::ISOLATED;  // XXX maybe different for spot/futures
+  // cash didn't work for future
   json::PositionSide position_side =
-      json::PositionSide::NET;  // XXX maybe infer from side + pos eff
+      json::PositionSide::NET;               // XXX maybe infer from side + pos eff
+  position_side = json::PositionSide::LONG;  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   auto side = json::map(create_order.side);
   auto [order_type, reduce_only] = compute_order_attributes(
       create_order.order_type, create_order.time_in_force, create_order.execution_instruction);
+  auto XXX = "abcABC125"sv;  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   switch (order_type) {
     case json::OrderType::MARKET: {
       auto message = fmt::format(
@@ -195,8 +202,8 @@ uint16_t OrderEntry::operator()(
           R"(}})"
           R"(])"
           R"(}})"sv,
-          request_id,
-          request_id,
+          ++request_id_,
+          XXX,  // request_id,
           trade_mode.as_raw_text(),
           position_side.as_raw_text(),
           create_order.symbol,
@@ -215,7 +222,8 @@ uint16_t OrderEntry::operator()(
           R"("op":"order",)"
           R"("args":[{{)"
           R"("clOrdId":"{}",)"
-          R"("tdMode":"isolated")"
+          R"("tdMode":"{}",)"
+          R"("posSide":"{}",)"
           R"("instId":"{}",)"
           R"("side":"{}",)"
           R"("ordType":"{}",)"
@@ -225,8 +233,10 @@ uint16_t OrderEntry::operator()(
           R"(}})"
           R"(])"
           R"(}})"sv,
-          request_id,
-          request_id,
+          ++request_id_,
+          XXX,  // request_id,
+          trade_mode.as_raw_text(),
+          position_side.as_raw_text(),
           create_order.symbol,
           side.as_raw_text(),
           order_type.as_raw_text(),
@@ -243,7 +253,7 @@ uint16_t OrderEntry::operator()(
 uint16_t OrderEntry::operator()(
     const Event<ModifyOrder> &event,
     const oms::Order &order,
-    const std::string_view &request_id,
+    [[maybe_unused]] const std::string_view &request_id,
     const std::string_view &previous_request_id) {
   auto &[message_info, modify_order] = event;
   auto has_external_order_id = !std::empty(order.external_order_id);
@@ -264,7 +274,7 @@ uint16_t OrderEntry::operator()(
       R"(})"
       R"(])"
       R"(})"sv,
-      request_id,
+      ++request_id_,
       order_id_type,
       order_id,
       order.symbol,
@@ -276,9 +286,8 @@ uint16_t OrderEntry::operator()(
 uint16_t OrderEntry::operator()(
     const Event<CancelOrder> &,
     const oms::Order &order,
-    const std::string_view &request_id,
+    [[maybe_unused]] const std::string_view &request_id,
     const std::string_view &previous_request_id) {
-  throw oms::NotSupportedException();
   auto has_external_order_id = !std::empty(order.external_order_id);
   auto order_id_type = has_external_order_id ? "ordId"sv : "clOrdId"sv;
   auto order_id =
@@ -293,7 +302,7 @@ uint16_t OrderEntry::operator()(
       R"(}})"
       R"(])"
       R"(}})"sv,
-      request_id,
+      ++request_id_,
       order_id_type,
       order_id,
       order.symbol);
@@ -304,7 +313,8 @@ uint16_t OrderEntry::operator()(
 
 uint16_t OrderEntry::operator()(
     const Event<CancelAllOrders> &, [[maybe_unused]] const std::string_view &request_id) {
-  throw oms::NotSupportedException();
+  // throw oms::NotSupportedException();
+  return stream_id_;
 }
 
 void OrderEntry::operator()(const core::web::ClientSocket::Connected &) {
@@ -444,6 +454,7 @@ void OrderEntry::subscribe(
 void OrderEntry::parse(const std::string_view &message) {
   profile_.parse([&]() {
     try {
+      log::debug(R"(message="{}")"sv, message);
       auto trace_info = server::create_trace_info();
       core::json::Buffer buffer(decode_buffer_);
       json::Parser::dispatch(*this, message, buffer, trace_info);

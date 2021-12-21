@@ -14,6 +14,8 @@ namespace roq {
 namespace okex {
 namespace json {
 
+// {"code":"0","data":[{"clOrdId":"abcABC123","ordId":"393513242072608785","sCode":"0","sMsg":"","tag":""}],"id":"1000001","msg":"","op":"order"}
+
 bool Parser::dispatch(
     Handler &handler,
     std::string_view const &message,
@@ -21,7 +23,7 @@ bool Parser::dispatch(
     server::TraceInfo const &trace_info) {
   // all
   Channel channel;
-  std::string_view inst_id, inst_type;
+  std::string_view inst_id, inst_type, id, op;
   // event
   EventType event;
   int64_t code = {};
@@ -45,99 +47,106 @@ bool Parser::dispatch(
       } else if (key.compare("data"sv) == 0) {
         if (ROQ_UNLIKELY(event != EventType{}))
           log::fatal("Unexpected"sv);
-        switch (channel) {
-          case Channel::UNDEFINED:
-            break;
-          case Channel::UNKNOWN:
-            assert(false);
-            break;
-          case Channel::STATUS: {
-            Status status{value, buffer};
-            server::create_trace_and_dispatch(handler, trace_info, status);
-            return true;
-          }
-          case Channel::INSTRUMENTS: {
-            Instruments instruments{value, buffer};
-            server::create_trace_and_dispatch(handler, trace_info, instruments);
-            return true;
-          }
-          case Channel::ESTIMATED_PRICE: {
-            EstimatedPrice estimated_price{value, buffer};
-            server::create_trace_and_dispatch(handler, trace_info, estimated_price);
-            return true;
-          }
-          case Channel::PRICE_LIMIT: {
-            PriceLimit price_limit{value, buffer};
-            server::create_trace_and_dispatch(handler, trace_info, price_limit);
-            return true;
-          }
-          case Channel::MARK_PRICE: {
-            MarkPrice mark_price{value, buffer};
-            server::create_trace_and_dispatch(handler, trace_info, mark_price);
-            return true;
-          }
-          case Channel::TICKERS: {
-            Tickers tickers{value, buffer};
-            server::create_trace_and_dispatch(handler, trace_info, tickers);
-            return true;
-          }
-          case Channel::TRADES: {
-            Trades trades{value, buffer};
-            server::create_trace_and_dispatch(handler, trace_info, trades);
-            return true;
-          }
-          case Channel::BOOKS_L2_TBT: {
-            if (action != Action{}) {
-              if (!std::empty(inst_id)) {
-                auto count = 0;
-                for (auto item : std::get<core::json::array_t>(value)) {
-                  ++count;
-                  BooksL2Tbt books_l2_tbt{item, buffer};
-                  server::create_trace_and_dispatch(
-                      handler, trace_info, books_l2_tbt, inst_id, action);
+        if (std::empty(op)) {
+          switch (channel) {
+            case Channel::UNDEFINED:
+              break;
+            case Channel::UNKNOWN:
+              assert(false);
+              break;
+            case Channel::STATUS: {
+              Status status{value, buffer};
+              server::create_trace_and_dispatch(handler, trace_info, status);
+              return true;
+            }
+            case Channel::INSTRUMENTS: {
+              Instruments instruments{value, buffer};
+              server::create_trace_and_dispatch(handler, trace_info, instruments);
+              return true;
+            }
+            case Channel::ESTIMATED_PRICE: {
+              EstimatedPrice estimated_price{value, buffer};
+              server::create_trace_and_dispatch(handler, trace_info, estimated_price);
+              return true;
+            }
+            case Channel::PRICE_LIMIT: {
+              PriceLimit price_limit{value, buffer};
+              server::create_trace_and_dispatch(handler, trace_info, price_limit);
+              return true;
+            }
+            case Channel::MARK_PRICE: {
+              MarkPrice mark_price{value, buffer};
+              server::create_trace_and_dispatch(handler, trace_info, mark_price);
+              return true;
+            }
+            case Channel::TICKERS: {
+              Tickers tickers{value, buffer};
+              server::create_trace_and_dispatch(handler, trace_info, tickers);
+              return true;
+            }
+            case Channel::TRADES: {
+              Trades trades{value, buffer};
+              server::create_trace_and_dispatch(handler, trace_info, trades);
+              return true;
+            }
+            case Channel::BOOKS_L2_TBT: {
+              if (action != Action{}) {
+                if (!std::empty(inst_id)) {
+                  auto count = 0;
+                  for (auto item : std::get<core::json::array_t>(value)) {
+                    ++count;
+                    BooksL2Tbt books_l2_tbt{item, buffer};
+                    server::create_trace_and_dispatch(
+                        handler, trace_info, books_l2_tbt, inst_id, action);
+                  }
+                  if (count > 1)
+                    log::warn("*** PLEASE REPORT: MORE BOOKS-L2-TBT ***"sv);
+                  return true;
+                } else {
+                  log::warn("*** NO INST_ID ??? ***"sv);
+                  return false;
                 }
-                if (count > 1)
-                  log::warn("*** PLEASE REPORT: MORE BOOKS-L2-TBT ***"sv);
-                return true;
-              } else {
-                log::warn("*** NO INST_ID ??? ***"sv);
-                return false;
               }
+              break;
             }
-            break;
-          }
-          case Channel::ACCOUNT: {
-            auto count = 0;
-            for (auto item : std::get<core::json::array_t>(value)) {
-              ++count;
-              Account account{item, buffer};
-              server::create_trace_and_dispatch(handler, trace_info, account);
+            case Channel::ACCOUNT: {
+              auto count = 0;
+              for (auto item : std::get<core::json::array_t>(value)) {
+                ++count;
+                Account account{item, buffer};
+                server::create_trace_and_dispatch(handler, trace_info, account);
+              }
+              if (count > 1)
+                log::warn("*** PLEASE REPORT: MORE ACCOUNT ***"sv);
+              return true;
+              break;
             }
-            if (count > 1)
-              log::warn("*** PLEASE REPORT: MORE ACCOUNT ***"sv);
-            return true;
-            break;
-          }
-          case Channel::BALANCE_AND_POSITION: {
-            auto count = 0;
-            for (auto item : std::get<core::json::array_t>(value)) {
-              ++count;
-              BalanceAndPosition balance_and_position{item, buffer};
-              server::create_trace_and_dispatch(handler, trace_info, balance_and_position);
+            case Channel::BALANCE_AND_POSITION: {
+              auto count = 0;
+              for (auto item : std::get<core::json::array_t>(value)) {
+                ++count;
+                BalanceAndPosition balance_and_position{item, buffer};
+                server::create_trace_and_dispatch(handler, trace_info, balance_and_position);
+              }
+              if (count > 1)
+                log::warn("*** PLEASE REPORT: MORE BALANCE_AND_POSITION ***"sv);
+              return true;
+              break;
             }
-            if (count > 1)
-              log::warn("*** PLEASE REPORT: MORE BALANCE_AND_POSITION ***"sv);
-            return true;
-            break;
+            case Channel::POSITIONS: {
+              Positions positions{value, buffer};
+              server::create_trace_and_dispatch(handler, trace_info, positions);
+              return true;
+            }
+            case Channel::ORDERS: {
+              Orders orders{value, buffer};
+              server::create_trace_and_dispatch(handler, trace_info, orders);
+              return true;
+            }
           }
-          case Channel::POSITIONS: {
-            Positions positions{value, buffer};
-            server::create_trace_and_dispatch(handler, trace_info, positions);
-            return true;
-          }
-          case Channel::ORDERS: {
-            Orders orders{value, buffer};
-            server::create_trace_and_dispatch(handler, trace_info, orders);
+        } else {
+          if (!std::empty(id)) {
+            log::debug("HERE op={}"sv, op);  // OrderAck
             return true;
           }
         }
@@ -145,6 +154,10 @@ bool Parser::dispatch(
         // msg = std::get<int32_t>(value); // XXX HANS missing
       } else if (key.compare("msg"sv) == 0) {
         msg = std::get<std::string_view>(value);
+      } else if (key.compare("id"sv) == 0) {
+        id = std::get<std::string_view>(value);
+      } else if (key.compare("op"sv) == 0) {
+        op = std::get<std::string_view>(value);
       } else {
         log::fatal(R"(Unexpected: key="{}")"sv, key);
       }

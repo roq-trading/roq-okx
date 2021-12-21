@@ -5,6 +5,7 @@ set(SOURCES
     json_books_l2_tbt.cpp
     json_instrument.cpp
     json_tickers.cpp
+    json_orders.cpp
     json_trades.cpp
     json_balance_and_position.cpp
     main.cpp)

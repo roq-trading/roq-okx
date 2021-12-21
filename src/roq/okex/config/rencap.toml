@@ -1,4 +1,4 @@
-symbols = "BTC-USDT-220325"
+symbols = "BTC-USD-220325"
 
 [accounts]
 
@@ -18,7 +18,7 @@ symbols = "BTC-USDT-220325"
   [users.trader]
   password = "secret"
   accounts = [ "A1" ]
-  symbols = [ "XBTUSD" ]
+  symbols = [ "BTC.*" ]
 
 [rate_limits]
 
