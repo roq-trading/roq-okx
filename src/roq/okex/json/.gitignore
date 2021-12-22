@@ -4,6 +4,10 @@ account.h
 account.cpp
 action.h
 action.cpp
+amend_order_ack_item.h
+amend_order_ack_item.cpp
+amend_order_ack.h
+amend_order_ack.cpp
 arg.h
 arg.cpp
 balance_and_position_balance_item.h
@@ -16,6 +20,10 @@ books_l2_tbt_item.h
 books_l2_tbt_item.cpp
 books_l2_tbt.h
 books_l2_tbt.cpp
+cancel_order_ack_item.h
+cancel_order_ack_item.cpp
+cancel_order_ack.h
+cancel_order_ack.cpp
 category.h
 category.cpp
 channel.h
@@ -30,6 +38,8 @@ estimated_price.h
 estimated_price.cpp
 event_type.h
 event_type.cpp
+frame.h
+frame.cpp
 instruments_item.h
 instruments_item.cpp
 instruments.h
@@ -44,8 +54,14 @@ mark_price_item.h
 mark_price_item.cpp
 mark_price.h
 mark_price.cpp
+operation.h
+operation.cpp
 option_type.h
 option_type.cpp
+order_ack_item.h
+order_ack_item.cpp
+order_ack.h
+order_ack.cpp
 order_flow_type.h
 order_flow_type.cpp
 orders_item.h
@@ -70,8 +86,6 @@ side.h
 side.cpp
 state.h
 state.cpp
-status_item.h
-status_item.cpp
 status.h
 status.cpp
 subscribe.h

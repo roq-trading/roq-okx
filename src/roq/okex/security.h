@@ -30,6 +30,9 @@ class Security final {
     return hasher_.create_sign(timestamp);
   }
 
+  std::string create_headers(
+      core::http::Method, const std::string_view &path, const std::string_view &body);
+
  private:
   const std::string account_;
   tools::Hasher hasher_;

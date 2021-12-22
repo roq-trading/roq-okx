@@ -12,6 +12,7 @@
 
 #include "roq/okex/json/instrument_type.h"
 #include "roq/okex/json/option_type.h"
+#include "roq/okex/json/order_state.h"
 #include "roq/okex/json/side.h"
 #include "roq/okex/json/state.h"
 
@@ -153,6 +154,26 @@ inline roq::TradingStatus map(json::State value) {
   return {};
 }
 
+// order state
+
+inline roq::OrderStatus map(json::OrderState value) {
+  switch (value) {
+    case json::OrderState::UNDEFINED:
+      break;
+    case json::OrderState::UNKNOWN:
+      break;
+    case json::OrderState::CANCELED:
+      return roq::OrderStatus::CANCELED;
+    case json::OrderState::LIVE:
+      return roq::OrderStatus::WORKING;
+    case json::OrderState::PARTIALLY_FILLED:
+      return roq::OrderStatus::WORKING;
+    case json::OrderState::FILLED:
+      return roq::OrderStatus::COMPLETED;
+  }
+  return {};
+}
+
 /*
 // ord type
 
@@ -170,6 +191,10 @@ inline roq::OrderType map(json::OrdType value) {
   return {};
 }
 */
+
+// error
+
+extern roq::Error guess_error(int32_t code);
 
 }  // namespace json
 }  // namespace okex

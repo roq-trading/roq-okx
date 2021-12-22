@@ -3,14 +3,14 @@
 "type": "comp",
 "values": [
 	{ "name": "adjEq", "type": "std::string_view" },
-	{ "name": "uTime", "type": "std::chrono::milliseconds" },
-	{ "name": "totalEq", "type": "double" },
-	{ "name": "isoEq", "type": "double" },
-	{ "name": "ordFroz", "type": "double" },
+	{ "name": "details", "type": "roq::span<AccountItem>" },
 	{ "name": "imr", "type": "double" },
-	{ "name": "mmr", "type": "double" },
+	{ "name": "isoEq", "type": "double" },
 	{ "name": "mgnRatio", "type": "double" },
+	{ "name": "mmr", "type": "double" },
 	{ "name": "notionalUsd", "type": "double" },
-	{ "name": "details", "type": "roq::span<AccountItem>" }
+	{ "name": "ordFroz", "type": "double" },
+	{ "name": "totalEq", "type": "double" },
+	{ "name": "uTime", "type": "std::chrono::milliseconds" }
 ]
 }

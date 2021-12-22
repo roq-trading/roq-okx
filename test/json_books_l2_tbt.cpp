@@ -4,7 +4,7 @@
 
 #include "roq/core/json/parser.h"
 
-#include "roq/okex/json/books_l2_tbt.h"
+#include "roq/okex/json/parser.h"
 
 using namespace roq;
 using namespace roq::okex;
@@ -12,103 +12,92 @@ using namespace roq::okex;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
-// note! it's an array, but we can only parse 1
-TEST(json_books_l2_tbt, snapshot) {
+namespace {
+auto create_trace_info() {
+  return server::TraceInfo{
+      .source_receive_time = {},
+      .origin_create_time = {},
+      .origin_create_time_utc = {},
+  };
+}
+}  // namespace
+
+TEST(json_books_l2_tbt, parser) {
   auto message = R"({)"
+                 R"("arg":{)"
+                 R"("channel":"books-l2-tbt",)"
+                 R"("instId":"BTC-USD-220325"},)"
+                 R"("action":"snapshot",)"
+                 R"("data":[{)"
                  R"("asks":[)"
-                 R"(["157.57","10.575051","0","2"],)"
-                 R"(["157.58","2.282902","0","1"],)"
-                 R"(["157.66","1.811812","0","1"],)"
-                 R"(["157.68","9.530564","0","1"],)"
-                 R"(["157.69","0.603724","0","1"],)"
-                 R"(["157.73","0.444131","0","1"],)"
-                 R"(["157.75","9.602169","0","1"],)"
-                 R"(["157.77","0.342742","0","1"],)"
-                 R"(["157.81","1.163246","0","1"],)"
-                 R"(["157.85","0.690216","0","1"],)"
-                 R"(["157.89","1.727034","0","1"],)"
-                 R"(["157.92","0.361651","0","1"],)"
-                 R"(["157.93","0.924549","0","1"],)"
-                 R"(["157.97","1.306285","0","1"],)"
-                 R"(["158","2.07467","0","2"],)"
-                 R"(["158.01","0.679833","0","1"],)"
-                 R"(["158.08","3.702718","0","2"],)"
-                 R"(["158.14","4.05127","0","1"],)"
-                 R"(["158.16","1.292147","0","2"],)"
-                 R"(["158.24","2.011819","0","2"],)"
-                 R"(["158.32","1.440055","0","2"],)"
-                 R"(["158.4","19.135095","0","3"],)"
-                 R"(["158.47","3.03747","0","2"],)"
-                 R"(["158.55","2.545406","0","2"],)"
-                 R"(["158.63","1.198622","0","2"],)"
-                 R"(["158.71","0.989196","0","1"],)"
-                 R"(["158.77","0.095847","0","1"],)"
-                 R"(["159.11","7.086776","0","1"],)"
-                 R"(["159.46","0.38582","0","1"],)"
-                 R"(["159.47","8.415084","0","1"],)"
-                 R"(["280","2.54077","0","1"],)"
-                 R"(["299","0.29976","0","1"],)"
-                 R"(["299.77","0.4996","0","1"],)"
-                 R"(["385.2","0.056822","0","1"],)"
-                 R"(["400","0.682875","0","1"],)"
-                 R"(["450","100","0","1"],)"
-                 R"(["453","0.046458","0","1"],)"
-                 R"(["500","100","0","1"],)"
-                 R"(["535.5","0.693941","0","1"],)"
-                 R"(["550","100","0","1"],)"
-                 R"(["600","100.45","0","2"],)"
-                 R"(["650","100","0","1"]],)"
+                 R"(["50441.1","24","0","1"],)"
+                 R"(["50449.1","152","0","3"])"
+                 R"(],)"
                  R"("bids":[)"
-                 R"(["157.29","1.302","0","1"],)"
-                 R"(["157.28","0.82677","0","1"],)"
-                 R"(["157.25","1.335319","0","1"],)"
-                 R"(["157.23","0.360027","0","1"],)"
-                 R"(["157.19","1.487343","0","1"],)"
-                 R"(["157.15","0.599928","0","1"],)"
-                 R"(["157.11","98.444325","0","2"],)"
-                 R"(["157.08","0.4326","0","1"],)"
-                 R"(["157.07","0.810402","0","1"],)"
-                 R"(["157.04","1.228715","0","1"],)"
-                 R"(["157","3.951251","0","3"],)"
-                 R"(["156.96","1.059256","0","1"],)"
-                 R"(["156.92","3.254235","0","3"],)"
-                 R"(["156.88","1.838375","0","1"],)"
-                 R"(["156.84","1.250759","0","2"],)"
-                 R"(["156.83","35.311937","0","1"],)"
-                 R"(["156.77","0.472623","0","1"],)"
-                 R"(["156.76","2.016607","0","2"],)"
-                 R"(["156.68","2.880238","0","2"],)"
-                 R"(["156.6","1.100445","0","2"],)"
-                 R"(["156.52","2.131835","0","2"],)"
-                 R"(["156.45","2.840323","0","3"],)"
-                 R"(["156.37","1.102831","0","2"],)"
-                 R"(["156.29","1.810625","0","1"],)"
-                 R"(["156.23","35.690422","0","1"],)"
-                 R"(["155.5","0.381803","0","1"],)"
-                 R"(["155.49","43.328629","0","1"],)"
-                 R"(["130","5","0","1"],)"
-                 R"(["112.2","2","0","1"],)"
-                 R"(["102.2","2","0","1"],)"
-                 R"(["96","3","0","1"],)"
-                 R"(["78.1","1.71","0","1"],)"
-                 R"(["44.84","0.0101","0","1"],)"
-                 R"(["39.14","0.0101","0","1"],)"
-                 R"(["33.65","0.0101","0","1"],)"
-                 R"(["16.59","0.301386","0","1"],)"
-                 R"(["1.58","0.03","0","3"],)"
-                 R"(["1.1","3.238324","0","1"],)"
-                 R"(["0.11","100","0","1"],)"
-                 R"(["0.05","53.432365","0","1"],)"
-                 R"(["0.02","250","0","1"],)"
-                 R"(["0.01","924.587716","0","2"]],)"
-                 R"("ts":"1639321410682",)"
-                 R"("checksum":-552318686)"
+                 R"(["50441","199","0","3"],)"
+                 R"(["50438.2","49","0","1"])"
+                 R"(],)"
+                 R"("ts":"1640158295741",)"
+                 R"("checksum":-386306878)"
+                 R"(})"
+                 R"(])"
                  R"(})";
+  struct MyHandler final : public json::Parser::Handler {
+    auto get_count() const { return count_; }
+
+   protected:
+    void operator()(server::Trace<json::Error> const &) override { FAIL(); }
+    void operator()(server::Trace<json::Subscribe> const &) override { FAIL(); }
+    void operator()(server::Trace<json::Unsubscribe> const &) override { FAIL(); }
+    void operator()(server::Trace<json::Status> const &) override { FAIL(); }
+    void operator()(server::Trace<json::Instruments> const &) override { FAIL(); }
+    void operator()(server::Trace<json::EstimatedPrice> const &) override { FAIL(); }
+    void operator()(server::Trace<json::PriceLimit> const &) override { FAIL(); }
+    void operator()(server::Trace<json::MarkPrice> const &) override { FAIL(); }
+    void operator()(server::Trace<json::Tickers> const &) override { FAIL(); }
+    void operator()(server::Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(
+        server::Trace<json::BooksL2Tbt> const &event,
+        const std::string_view &inst_id,
+        json::Action action) override {
+      ++count_;
+      auto &[trace_info, books_l2_tbt] = event;
+      EXPECT_EQ(inst_id, "BTC-USD-220325"sv);
+      EXPECT_EQ(action, json::Action::SNAPSHOT);
+      auto &asks = books_l2_tbt.asks;
+      ASSERT_EQ(std::size(asks), 2);
+      // a0
+      auto &a0 = asks[0];
+      EXPECT_DOUBLE_EQ(a0.price, 50441.1);
+      EXPECT_DOUBLE_EQ(a0.size, 24.0);
+      EXPECT_EQ(a0.liquidated_orders, 0);
+      EXPECT_EQ(a0.orders, 1);
+      // a1
+      auto &bids = books_l2_tbt.bids;
+      ASSERT_EQ(std::size(bids), 2);
+      // b0
+      auto &b0 = bids[0];
+      EXPECT_DOUBLE_EQ(b0.price, 50441);
+      EXPECT_DOUBLE_EQ(b0.size, 199.0);
+      EXPECT_EQ(b0.liquidated_orders, 0);
+      EXPECT_EQ(b0.orders, 3);
+    }
+    void operator()(server::Trace<json::Login> const &) override { FAIL(); }
+    void operator()(server::Trace<json::Account> const &) override { FAIL(); }
+    void operator()(server::Trace<json::BalanceAndPosition> const &) override { FAIL(); }
+    void operator()(server::Trace<json::Positions> const &) override { FAIL(); }
+    void operator()(server::Trace<json::Orders> const &) override { FAIL(); }
+    void operator()(server::Trace<json::OrderAck> const &) override { FAIL(); }
+    void operator()(server::Trace<json::AmendOrderAck> const &) override { FAIL(); }
+    void operator()(server::Trace<json::CancelOrderAck> const &) override { FAIL(); }
+
+   private:
+    size_t count_ = {};
+  } handler;
   core::Buffer buffer(8192);
   core::json::Buffer buffer_(buffer);
-  auto obj = core::json::Parser::create<json::BooksL2Tbt>(message, buffer_);
-  EXPECT_EQ(std::size(obj.bids), 42);
-  EXPECT_EQ(std::size(obj.asks), 42);
-  EXPECT_EQ(obj.ts, 1639321410682ms);
-  ASSERT_EQ(obj.checksum, -552318686);
+  auto trace_info = create_trace_info();
+  auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
+  EXPECT_TRUE(res);
+  EXPECT_EQ(handler.get_count(), 1);
 }

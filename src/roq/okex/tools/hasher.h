@@ -29,6 +29,12 @@ class Hasher final {
 
   std::string create_sign(const std::string_view &timestamp);
 
+  std::string create_headers(
+      core::http::Method,
+      const std::string_view &path,
+      const std::string_view &body,
+      std::chrono::milliseconds timestamp);
+
  private:
   const std::string key_;
   core::crypto::HMAC_SHA256 hmac_;

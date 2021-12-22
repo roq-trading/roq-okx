@@ -1,0 +1,11 @@
+{
+"name": "CancelOrderAckItem",
+"type": "item",
+"values": [
+	{ "name": "clOrdId", "type": "std::string_view" },
+	{ "name": "ordId", "type": "std::string_view" },
+	{ "name": "sCode", "type": "int32_t" },
+	{ "name": "sMsg", "type": "std::string_view" },
+	{ "name": "tag", "type": "std::string_view" }
+]
+}

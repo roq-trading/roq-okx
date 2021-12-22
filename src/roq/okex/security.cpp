@@ -16,5 +16,11 @@ Security::Security(const Config &config, const std::string_view &account)
                              config.get_passphrase(account_)) {
 }
 
+std::string Security::create_headers(
+    core::http::Method method, const std::string_view &path, const std::string_view &body) {
+  std::chrono::milliseconds timestamp = utils::safe_cast(core::get_realtime_clock());
+  return hasher_.create_headers(method, path, body, timestamp);
+}
+
 }  // namespace okex
 }  // namespace roq

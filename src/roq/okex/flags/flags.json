@@ -22,6 +22,34 @@
       "description": "exchange identifier (string)"
     },
     {
+      "name": "rest_uri",
+      "type": "roq::core::URI",
+      "validator": "roq::core::flags::URI<std::string>",
+      "default": "https://www.okex.com",
+      "description": "REST end-point (URI)"
+    },
+    {
+      "name": "rest_ping_freq",
+      "type": "std::chrono::nanoseconds",
+      "validator": "roq::core::flags::TimePeriod",
+      "default": "5s",
+      "description": "ping frequency"
+    },
+    {
+      "name": "rest_ping_path",
+      "type": "std::string",
+      "validator": "roq::core::flags::Path<std::string>",
+      "default": "/api/v1/status",
+      "description": "URI path used for REST connection keep-alive messages"
+    },
+    {
+      "name": "rest_request_timeout",
+      "type": "std::chrono::nanoseconds",
+      "validator": "roq::core::flags::TimePeriod",
+      "default": "30s",
+      "description": "request: timeout"
+    },
+    {
       "name": "ws_public_uri",
       "type": "roq::core::URI",
       "validator": "roq::core::flags::URI<std::string>",

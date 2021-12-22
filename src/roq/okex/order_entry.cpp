@@ -78,6 +78,9 @@ OrderEntry::OrderEntry(
           .create_order = create_metrics(name_, "create_order"sv),
           .modify_order = create_metrics(name_, "modify_order"sv),
           .cancel_order = create_metrics(name_, "cancel_order"sv),
+          .order_ack = create_metrics(name_, "order_ack"sv),
+          .amend_order_ack = create_metrics(name_, "amend_order_ack"sv),
+          .cancel_order_ack = create_metrics(name_, "cancel_order_ack"sv),
       },
       latency_{
           .ping = create_metrics(name_, "ping"sv),
@@ -120,6 +123,9 @@ void OrderEntry::operator()(metrics::Writer &writer) {
       .write(profile_.create_order, metrics::PROFILE)
       .write(profile_.modify_order, metrics::PROFILE)
       .write(profile_.cancel_order, metrics::PROFILE)
+      .write(profile_.order_ack, metrics::PROFILE)
+      .write(profile_.amend_order_ack, metrics::PROFILE)
+      .write(profile_.cancel_order_ack, metrics::PROFILE)
       // latency
       .write(latency_.ping, metrics::LATENCY)
       .write(latency_.heartbeat, metrics::LATENCY);
@@ -183,7 +189,6 @@ uint16_t OrderEntry::operator()(
   auto side = json::map(create_order.side);
   auto [order_type, reduce_only] = compute_order_attributes(
       create_order.order_type, create_order.time_in_force, create_order.execution_instruction);
-  auto XXX = "abcABC125"sv;  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
   switch (order_type) {
     case json::OrderType::MARKET: {
       auto message = fmt::format(
@@ -203,7 +208,7 @@ uint16_t OrderEntry::operator()(
           R"(])"
           R"(}})"sv,
           ++request_id_,
-          XXX,  // request_id,
+          request_id,
           trade_mode.as_raw_text(),
           position_side.as_raw_text(),
           create_order.symbol,
@@ -234,7 +239,7 @@ uint16_t OrderEntry::operator()(
           R"(])"
           R"(}})"sv,
           ++request_id_,
-          XXX,  // request_id,
+          request_id,
           trade_mode.as_raw_text(),
           position_side.as_raw_text(),
           create_order.symbol,
@@ -253,7 +258,7 @@ uint16_t OrderEntry::operator()(
 uint16_t OrderEntry::operator()(
     const Event<ModifyOrder> &event,
     const oms::Order &order,
-    [[maybe_unused]] const std::string_view &request_id,
+    const std::string_view &request_id,
     const std::string_view &previous_request_id) {
   auto &[message_info, modify_order] = event;
   auto has_external_order_id = !std::empty(order.external_order_id);
@@ -263,23 +268,27 @@ uint16_t OrderEntry::operator()(
   auto new_sz = std::isnan(modify_order.quantity) ? order.quantity : modify_order.quantity;
   auto new_px = std::isnan(modify_order.price) ? order.price : modify_order.price;
   auto message = fmt::format(
-      R"({)"
+      R"({{)"
       R"("id":"{}",)"
       R"("op":"amend-order",)"
-      R"("args":[{)"
+      R"("args":[{{)"
       R"("{}":"{}",)"
       R"("instId":"{}",)"
+      R"("reqId":"{}",)"
       R"("newSz":"{}",)"
       R"("newPx":"{}")"
-      R"(})"
+      R"(}})"
       R"(])"
-      R"(})"sv,
+      R"(}})"sv,
       ++request_id_,
       order_id_type,
       order_id,
       order.symbol,
+      request_id,
       new_sz,
       new_px);
+  log::debug("message={}"sv, message);
+  connection_.send_text(message);
   return stream_id_;
 }
 
@@ -294,10 +303,10 @@ uint16_t OrderEntry::operator()(
       has_external_order_id ? std::string_view{order.external_order_id} : previous_request_id;
   auto message = fmt::format(
       R"({{)"
-      R"("id":"",)"
+      R"("id":"{}",)"
       R"("op":"cancel-order",)"
       R"("args":[{{)"
-      R"("{}":"{},")"
+      R"("{}":"{}",)"
       R"("instId":"{}")"
       R"(}})"
       R"(])"
@@ -457,7 +466,10 @@ void OrderEntry::parse(const std::string_view &message) {
       log::debug(R"(message="{}")"sv, message);
       auto trace_info = server::create_trace_info();
       core::json::Buffer buffer(decode_buffer_);
-      json::Parser::dispatch(*this, message, buffer, trace_info);
+      if (json::Parser::dispatch(*this, message, buffer, trace_info)) {
+      } else {
+        log::fatal(R"(message="{}")"sv, message);
+      }
     } catch (...) {
       log::warn(R"(message="{}")"sv, message);
       core::tools::UnhandledException::terminate();
@@ -537,7 +549,7 @@ void OrderEntry::operator()(server::Trace<json::Account> const &event) {
   profile_.account([&]() {
     auto &[trace_info, account] = event;
     log::info<1>("event={{trace_info={}, account={}}}"sv, trace_info, account);
-    log::debug("event={{trace_info={}, account={}}}"sv, trace_info, account);
+    // log::debug("event={{trace_info={}, account={}}}"sv, trace_info, account);
     // XXX HANS
   });
 }
@@ -568,6 +580,136 @@ void OrderEntry::operator()(server::Trace<json::Orders> const &event) {
     log::info<1>("event={{trace_info={}, orders={}}}"sv, trace_info, orders);
     log::debug("event={{trace_info={}, orders={}}}"sv, trace_info, orders);
     // XXX HANS
+    // orders={code=0, msg="", arg={channel=ORDERS, inst_id="", inst_type="ANY",
+    // uid="33594834598109184"}, data=[{acc_fill_sz=0, amend_result=0, avg_px=0, category=NORMAL,
+    // ccy="", cl_ord_id="abcABC124", code=0, c_time=1640184258331ms, exec_type=UNDEFINED,
+    // fee_ccy="BTC", fee=0, fill_fee_ccy="", fill_fee=0, fill_notional_usd="", fill_px=nan,
+    // fill_sz=0, fill_time=0ms, inst_id="BTC-USD-220325", inst_type=FUTURES, lever=10, msg="",
+    // notional_usd="100.0", ord_id="393896560769265665", ord_type=LIMIT, pnl=0, pos_side=LONG,
+    // px=40007.4, rebate_ccy="BTC", rebate=0, reduce_only=false, req_id="", side=BUY,
+    // sl_ord_px=nan, sl_trigger_px=nan, sl_trigger_px_type=UNDEFINED, source="", state=LIVE, sz=1,
+    // tag="", td_mode=ISOLATED, tgt_ccy="", tp_ord_px=nan, tp_trigger_px=nan,
+    // tp_trigger_px_type=UNDEFINED, trade_id="", u_time=1640184258331ms}]}}
+    for (auto &item : orders.data) {
+      auto side = json::map(item.side);
+      auto order_status = json::map(item.state);
+      oms::OrderUpdate order_update{
+          .account = security_.get_account(),
+          .exchange = Flags::exchange(),
+          .symbol = item.inst_id,
+          .side = side,
+          .position_effect = {},
+          .max_show_quantity = NaN,
+          .order_type = {},
+          .time_in_force = {},
+          .execution_instruction = {},
+          .order_template = {},
+          .create_time_utc = {},
+          .update_time_utc = utils::safe_cast(item.u_time),
+          .external_account = {},
+          .external_order_id = item.ord_id,
+          .status = order_status,
+          .quantity = item.sz,
+          .price = item.px,
+          .stop_price = NaN,
+          .remaining_quantity = NaN,
+          .traded_quantity = item.acc_fill_sz,
+          .average_traded_price = item.avg_px,
+          .last_traded_quantity = item.fill_sz,
+          .last_traded_price = item.fill_px,
+          .last_liquidity = {},
+      };
+      if (shared_.update_order(
+              item.cl_ord_id, stream_id_, trace_info, order_update, [&](auto &order) {})) {
+      } else {
+        log::warn("*** EXTERNAL ORDER ***"sv);
+        log::warn("item={}"sv, item);
+      }
+    }
+  });
+}
+
+void OrderEntry::operator()(server::Trace<json::OrderAck> const &event) {
+  profile_.order_ack([&]() {
+    auto &[trace_info, order_ack] = event;
+    log::info<1>("event={{trace_info={}, order_ack={}}}"sv, trace_info, order_ack);
+    log::debug("event={{trace_info={}, order_ack={}}}"sv, trace_info, order_ack);
+    auto order_status = order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
+    for (auto &item : order_ack.data) {
+      oms::Response response{
+          .type = RequestType::CREATE_ORDER,
+          .origin = Origin::EXCHANGE,
+          .status = order_status,
+          .error = json::guess_error(item.s_code),
+          .text = item.s_msg,
+          .version = {},
+          .request_id = item.cl_ord_id,
+          .quantity = NaN,
+          .price = NaN,
+      };
+      if (shared_.update_order(
+              item.cl_ord_id, stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {
+              })) {
+      } else {
+        log::warn(R"(Did not find order: cl_ord_id="{}")"sv, item.cl_ord_id);
+      }
+    }
+  });
+}
+
+void OrderEntry::operator()(server::Trace<json::AmendOrderAck> const &event) {
+  profile_.amend_order_ack([&]() {
+    auto &[trace_info, amend_order_ack] = event;
+    log::info<1>("event={{trace_info={}, amend_order_ack={}}}"sv, trace_info, amend_order_ack);
+    log::debug("event={{trace_info={}, amend_order_ack={}}}"sv, trace_info, amend_order_ack);
+    auto order_status = amend_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
+    for (auto &item : amend_order_ack.data) {
+      oms::Response response{
+          .type = RequestType::MODIFY_ORDER,
+          .origin = Origin::EXCHANGE,
+          .status = order_status,
+          .error = json::guess_error(item.s_code),
+          .text = item.s_msg,
+          .version = {},
+          .request_id = item.req_id,
+          .quantity = NaN,
+          .price = NaN,
+      };
+      if (shared_.update_order(
+              item.cl_ord_id, stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {
+              })) {
+      } else {
+        log::warn(R"(Did not find order: cl_ord_id="{}")"sv, item.cl_ord_id);
+      }
+    }
+  });
+}
+
+void OrderEntry::operator()(server::Trace<json::CancelOrderAck> const &event) {
+  profile_.cancel_order_ack([&]() {
+    auto &[trace_info, cancel_order_ack] = event;
+    log::info<1>("event={{trace_info={}, cancel_order_ack={}}}"sv, trace_info, cancel_order_ack);
+    log::debug("event={{trace_info={}, cancel_order_ack={}}}"sv, trace_info, cancel_order_ack);
+    auto order_status = cancel_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
+    for (auto &item : cancel_order_ack.data) {
+      oms::Response response{
+          .type = RequestType::CANCEL_ORDER,
+          .origin = Origin::EXCHANGE,
+          .status = order_status,
+          .error = json::guess_error(item.s_code),
+          .text = item.s_msg,
+          .version = {},
+          .request_id = {},
+          .quantity = NaN,
+          .price = NaN,
+      };
+      if (shared_.update_order(
+              item.cl_ord_id, stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {
+              })) {
+      } else {
+        log::warn(R"(Did not find order: cl_ord_id="{}")"sv, item.cl_ord_id);
+      }
+    }
   });
 }
 

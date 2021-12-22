@@ -1,0 +1,11 @@
+{
+"name": "CancelOrderAck",
+"type": "comp",
+"values": [
+	{ "name": "code", "type": "int32_t" },
+	{ "name": "data", "type": "roq::span<CancelOrderAckItem>" },
+	{ "name": "id", "type": "std::string_view" },
+	{ "name": "msg", "type": "std::string_view" },
+	{ "name": "op", "type": "Operation" }
+]
+}

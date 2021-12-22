@@ -1,0 +1,14 @@
+{
+"name": "Frame",
+"type": "comp",
+"values": [
+	{ "name": "code", "type": "int32_t" },
+	{ "name": "msg", "type": "std::string_view" },
+	{ "name": "id", "type": "std::string_view" },
+	{ "name": "op", "type": "Operation" },
+	{ "name": "event", "type": "EventType" },
+	{ "name": "arg", "type": "Arg" },
+	{ "name": "action", "type": "Action" },
+	{ "name": "data" }
+]
+}

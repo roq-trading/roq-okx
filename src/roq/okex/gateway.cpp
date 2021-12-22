@@ -61,12 +61,14 @@ static auto create_market_data(
 Gateway::Gateway(server::Dispatcher &dispatcher, const Config &config)
     : dispatcher_(dispatcher), master_account_(config.get_master_account()),
       security_(create_security(config)), shared_(dispatcher),
+      rest_(*this, context_, ++stream_id_, *security_[master_account_], shared_),
       order_entry_(create_order_entry(*this, context_, stream_id_, security_, shared_)),
       market_data_(create_market_data(*this, context_, stream_id_, shared_)) {
 }
 
 void Gateway::operator()(const Event<Start> &event) {
   log::info("Starting the gateway..."sv);
+  rest_(event);
   for (auto &[_, order_entry] : order_entry_)
     if (static_cast<bool>(order_entry))
       (*order_entry)(event);
@@ -81,9 +83,11 @@ void Gateway::operator()(const Event<Stop> &event) {
   for (auto &[_, order_entry] : order_entry_)
     if (static_cast<bool>(order_entry))
       (*order_entry)(event);
+  rest_(event);
 }
 
 void Gateway::operator()(const Event<Timer> &event) {
+  rest_(event);
   for (auto &[_, order_entry] : order_entry_)
     if (static_cast<bool>(order_entry))
       (*order_entry)(event);

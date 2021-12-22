@@ -22,20 +22,20 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_trades, parser) {
+TEST(json_amend_order_ack, parser_success) {
   auto message = R"({)"
-                 R"("arg":{)"
-                 R"("channel":"trades",)"
-                 R"("instId":"BTC-USD-220325"},)"
+                 R"("code":"0",)"
                  R"("data":[{)"
-                 R"("instId":"BTC-USD-220325",)"
-                 R"("tradeId":"7789395",)"
-                 R"("px":"50387.4",)"
-                 R"("sz":"5",)"
-                 R"("side":"buy",)"
-                 R"("ts":"1640157052811")"
+                 R"("clOrdId":"CMAAF2IDAAAQAAFQDIHPD4Y3",)"
+                 R"("ordId":"393936310213439488",)"
+                 R"("reqId":"",)"
+                 R"("sCode":"0",)"
+                 R"("sMsg":"")"
                  R"(})"
-                 R"(])"
+                 R"(],)"
+                 R"("id":"2000002",)"
+                 R"("msg":"",)"
+                 R"("op":"amend-order")"
                  R"(})";
   struct MyHandler final : public json::Parser::Handler {
     auto get_count() const { return count_; }
@@ -50,19 +50,7 @@ TEST(json_trades, parser) {
     void operator()(server::Trace<json::PriceLimit> const &) override { FAIL(); }
     void operator()(server::Trace<json::MarkPrice> const &) override { FAIL(); }
     void operator()(server::Trace<json::Tickers> const &) override { FAIL(); }
-    void operator()(server::Trace<json::Trades> const &event) override {
-      ++count_;
-      auto &[trace_info, trades] = event;
-      auto &data = trades.data;
-      ASSERT_EQ(std::size(data), 1);
-      auto &d0 = data[0];
-      EXPECT_EQ(d0.inst_id, "BTC-USD-220325"sv);
-      EXPECT_EQ(d0.trade_id, "7789395"sv);
-      EXPECT_DOUBLE_EQ(d0.px, 50387.4);
-      EXPECT_DOUBLE_EQ(d0.sz, 5.0);
-      EXPECT_EQ(d0.side, json::Side::BUY);
-      EXPECT_EQ(d0.ts, 1640157052811ms);
-    }
+    void operator()(server::Trace<json::Trades> const &) override { FAIL(); }
     void operator()(
         server::Trace<json::BooksL2Tbt> const &,
         [[maybe_unused]] const std::string_view &inst_id,
@@ -75,7 +63,23 @@ TEST(json_trades, parser) {
     void operator()(server::Trace<json::Positions> const &) override { FAIL(); }
     void operator()(server::Trace<json::Orders> const &) override { FAIL(); }
     void operator()(server::Trace<json::OrderAck> const &) override { FAIL(); }
-    void operator()(server::Trace<json::AmendOrderAck> const &) override { FAIL(); }
+    void operator()(server::Trace<json::AmendOrderAck> const &event) override {
+      ++count_;
+      auto &[trace_info, amend_order_ack] = event;
+      EXPECT_EQ(amend_order_ack.code, 0);
+      auto &data = amend_order_ack.data;
+      ASSERT_EQ(std::size(data), 1);
+      auto &d0 = data[0];
+      EXPECT_EQ(d0.cl_ord_id, "CMAAF2IDAAAQAAFQDIHPD4Y3"sv);
+      EXPECT_EQ(d0.ord_id, "393936310213439488"sv);
+      EXPECT_EQ(d0.req_id, ""sv);
+      EXPECT_EQ(d0.s_code, 0);
+      EXPECT_EQ(d0.s_msg, ""sv);
+      EXPECT_EQ(d0.tag, ""sv);
+      EXPECT_EQ(amend_order_ack.id, "2000002"sv);
+      EXPECT_EQ(amend_order_ack.msg, ""sv);
+      EXPECT_EQ(amend_order_ack.op, json::Operation::AMEND_ORDER);
+    }
     void operator()(server::Trace<json::CancelOrderAck> const &) override { FAIL(); }
 
    private:

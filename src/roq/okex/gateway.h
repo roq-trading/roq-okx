@@ -16,6 +16,7 @@
 #include "roq/okex/config.h"
 #include "roq/okex/market_data.h"
 #include "roq/okex/order_entry.h"
+#include "roq/okex/rest.h"
 #include "roq/okex/security.h"
 #include "roq/okex/shared.h"
 
@@ -23,6 +24,7 @@ namespace roq {
 namespace okex {
 
 class Gateway final : public server::Handler,
+                      public Rest::Handler,
                       public OrderEntry::Handler,
                       public MarketData::Handler {
  public:
@@ -86,6 +88,7 @@ class Gateway final : public server::Handler,
   // seed
   uint16_t stream_id_ = {};
   // streams
+  Rest rest_;
   absl::flat_hash_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
   std::vector<std::unique_ptr<MarketData>> market_data_;
 };

@@ -6,6 +6,12 @@ using namespace std::literals;
 
 namespace roq {
 namespace okex {
-namespace json {}  // namespace json
+namespace json {
+
+roq::Error guess_error(int32_t code) {
+  return Error::UNKNOWN;
+}
+
+}  // namespace json
 }  // namespace okex
 }  // namespace roq

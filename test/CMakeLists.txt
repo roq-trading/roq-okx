@@ -2,12 +2,17 @@ set(TARGET_NAME "${PROJECT_NAME}-test")
 
 set(SOURCES
     json_account.cpp
-    json_books_l2_tbt.cpp
-    json_instrument.cpp
-    json_tickers.cpp
-    json_orders.cpp
-    json_trades.cpp
+    json_amend_order_ack.cpp
     json_balance_and_position.cpp
+    json_books_l2_tbt.cpp
+    json_cancel_order_ack.cpp
+    json_instruments.cpp
+    json_order_ack.cpp
+    json_orders.cpp
+    json_positions.cpp
+    json_status.cpp
+    json_tickers.cpp
+    json_trades.cpp
     main.cpp)
 
 add_executable("${TARGET_NAME}" ${SOURCES})

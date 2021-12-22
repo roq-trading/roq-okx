@@ -111,6 +111,9 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   void operator()(server::Trace<json::BalanceAndPosition> const &) override;
   void operator()(server::Trace<json::Positions> const &) override;
   void operator()(server::Trace<json::Orders> const &) override;
+  void operator()(server::Trace<json::OrderAck> const &) override;
+  void operator()(server::Trace<json::AmendOrderAck> const &) override;
+  void operator()(server::Trace<json::CancelOrderAck> const &) override;
 
  private:
   Handler &handler_;

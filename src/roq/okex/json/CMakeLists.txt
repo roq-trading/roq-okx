@@ -8,12 +8,16 @@ set(AUTOGEN_SCHEMAS
     account_item.json
     account.json
     action.json
+    amend_order_ack_item.json
+    amend_order_ack.json
     arg.json
     balance_and_position_balance_item.json
     balance_and_position.json
     balance_and_position_position_item.json
     books_l2_tbt_item.json
     books_l2_tbt.json
+    cancel_order_ack_item.json
+    cancel_order_ack.json
     category.json
     channel.json
     contract_type.json
@@ -21,6 +25,7 @@ set(AUTOGEN_SCHEMAS
     estimated_price_item.json
     estimated_price.json
     event_type.json
+    frame.json
     instruments_item.json
     instruments.json
     instrument_type.json
@@ -28,7 +33,10 @@ set(AUTOGEN_SCHEMAS
     margin_mode.json
     mark_price_item.json
     mark_price.json
+    operation.json
     option_type.json
+    order_ack_item.json
+    order_ack.json
     order_flow_type.json
     orders_item.json
     orders.json
@@ -41,7 +49,6 @@ set(AUTOGEN_SCHEMAS
     price_limit.json
     side.json
     state.json
-    status_item.json
     status.json
     subscribe.json
     tickers_item.json

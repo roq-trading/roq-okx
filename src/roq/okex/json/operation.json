@@ -1,0 +1,9 @@
+{
+"name": "Operation",
+"type": "enum",
+"values": [
+	{ "name": "order" },
+	{ "name": "amend-order" },
+	{ "name": "cancel-order" }
+]
+}

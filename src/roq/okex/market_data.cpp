@@ -199,15 +199,15 @@ void MarketData::subscribe_static() {
   subscribe("instruments"sv, "instType"sv, "SWAP"sv);
   subscribe("instruments"sv, "instType"sv, "FUTURES"sv);
   subscribe("instruments"sv, "instType"sv, "OPTION"sv);
-  subscribe("estimated-price"sv, "instType"sv, "FUTURES"sv);
-  subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
+  // subscribe("estimated-price"sv, "instType"sv, "FUTURES"sv);
+  // subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
 }
 
 void MarketData::subscribe(const roq::span<std::string const> &symbols) {
   if (std::empty(symbols))
     return;
-  subscribe("price-limit"sv, "instType"sv, symbols);
-  subscribe("mark-price"sv, "instType"sv, symbols);
+  // subscribe("price-limit"sv, "instType"sv, symbols);
+  // subscribe("mark-price"sv, "instType"sv, symbols);
   subscribe("tickers"sv, "instId"sv, symbols);
   subscribe("trades"sv, "instId"sv, symbols);
   subscribe("books-l2-tbt"sv, "instId"sv, symbols);
@@ -275,9 +275,13 @@ void MarketData::subscribe(
 void MarketData::parse(const std::string_view &message) {
   profile_.parse([&]() {
     try {
+      // log::debug(R"(message="{}")"sv, message);
       auto trace_info = server::create_trace_info();
       core::json::Buffer buffer(decode_buffer_);
-      json::Parser::dispatch(*this, message, buffer, trace_info);
+      if (json::Parser::dispatch(*this, message, buffer, trace_info)) {
+      } else {
+        log::fatal(R"(message="{}")"sv, message);
+      }
     } catch (...) {
       log::warn(R"(message="{}")"sv, message);
       core::tools::UnhandledException::terminate();
@@ -551,6 +555,18 @@ void MarketData::operator()(server::Trace<json::Positions> const &) {
 }
 
 void MarketData::operator()(server::Trace<json::Orders> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void MarketData::operator()(server::Trace<json::OrderAck> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void MarketData::operator()(server::Trace<json::AmendOrderAck> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void MarketData::operator()(server::Trace<json::CancelOrderAck> const &) {
   log::fatal("Unexpected"sv);
 }
 

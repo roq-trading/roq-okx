@@ -22,18 +22,21 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_trades, parser) {
+TEST(json_status, parser) {
   auto message = R"({)"
                  R"("arg":{)"
-                 R"("channel":"trades",)"
-                 R"("instId":"BTC-USD-220325"},)"
+                 R"("channel":"status")"
+                 R"(},)"
                  R"("data":[{)"
-                 R"("instId":"BTC-USD-220325",)"
-                 R"("tradeId":"7789395",)"
-                 R"("px":"50387.4",)"
-                 R"("sz":"5",)"
-                 R"("side":"buy",)"
-                 R"("ts":"1640157052811")"
+                 R"("begin":"1639645200000",)"
+                 R"("end":"1639647600000",)"
+                 R"("href":"",)"
+                 R"("scheDesc":"",)"
+                 R"("serviceType":"0",)"
+                 R"("state":"completed",)"
+                 R"("system":"unified",)"
+                 R"("title":"Unified Account WebSocket system upgrade",)"
+                 R"("ts":"1639647646363")"
                  R"(})"
                  R"(])"
                  R"(})";
@@ -44,25 +47,25 @@ TEST(json_trades, parser) {
     void operator()(server::Trace<json::Error> const &) override { FAIL(); }
     void operator()(server::Trace<json::Subscribe> const &) override { FAIL(); }
     void operator()(server::Trace<json::Unsubscribe> const &) override { FAIL(); }
-    void operator()(server::Trace<json::Status> const &) override { FAIL(); }
+    void operator()(server::Trace<json::Status> const &event) override {
+      ++count_;
+      auto &[trace_info, status] = event;
+      EXPECT_EQ(status.begin, 1639645200000ms);
+      EXPECT_EQ(status.end, 1639647600000ms);
+      EXPECT_EQ(status.href, ""sv);
+      EXPECT_EQ(status.sche_desc, ""sv);
+      EXPECT_EQ(status.service_type, 0);
+      EXPECT_EQ(status.state, "completed"sv);
+      EXPECT_EQ(status.system, "unified"sv);
+      EXPECT_EQ(status.title, "Unified Account WebSocket system upgrade"sv);
+      EXPECT_EQ(status.ts, 1639647646363ms);
+    }
     void operator()(server::Trace<json::Instruments> const &) override { FAIL(); }
     void operator()(server::Trace<json::EstimatedPrice> const &) override { FAIL(); }
     void operator()(server::Trace<json::PriceLimit> const &) override { FAIL(); }
     void operator()(server::Trace<json::MarkPrice> const &) override { FAIL(); }
     void operator()(server::Trace<json::Tickers> const &) override { FAIL(); }
-    void operator()(server::Trace<json::Trades> const &event) override {
-      ++count_;
-      auto &[trace_info, trades] = event;
-      auto &data = trades.data;
-      ASSERT_EQ(std::size(data), 1);
-      auto &d0 = data[0];
-      EXPECT_EQ(d0.inst_id, "BTC-USD-220325"sv);
-      EXPECT_EQ(d0.trade_id, "7789395"sv);
-      EXPECT_DOUBLE_EQ(d0.px, 50387.4);
-      EXPECT_DOUBLE_EQ(d0.sz, 5.0);
-      EXPECT_EQ(d0.side, json::Side::BUY);
-      EXPECT_EQ(d0.ts, 1640157052811ms);
-    }
+    void operator()(server::Trace<json::Trades> const &) override { FAIL(); }
     void operator()(
         server::Trace<json::BooksL2Tbt> const &,
         [[maybe_unused]] const std::string_view &inst_id,

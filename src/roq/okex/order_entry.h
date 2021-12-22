@@ -92,6 +92,9 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
   void operator()(server::Trace<json::BalanceAndPosition> const &) override;
   void operator()(server::Trace<json::Positions> const &) override;
   void operator()(server::Trace<json::Orders> const &) override;
+  void operator()(server::Trace<json::OrderAck> const &) override;
+  void operator()(server::Trace<json::AmendOrderAck> const &) override;
+  void operator()(server::Trace<json::CancelOrderAck> const &) override;
 
  private:
   void operator()(ConnectionStatus);
@@ -126,7 +129,8 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
   } counter_;
   struct {
     core::metrics::Profile parse, error, subscribe, unsubscribe, login, account,
-        balance_and_position, positions, orders, create_order, modify_order, cancel_order;
+        balance_and_position, positions, orders, create_order, modify_order, cancel_order,
+        order_ack, amend_order_ack, cancel_order_ack;
   } profile_;
   struct {
     core::metrics::Latency ping, heartbeat;

@@ -22,21 +22,9 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_trades, parser) {
-  auto message = R"({)"
-                 R"("arg":{)"
-                 R"("channel":"trades",)"
-                 R"("instId":"BTC-USD-220325"},)"
-                 R"("data":[{)"
-                 R"("instId":"BTC-USD-220325",)"
-                 R"("tradeId":"7789395",)"
-                 R"("px":"50387.4",)"
-                 R"("sz":"5",)"
-                 R"("side":"buy",)"
-                 R"("ts":"1640157052811")"
-                 R"(})"
-                 R"(])"
-                 R"(})";
+TEST(json_positions, parser) {
+  auto message =
+      R"({"arg":{"channel":"positions","instType":"ANY","uid":"33594834598109184"},"data":[]}")";
   struct MyHandler final : public json::Parser::Handler {
     auto get_count() const { return count_; }
 
@@ -50,19 +38,7 @@ TEST(json_trades, parser) {
     void operator()(server::Trace<json::PriceLimit> const &) override { FAIL(); }
     void operator()(server::Trace<json::MarkPrice> const &) override { FAIL(); }
     void operator()(server::Trace<json::Tickers> const &) override { FAIL(); }
-    void operator()(server::Trace<json::Trades> const &event) override {
-      ++count_;
-      auto &[trace_info, trades] = event;
-      auto &data = trades.data;
-      ASSERT_EQ(std::size(data), 1);
-      auto &d0 = data[0];
-      EXPECT_EQ(d0.inst_id, "BTC-USD-220325"sv);
-      EXPECT_EQ(d0.trade_id, "7789395"sv);
-      EXPECT_DOUBLE_EQ(d0.px, 50387.4);
-      EXPECT_DOUBLE_EQ(d0.sz, 5.0);
-      EXPECT_EQ(d0.side, json::Side::BUY);
-      EXPECT_EQ(d0.ts, 1640157052811ms);
-    }
+    void operator()(server::Trace<json::Trades> const &) override { FAIL(); }
     void operator()(
         server::Trace<json::BooksL2Tbt> const &,
         [[maybe_unused]] const std::string_view &inst_id,
@@ -72,7 +48,10 @@ TEST(json_trades, parser) {
     void operator()(server::Trace<json::Login> const &) override { FAIL(); }
     void operator()(server::Trace<json::Account> const &) override { FAIL(); }
     void operator()(server::Trace<json::BalanceAndPosition> const &) override { FAIL(); }
-    void operator()(server::Trace<json::Positions> const &) override { FAIL(); }
+    void operator()(server::Trace<json::Positions> const &event) override {
+      ++count_;
+      auto &[trace_info, positions] = event;
+    }
     void operator()(server::Trace<json::Orders> const &) override { FAIL(); }
     void operator()(server::Trace<json::OrderAck> const &) override { FAIL(); }
     void operator()(server::Trace<json::AmendOrderAck> const &) override { FAIL(); }

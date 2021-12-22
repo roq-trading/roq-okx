@@ -9,6 +9,8 @@
 
 #include "roq/server.h"
 
+#include "roq/okex/json/arg.h"
+
 #include "roq/okex/json/error.h"
 #include "roq/okex/json/subscribe.h"
 #include "roq/okex/json/unsubscribe.h"
@@ -29,6 +31,10 @@
 #include "roq/okex/json/login.h"
 #include "roq/okex/json/orders.h"
 #include "roq/okex/json/positions.h"
+
+#include "roq/okex/json/amend_order_ack.h"
+#include "roq/okex/json/cancel_order_ack.h"
+#include "roq/okex/json/order_ack.h"
 
 namespace roq {
 namespace okex {
@@ -52,11 +58,16 @@ struct Parser final {
     virtual void operator()(
         server::Trace<json::BooksL2Tbt> const &, const std::string_view &inst_id, Action) = 0;
     // - private
+    // -- event
     virtual void operator()(server::Trace<json::Login> const &) = 0;
     virtual void operator()(server::Trace<json::Account> const &) = 0;
     virtual void operator()(server::Trace<json::BalanceAndPosition> const &) = 0;
     virtual void operator()(server::Trace<json::Positions> const &) = 0;
     virtual void operator()(server::Trace<json::Orders> const &) = 0;
+    // -- ack
+    virtual void operator()(server::Trace<json::OrderAck> const &) = 0;
+    virtual void operator()(server::Trace<json::AmendOrderAck> const &) = 0;
+    virtual void operator()(server::Trace<json::CancelOrderAck> const &) = 0;
   };
 
   static bool dispatch(
@@ -64,6 +75,31 @@ struct Parser final {
       std::string_view const &message,
       core::json::Buffer &,
       server::TraceInfo const &);
+
+ private:
+  template <typename T, typename... Args>
+  static void dispatch_event(
+      Handler &,
+      std::string_view const &message,
+      core::json::Buffer &,
+      server::TraceInfo const &,
+      Args &&...);
+
+  template <typename T, typename... Args>
+  static void dispatch_event_array(
+      Handler &,
+      std::string_view const &message,
+      core::json::Buffer &,
+      server::TraceInfo const &,
+      Args &&...args);
+
+  template <typename T, typename... Args>
+  static void dispatch_event_frame(
+      Handler &,
+      std::string_view const &message,
+      core::json::Buffer &,
+      server::TraceInfo const &,
+      Args &&...args);
 };
 
 }  // namespace json

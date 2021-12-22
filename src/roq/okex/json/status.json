@@ -1,7 +1,15 @@
 {
 "name": "Status",
-"type": "array",
+"type": "comp",
 "values": [
-	{ "name": "data", "type": "roq::span<StatusItem>" }
+	{ "name": "title", "type": "std::string_view" },
+	{ "name": "state", "type": "std::string_view" },
+	{ "name": "begin", "type": "std::chrono::milliseconds" },
+	{ "name": "end", "type": "std::chrono::milliseconds" },
+	{ "name": "href", "type": "std::string_view" },
+	{ "name": "serviceType", "type": "int32_t" },
+	{ "name": "system", "type": "std::string_view" },
+	{ "name": "scheDesc", "type": "std::string_view" },
+	{ "name": "ts", "type": "std::chrono::milliseconds" }
 ]
 }
