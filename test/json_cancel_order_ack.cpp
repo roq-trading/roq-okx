@@ -66,7 +66,7 @@ TEST(json_cancel_order_ack, parser_success) {
     void operator()(server::Trace<json::CancelOrderAck> const &event) override {
       ++count_;
       auto &[trace_info, cancel_order_ack] = event;
-      EXPECT_EQ(cancel_order_ack.code, 1);
+      EXPECT_EQ(cancel_order_ack.code, 0);
       auto &data = cancel_order_ack.data;
       ASSERT_EQ(std::size(data), 1);
       auto &d0 = data[0];
