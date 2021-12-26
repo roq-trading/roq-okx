@@ -72,6 +72,7 @@ bool Parser::dispatch(
               dispatch_event_frame<Orders>(handler, message, buffer, trace_info);
               return true;
           }
+          break;
         case EventType::UNKNOWN:
           assert(false);
           break;

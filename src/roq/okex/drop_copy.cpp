@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include "roq/okex/rest.h"
+#include "roq/okex/drop_copy.h"
 
 #include <algorithm>
 #include <utility>
@@ -23,7 +23,7 @@ namespace roq {
 namespace okex {
 
 namespace {
-static const auto NAME = "rest"sv;
+static const auto NAME = "dc"sv;
 
 static const auto SUPPORTS = utils::Mask{
     SupportType::REFERENCE_DATA,
@@ -36,19 +36,9 @@ struct create_metrics final : public core::metrics::Factory {
   explicit create_metrics(const std::string_view &group, const std::string_view &function)
       : core::metrics::Factory(server::Flags::name(), group, function) {}
 };
-
-void emplace(MBPUpdate &result, double price, double size) {
-  new (&result) MBPUpdate{
-      .price = price,
-      .quantity = size,
-      .implied_quantity = NaN,
-      .price_level = {},
-      .number_of_orders = {},
-  };
-}
 }  // namespace
 
-Rest::Rest(
+DropCopy::DropCopy(
     Handler &handler,
     core::io::Context &context,
     uint16_t stream_id,
@@ -82,20 +72,20 @@ Rest::Rest(
       download_(Flags::rest_request_timeout(), [this](auto state) { return download(state); }) {
 }
 
-void Rest::operator()(const Event<Start> &) {
+void DropCopy::operator()(const Event<Start> &) {
   connection_.start();
 }
 
-void Rest::operator()(const Event<Stop> &) {
+void DropCopy::operator()(const Event<Stop> &) {
   connection_.stop();
 }
 
-void Rest::operator()(const Event<Timer> &event) {
+void DropCopy::operator()(const Event<Timer> &event) {
   auto now = event.value.now;
   connection_.refresh(now);
 }
 
-void Rest::operator()(metrics::Writer &writer) {
+void DropCopy::operator()(metrics::Writer &writer) {
   writer
       // counter
       .write(counter_.disconnect, metrics::COUNTER)
@@ -106,7 +96,7 @@ void Rest::operator()(metrics::Writer &writer) {
       .write(latency_.ping, metrics::LATENCY);
 }
 
-void Rest::operator()(ConnectionStatus status) {
+void DropCopy::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
     auto trace_info = server::create_trace_info();
     StreamStatus stream_status{
@@ -122,7 +112,7 @@ void Rest::operator()(ConnectionStatus status) {
   }
 }
 
-void Rest::operator()(const core::web::Client::Connected &) {
+void DropCopy::operator()(const core::web::Client::Connected &) {
   if (download_.downloading()) {
     download_.bump();
   } else {
@@ -131,14 +121,14 @@ void Rest::operator()(const core::web::Client::Connected &) {
   }
 }
 
-void Rest::operator()(const core::web::Client::Disconnected &) {
+void DropCopy::operator()(const core::web::Client::Disconnected &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
   if (!download_.downloading())
     download_.reset();
 }
 
-void Rest::operator()(const core::web::Client::Latency &latency) {
+void DropCopy::operator()(const core::web::Client::Latency &latency) {
   auto trace_info = server::create_trace_info();
   ExternalLatency external_latency{
       .stream_id = stream_id_,
@@ -148,15 +138,15 @@ void Rest::operator()(const core::web::Client::Latency &latency) {
   latency_.ping.update(latency.sample);
 }
 
-uint32_t Rest::download(RestState state) {
+uint32_t DropCopy::download(DropCopyState state) {
   switch (state) {
-    case RestState::UNDEFINED:
+    case DropCopyState::UNDEFINED:
       assert(false);
       break;
-    case RestState::ORDERS:
+    case DropCopyState::ORDERS:
       get_orders();
       return 1;
-    case RestState::DONE:
+    case DropCopyState::DONE:
       (*this)(ConnectionStatus::READY);
       return {};
   }
@@ -166,7 +156,7 @@ uint32_t Rest::download(RestState state) {
 
 // orders-pending
 
-void Rest::get_orders() {
+void DropCopy::get_orders() {
   profile_.orders([&]() {
     auto method = core::http::Method::GET;
     auto path = "/api/v5/trade/orders-pending"sv;
@@ -191,10 +181,10 @@ void Rest::get_orders() {
   });
 }
 
-void Rest::get_orders_ack(const server::Trace<core::web::Response> &event, uint32_t sequence) {
+void DropCopy::get_orders_ack(const server::Trace<core::web::Response> &event, uint32_t sequence) {
   profile_.orders_ack([&]() {
     auto &[trace_info, response] = event;
-    auto state = RestState::ORDERS;
+    auto state = DropCopyState::ORDERS;
     try {
       auto [status, category, body] = response.result();
       log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
@@ -234,7 +224,7 @@ void Rest::get_orders_ack(const server::Trace<core::web::Response> &event, uint3
   });
 }
 
-void Rest::operator()(const server::Trace<json::Orders> &event) {
+void DropCopy::operator()(const server::Trace<json::Orders> &event) {
   auto &[trace_info, orders] = event;
   log::info<4>("orders={}"sv, orders);
 }

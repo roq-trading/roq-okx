@@ -620,7 +620,11 @@ void OrderEntry::operator()(server::Trace<json::Orders> const &event) {
           .last_liquidity = {},
       };
       if (shared_.update_order(
-              item.cl_ord_id, stream_id_, trace_info, order_update, [&](auto &order) {})) {
+              item.cl_ord_id,
+              stream_id_,
+              trace_info,
+              order_update,
+              [&]([[maybe_unused]] auto &order) {})) {
       } else {
         log::warn("*** EXTERNAL ORDER ***"sv);
         log::warn("item={}"sv, item);

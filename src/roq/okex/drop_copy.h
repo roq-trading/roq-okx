@@ -18,7 +18,7 @@
 #include "roq/download.h"
 #include "roq/server.h"
 
-#include "roq/okex/rest_state.h"
+#include "roq/okex/drop_copy_state.h"
 #include "roq/okex/security.h"
 #include "roq/okex/shared.h"
 
@@ -27,7 +27,7 @@
 namespace roq {
 namespace okex {
 
-class Rest final : public core::web::Client::Handler {
+class DropCopy final : public core::web::Client::Handler {
  public:
   struct Handler {
     virtual void operator()(server::Trace<StreamStatus> const &) = 0;
@@ -36,10 +36,10 @@ class Rest final : public core::web::Client::Handler {
     virtual void operator()(server::Trace<MarketStatus> const &, bool is_last) = 0;
   };
 
-  Rest(Handler &, core::io::Context &context, uint16_t stream_id, Security &, Shared &);
+  DropCopy(Handler &, core::io::Context &context, uint16_t stream_id, Security &, Shared &);
 
-  Rest(Rest &&) = delete;
-  Rest(const Rest &) = delete;
+  DropCopy(DropCopy &&) = delete;
+  DropCopy(const DropCopy &) = delete;
 
   bool ready() const { return status_ == ConnectionStatus::READY; }
 
@@ -56,7 +56,7 @@ class Rest final : public core::web::Client::Handler {
 
   void operator()(ConnectionStatus);
 
-  uint32_t download(RestState);
+  uint32_t download(DropCopyState);
 
   void get_orders();
   void get_orders_ack(const server::Trace<core::web::Response> &, uint32_t sequence);
@@ -87,7 +87,7 @@ class Rest final : public core::web::Client::Handler {
   Shared &shared_;
   // state
   ConnectionStatus status_ = {};
-  server::Download<RestState> download_;
+  server::Download<DropCopyState> download_;
 };
 
 }  // namespace okex

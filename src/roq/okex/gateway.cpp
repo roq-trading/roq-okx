@@ -31,6 +31,22 @@ static auto create_security(const Config &config) {
 }
 
 template <typename T>
+static auto create_drop_copy(
+    Gateway &gateway,
+    core::io::Context &context,
+    uint16_t &stream_id,
+    T &security,
+    Shared &shared) {
+  absl::flat_hash_map<std::string, std::unique_ptr<DropCopy>> result;
+  for (auto &iter : security) {
+    result.try_emplace(
+        iter.first,
+        std::make_unique<DropCopy>(gateway, context, ++stream_id, *iter.second, shared));
+  }
+  return result;
+}
+
+template <typename T>
 static auto create_order_entry(
     Gateway &gateway,
     core::io::Context &context,
@@ -61,14 +77,15 @@ static auto create_market_data(
 Gateway::Gateway(server::Dispatcher &dispatcher, const Config &config)
     : dispatcher_(dispatcher), master_account_(config.get_master_account()),
       security_(create_security(config)), shared_(dispatcher),
-      rest_(*this, context_, ++stream_id_, *security_[master_account_], shared_),
+      drop_copy_(create_drop_copy(*this, context_, ++stream_id_, security_, shared_)),
       order_entry_(create_order_entry(*this, context_, stream_id_, security_, shared_)),
       market_data_(create_market_data(*this, context_, stream_id_, shared_)) {
 }
 
 void Gateway::operator()(const Event<Start> &event) {
   log::info("Starting the gateway..."sv);
-  rest_(event);
+  for (auto &[_, drop_copy] : drop_copy_)
+    (*drop_copy)(event);
   for (auto &[_, order_entry] : order_entry_)
     if (static_cast<bool>(order_entry))
       (*order_entry)(event);
@@ -83,11 +100,13 @@ void Gateway::operator()(const Event<Stop> &event) {
   for (auto &[_, order_entry] : order_entry_)
     if (static_cast<bool>(order_entry))
       (*order_entry)(event);
-  rest_(event);
+  for (auto &[_, drop_copy] : drop_copy_)
+    (*drop_copy)(event);
 }
 
 void Gateway::operator()(const Event<Timer> &event) {
-  rest_(event);
+  for (auto &[_, drop_copy] : drop_copy_)
+    (*drop_copy)(event);
   for (auto &[_, order_entry] : order_entry_)
     if (static_cast<bool>(order_entry))
       (*order_entry)(event);

@@ -1,5 +1,5 @@
 {
-"name": "RestState",
+"name": "DropCopyState",
 "type": "enum",
 "values": [
 	{ "name": "orders" },
