@@ -53,14 +53,14 @@
       "name": "ws_public_uri",
       "type": "roq::core::URI",
       "validator": "roq::core::flags::URI<std::string>",
-      "default": "wss://real.okex.com:8443/ws/v3?BrokerId=181",
+      "default": "wss://ws.okex.com:8443/ws/v5/public",
       "description": "WS end-point (URI)"
     },
     {
       "name": "ws_private_uri",
       "type": "roq::core::URI",
       "validator": "roq::core::flags::URI<std::string>",
-      "default": "wss://real.okex.com:8443/ws/v3?BrokerId=181",
+      "default": "wss://ws.okex.com:8443/ws/v5/private",
       "description": "WS end-point (URI)"
     },
     {
