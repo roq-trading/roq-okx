@@ -32,7 +32,7 @@
       "name": "rest_ping_freq",
       "type": "std::chrono::nanoseconds",
       "validator": "roq::core::flags::TimePeriod",
-      "default": "5s",
+      "default": "10s",
       "description": "ping frequency"
     },
     {
