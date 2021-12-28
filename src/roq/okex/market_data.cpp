@@ -146,6 +146,7 @@ void MarketData::operator()(const core::web::ClientSocket::Connected &) {
 void MarketData::operator()(const core::web::ClientSocket::Disconnected &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
+  subscribe_queue_.clear();
 }
 
 void MarketData::operator()(const core::web::ClientSocket::Ready &) {
@@ -224,7 +225,7 @@ void MarketData::subscribe(const std::string_view &channel) {
       R"(}})"sv,
       channel);
   log::debug("message={}"sv, message);
-  connection_.send_text(message);
+  subscribe_queue_.emplace_back(message);
 }
 
 void MarketData::subscribe(
@@ -244,7 +245,7 @@ void MarketData::subscribe(
       selector,
       value);
   log::debug("message={}"sv, message);
-  connection_.send_text(message);
+  subscribe_queue_.emplace_back(message);
 }
 
 void MarketData::subscribe(
@@ -269,7 +270,7 @@ void MarketData::subscribe(
       prefix,
       fmt::join(values, separator));
   log::debug("message={}"sv, message);
-  connection_.send_text(message);
+  subscribe_queue_.emplace_back(message);
 }
 
 void MarketData::parse(const std::string_view &message) {
@@ -568,6 +569,16 @@ void MarketData::operator()(server::Trace<json::AmendOrderAck> const &) {
 
 void MarketData::operator()(server::Trace<json::CancelOrderAck> const &) {
   log::fatal("Unexpected"sv);
+}
+
+void MarketData::check_subscribe_queue(std::chrono::nanoseconds now) {
+  subscribe_queue_.dispatch(
+      [&](auto now) { return shared_.rate_limiter.can_request(now); },
+      [&](auto &message) {
+        log::debug(R"(Subscribe: "{}")"sv, message);
+        connection_.send_text(message);
+      },
+      now);
 }
 
 }  // namespace okex

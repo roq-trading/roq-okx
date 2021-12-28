@@ -7,6 +7,8 @@
 #include <utility>
 #include <vector>
 
+#include "roq/core/timer_queue.h"
+
 #include "roq/core/metrics/counter.h"
 #include "roq/core/metrics/latency.h"
 #include "roq/core/metrics/profile.h"
@@ -115,6 +117,8 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   void operator()(server::Trace<json::AmendOrderAck> const &) override;
   void operator()(server::Trace<json::CancelOrderAck> const &) override;
 
+  void check_subscribe_queue(std::chrono::nanoseconds now);
+
  private:
   Handler &handler_;
   // config
@@ -143,6 +147,8 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   absl::flat_hash_set<std::string> all_symbols_;  // only master (index 0)
   // state
   ConnectionStatus status_ = {};
+  // queue
+  core::TimerQueue subscribe_queue_;
 };
 
 }  // namespace okex
