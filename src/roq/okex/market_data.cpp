@@ -111,6 +111,8 @@ void MarketData::operator()(const Event<Stop> &) {
 void MarketData::operator()(const Event<Timer> &event) {
   auto now = event.value.now;
   connection_.refresh(now);
+  if (connection_.ready())
+    check_subscribe_queue(now);
 }
 
 void MarketData::operator()(metrics::Writer &writer) {

@@ -245,6 +245,8 @@ uint16_t Gateway::operator()(
 }
 
 void Gateway::operator()(metrics::Writer &writer) {
+  for (auto &iter : drop_copy_)
+    (*iter.second)(writer);
   for (auto &[_, order_entry] : order_entry_)
     if (static_cast<bool>(order_entry))
       (*order_entry)(writer);
