@@ -346,6 +346,7 @@ void MarketData::operator()(server::Trace<json::Instruments> const &event) {
           .security_type = json::map(item.inst_type),
           .base_currency = item.base_ccy,
           .quote_currency = item.quote_ccy,
+          .margin_currency = item.settle_ccy,
           .commission_currency = {},
           .tick_size = item.tick_sz,
           .multiplier = item.ct_mult,
