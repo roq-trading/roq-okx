@@ -146,7 +146,7 @@ static std::pair<json::OrderType, bool> compute_order_attributes(
       reduce_only = true;
       break;
     default:
-      throw oms::NotSupportedException();
+      throw oms::NotSupported("not supported"sv);
   }
   switch (time_in_force) {
     case TimeInForce::GTC:
@@ -160,7 +160,7 @@ static std::pair<json::OrderType, bool> compute_order_attributes(
         order_type_ = json::OrderType::IOC;
       break;
     default:
-      throw oms::NotSupportedException();
+      throw oms::NotSupported("not supported"sv);
   }
   if (order_type_ == json::OrderType{}) {
     switch (order_type) {
@@ -171,7 +171,7 @@ static std::pair<json::OrderType, bool> compute_order_attributes(
         order_type_ = json::OrderType::LIMIT;
         break;
       default:
-        throw oms::NotSupportedException();
+        throw oms::NotSupported("not supported"sv);
     }
   }
   return {order_type_, reduce_only};
@@ -322,7 +322,7 @@ uint16_t OrderEntry::operator()(
 
 uint16_t OrderEntry::operator()(
     const Event<CancelAllOrders> &, [[maybe_unused]] const std::string_view &request_id) {
-  // throw oms::NotSupportedException();
+  // throw oms::NotSupported("not supported"sv);
   return stream_id_;
 }
 
