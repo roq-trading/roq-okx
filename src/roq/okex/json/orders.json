@@ -5,6 +5,6 @@
 	{ "name": "code", "type": "int32_t" },
 	{ "name": "msg", "type": "std::string_view" },
 	{ "name": "arg", "type": "Arg" },
-	{ "name": "data", "type": "roq::span<OrdersItem>" }
+	{ "name": "data", "type": "std::span<OrdersItem>" }
 ]
 }

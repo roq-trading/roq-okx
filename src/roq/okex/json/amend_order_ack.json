@@ -3,7 +3,7 @@
 "type": "comp",
 "values": [
 	{ "name": "code", "type": "int32_t" },
-	{ "name": "data", "type": "roq::span<AmendOrderAckItem>" },
+	{ "name": "data", "type": "std::span<AmendOrderAckItem>" },
 	{ "name": "id", "type": "std::string_view" },
 	{ "name": "msg", "type": "std::string_view" },
 	{ "name": "op", "type": "Operation" }

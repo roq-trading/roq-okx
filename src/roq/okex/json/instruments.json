@@ -2,6 +2,6 @@
 "name": "Instruments",
 "type": "array",
 "values": [
-	{ "name": "data", "type": "roq::span<InstrumentsItem>" }
+	{ "name": "data", "type": "std::span<InstrumentsItem>" }
 ]
 }

@@ -206,7 +206,7 @@ void MarketData::subscribe_static() {
   // subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
 }
 
-void MarketData::subscribe(const roq::span<std::string const> &symbols) {
+void MarketData::subscribe(const std::span<std::string const> &symbols) {
   if (std::empty(symbols))
     return;
   // subscribe("price-limit"sv, "instType"sv, symbols);
@@ -253,7 +253,7 @@ void MarketData::subscribe(
 void MarketData::subscribe(
     const std::string_view &channel,
     const std::string_view &selector,
-    const roq::span<std::string const> &values) {
+    const std::span<std::string const> &values) {
   assert(!std::empty(values));
   auto prefix = fmt::format(
       R"({{)"

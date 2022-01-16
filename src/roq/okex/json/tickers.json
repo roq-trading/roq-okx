@@ -2,6 +2,6 @@
 "name": "Tickers",
 "type": "array",
 "values": [
-	{ "name": "data", "type": "roq::span<TickersItem>" }
+	{ "name": "data", "type": "std::span<TickersItem>" }
 ]
 }

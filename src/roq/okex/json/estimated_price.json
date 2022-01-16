@@ -2,6 +2,6 @@
 "name": "EstimatedPrice",
 "type": "array",
 "values": [
-	{ "name": "data", "type": "roq::span<EstimatedPriceItem>" }
+	{ "name": "data", "type": "std::span<EstimatedPriceItem>" }
 ]
 }

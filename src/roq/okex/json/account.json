@@ -3,7 +3,7 @@
 "type": "comp",
 "values": [
 	{ "name": "adjEq", "type": "std::string_view" },
-	{ "name": "details", "type": "roq::span<AccountItem>" },
+	{ "name": "details", "type": "std::span<AccountItem>" },
 	{ "name": "imr", "type": "double" },
 	{ "name": "isoEq", "type": "double" },
 	{ "name": "mgnRatio", "type": "double" },

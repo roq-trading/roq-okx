@@ -4,7 +4,7 @@
 "values": [
 	{ "name": "pTime", "type": "std::chrono::milliseconds" },
 	{ "name": "eventType", "type": "std::string_view" },
-	{ "name": "balData", "type": "roq::span<BalanceAndPositionBalanceItem>" },
-	{ "name": "posData", "type": "roq::span<BalanceAndPositionPositionItem>" }
+	{ "name": "balData", "type": "std::span<BalanceAndPositionBalanceItem>" },
+	{ "name": "posData", "type": "std::span<BalanceAndPositionPositionItem>" }
 ]
 }
