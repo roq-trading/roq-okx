@@ -144,7 +144,7 @@ bool Parser::dispatch(
       } else if (key.compare("action"sv) == 0) {
         action = Action{value};
       } else if (key.compare("data"sv) == 0) {
-        if (ROQ_UNLIKELY(event != EventType{}))
+        if (event != EventType{})[[unlikely]]
           log::fatal("Unexpected"sv);
         if (std::empty(op)) {
           switch (channel) {
