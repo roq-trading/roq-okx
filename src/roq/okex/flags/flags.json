@@ -18,14 +18,14 @@
       "name": "exchange",
       "type": "std::string",
       "validator": "roq::core::flags::NonEmpty<std::string>",
-      "default": "okex",
+      "default": "okx",
       "description": "exchange identifier (string)"
     },
     {
       "name": "rest_uri",
       "type": "roq::core::URI",
       "validator": "roq::core::flags::URI<std::string>",
-      "default": "https://www.okex.com",
+      "default": "https://www.okx.com",
       "description": "REST end-point (URI)"
     },
     {
@@ -53,14 +53,14 @@
       "name": "ws_public_uri",
       "type": "roq::core::URI",
       "validator": "roq::core::flags::URI<std::string>",
-      "default": "wss://ws.okex.com:8443/ws/v5/public",
+      "default": "wss://ws.okx.com:8443/ws/v5/public",
       "description": "WS end-point (URI)"
     },
     {
       "name": "ws_private_uri",
       "type": "roq::core::URI",
       "validator": "roq::core::flags::URI<std::string>",
-      "default": "wss://ws.okex.com:8443/ws/v5/private",
+      "default": "wss://ws.okx.com:8443/ws/v5/private",
       "description": "WS end-point (URI)"
     },
     {

@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+# Changed
+
+* New URLs / end-points (OKEx) (#163)
+
 # Added
 
 * Add funding rate and index price (#161)
