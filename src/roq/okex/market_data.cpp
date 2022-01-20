@@ -218,8 +218,12 @@ void MarketData::subscribe(const std::span<std::string const> &symbols) {
   subscribe("tickers"sv, "instId"sv, symbols);
   subscribe("trades"sv, "instId"sv, symbols);
   subscribe("books-l2-tbt"sv, "instId"sv, symbols);
-  subscribe("index-tickers"sv, "instId"sv, symbols);
-  subscribe("funding-rate"sv, "instId"sv, symbols);
+  for (auto &symbol : symbols) {
+    if (shared_.extended_symbols.find(symbol) != shared_.extended_symbols.end()) {
+      subscribe("index-tickers"sv, "instId"sv, symbol);
+      subscribe("funding-rate"sv, "instId"sv, symbol);
+    }
+  }
 }
 
 void MarketData::subscribe(const std::string_view &channel) {
@@ -267,7 +271,7 @@ void MarketData::subscribe(
       R"("{}":")"sv,
       channel,
       selector);
-  auto separator = fmt::format(R"("}},{})", prefix);
+  auto separator = fmt::format(R"("}},{})"sv, prefix);
   auto message = fmt::format(
       R"({{)"
       R"("op":"subscribe",)"
@@ -377,6 +381,22 @@ void MarketData::operator()(server::Trace<json::Instruments> const &event) {
           .trading_status = json::map(item.state),
       };
       server::create_trace_and_dispatch(handler_, trace_info, market_status, true);
+      // trying to reduce the number of symbols where we next extra subscriptions
+      // but still avoid not reducing too much
+      switch (item.inst_type) {
+        case json::InstrumentType::UNDEFINED:
+        case json::InstrumentType::UNKNOWN:
+        case json::InstrumentType::SPOT:
+        case json::InstrumentType::MARGIN:
+          break;
+        case json::InstrumentType::SWAP:
+        case json::InstrumentType::FUTURES:
+          if (shared_.extended_symbols.emplace(symbol).second)
+            log::info<2>(R"(DEBUG: symbol="{}")"sv, symbol);
+          break;
+        case json::InstrumentType::OPTION:
+          break;
+      }
     }
     log::info("Instruments {} / {}"sv, counter, std::size(instruments.data));
     if (!std::empty(symbols)) {
