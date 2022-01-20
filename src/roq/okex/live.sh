@@ -8,16 +8,16 @@ else
 	PREFIX=
 fi
 
-NAME="okex"
+NAME="okx"
 
 CONFIG_FILE="$CWD/config/$NAME.toml"
 
-URI="okex.com"
+URI="okx.com"
 
 WS_URI="wss://ws.$URI:8443/ws/v5"
 
 $PREFIX ./roq-okex \
-	--name "okex" \
+	--name "okx" \
 	--config_file "$CONFIG_FILE" \
 	--client_listen_address $CWD/$NAME.sock \
 	--metrics_listen_address 2345 \

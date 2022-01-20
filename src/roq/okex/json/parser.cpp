@@ -59,6 +59,12 @@ bool Parser::dispatch(
               dispatch_event<BooksL2Tbt>(
                   handler, message, buffer, trace_info, frame.arg.inst_id, frame.action);
               return true;
+            case Channel::INDEX_TICKERS:
+              dispatch_event_array<IndexTickers>(handler, message, buffer, trace_info);
+              return true;
+            case Channel::FUNDING_RATE:
+              dispatch_event_array<FundingRate>(handler, message, buffer, trace_info);
+              return true;
             case Channel::ACCOUNT:
               dispatch_event<Account>(handler, message, buffer, trace_info);
               return true;

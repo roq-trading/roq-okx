@@ -1,0 +1,7 @@
+{
+"name": "IndexTickers",
+"type": "array",
+"values": [
+	{ "name": "data", "type": "std::span<IndexTickersItem>" }
+]
+}

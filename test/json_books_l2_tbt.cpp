@@ -82,6 +82,8 @@ TEST(json_books_l2_tbt, parser) {
       EXPECT_EQ(b0.liquidated_orders, 0);
       EXPECT_EQ(b0.orders, 3);
     }
+    void operator()(server::Trace<json::IndexTickers> const &) override { FAIL(); }
+    void operator()(server::Trace<json::FundingRate> const &) override { FAIL(); }
     void operator()(server::Trace<json::Login> const &) override { FAIL(); }
     void operator()(server::Trace<json::Account> const &) override { FAIL(); }
     void operator()(server::Trace<json::BalanceAndPosition> const &) override { FAIL(); }

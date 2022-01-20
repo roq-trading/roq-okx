@@ -107,6 +107,8 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
       server::Trace<json::BooksL2Tbt> const &,
       const std::string_view &inst_id,
       json::Action) override;
+  void operator()(server::Trace<json::IndexTickers> const &) override;
+  void operator()(server::Trace<json::FundingRate> const &) override;
 
   void operator()(server::Trace<json::Login> const &) override;
   void operator()(server::Trace<json::Account> const &) override;
@@ -137,7 +139,8 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   } counter_;
   struct {
     core::metrics::Profile parse, error, subscribe, unsubscribe, status, instruments,
-        estimated_price, price_limit, mark_price, tickers, trades, books_l2_tbt;
+        estimated_price, price_limit, mark_price, tickers, trades, books_l2_tbt, index_tickers,
+        funding_rate;
   } profile_;
   struct {
     core::metrics::Latency ping, heartbeat;

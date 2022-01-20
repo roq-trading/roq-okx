@@ -10,6 +10,8 @@
 	{ "name": "tickers" },
 	{ "name": "trades" },
 	{ "name": "books-l2-tbt" },
+	{ "name": "index-tickers" },
+	{ "name": "funding-rate" },
 	{ "name": "account" },
 	{ "name": "balance_and_position" },
 	{ "name": "positions" },

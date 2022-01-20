@@ -92,6 +92,8 @@ MarketData::MarketData(
           .tickers = create_metrics(name_, "tickers"sv),
           .trades = create_metrics(name_, "trades"sv),
           .books_l2_tbt = create_metrics(name_, "books_l2_tbt"sv),
+          .index_tickers = create_metrics(name_, "index_tickers"sv),
+          .funding_rate = create_metrics(name_, "funding_rate"sv),
       },
       latency_{
           .ping = create_metrics(name_, "ping"sv),
@@ -132,6 +134,8 @@ void MarketData::operator()(metrics::Writer &writer) {
       .write(profile_.tickers, metrics::PROFILE)
       .write(profile_.trades, metrics::PROFILE)
       .write(profile_.books_l2_tbt, metrics::PROFILE)
+      .write(profile_.index_tickers, metrics::PROFILE)
+      .write(profile_.funding_rate, metrics::PROFILE)
       // latency
       .write(latency_.ping, metrics::LATENCY)
       .write(latency_.heartbeat, metrics::LATENCY);
@@ -214,6 +218,8 @@ void MarketData::subscribe(const std::span<std::string const> &symbols) {
   subscribe("tickers"sv, "instId"sv, symbols);
   subscribe("trades"sv, "instId"sv, symbols);
   subscribe("books-l2-tbt"sv, "instId"sv, symbols);
+  subscribe("index-tickers"sv, "instId"sv, symbols);
+  subscribe("funding-rate"sv, "instId"sv, symbols);
 }
 
 void MarketData::subscribe(const std::string_view &channel) {
@@ -538,6 +544,64 @@ void MarketData::operator()(
       server::create_trace_and_dispatch(handler_, trace_info, market_by_price_update, true, false);
     } catch (BadState &) {
       // resubscribe_order_book_l2(symbol);
+    }
+  });
+}
+
+void MarketData::operator()(server::Trace<json::IndexTickers> const &event) {
+  profile_.index_tickers([&]() {
+    auto &[trace_info, index_tickers] = event;
+    log::info<3>("event={{trace_info={}, index_tickers={}}}"sv, trace_info, index_tickers);
+    for (auto &item : index_tickers.data) {
+      Statistics statistics[] = {
+          {
+              .type = StatisticsType::INDEX_VALUE,
+              .value = item.idx_px,
+              .begin_time_utc = {},
+              .end_time_utc = {},
+          },
+      };
+      const StatisticsUpdate statistics_update{
+          .stream_id = stream_id_,
+          .exchange = Flags::exchange(),
+          .symbol = item.inst_id,
+          .statistics = statistics,
+          .update_type = UpdateType::INCREMENTAL,
+          .exchange_time_utc = {},
+      };
+      server::create_trace_and_dispatch(handler_, trace_info, statistics_update, true);
+    }
+  });
+}
+
+void MarketData::operator()(server::Trace<json::FundingRate> const &event) {
+  profile_.funding_rate([&]() {
+    auto &[trace_info, funding_rate] = event;
+    log::info<3>("event={{trace_info={}, funding_rate={}}}"sv, trace_info, funding_rate);
+    for (auto &item : funding_rate.data) {
+      Statistics statistics[] = {
+          {
+              .type = StatisticsType::FUNDING_RATE,
+              .value = item.funding_rate,
+              .begin_time_utc = utils::safe_cast(item.funding_time),
+              .end_time_utc = {},
+          },
+          {
+              .type = StatisticsType::FUNDING_RATE_PREDICTION,
+              .value = item.next_funding_rate,
+              .begin_time_utc = {},
+              .end_time_utc = {},
+          },
+      };
+      const StatisticsUpdate statistics_update{
+          .stream_id = stream_id_,
+          .exchange = Flags::exchange(),
+          .symbol = item.inst_id,
+          .statistics = statistics,
+          .update_type = UpdateType::INCREMENTAL,
+          .exchange_time_utc = {},
+      };
+      server::create_trace_and_dispatch(handler_, trace_info, statistics_update, true);
     }
   });
 }

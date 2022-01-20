@@ -40,6 +40,14 @@ event_type.h
 event_type.cpp
 frame.h
 frame.cpp
+funding_rate_item.h
+funding_rate_item.cpp
+funding_rate.h
+funding_rate.cpp
+index_tickers_item.h
+index_tickers_item.cpp
+index_tickers.h
+index_tickers.cpp
 instruments_item.h
 instruments_item.cpp
 instruments.h

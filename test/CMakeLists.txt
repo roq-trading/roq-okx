@@ -6,6 +6,8 @@ set(SOURCES
     json_balance_and_position.cpp
     json_books_l2_tbt.cpp
     json_cancel_order_ack.cpp
+    json_funding_rate.cpp
+    json_index_tickers.cpp
     json_instruments.cpp
     json_order_ack.cpp
     json_orders.cpp

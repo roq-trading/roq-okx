@@ -146,6 +146,8 @@ TEST(json_instruments, parser) {
         json::Action) override {
       FAIL();
     }
+    void operator()(server::Trace<json::IndexTickers> const &) override { FAIL(); }
+    void operator()(server::Trace<json::FundingRate> const &) override { FAIL(); }
     void operator()(server::Trace<json::Login> const &) override { FAIL(); }
     void operator()(server::Trace<json::Account> const &) override { FAIL(); }
     void operator()(server::Trace<json::BalanceAndPosition> const &) override { FAIL(); }

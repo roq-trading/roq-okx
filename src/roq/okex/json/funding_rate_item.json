@@ -1,0 +1,11 @@
+{
+"name": "FundingRateItem",
+"type": "item",
+"values": [
+	{ "name": "fundingRate", "type": "double" },
+	{ "name": "fundingTime", "type": "std::chrono::milliseconds" },
+	{ "name": "instId", "type": "std::string_view" },
+	{ "name": "instType", "type": "InstrumentType" },
+	{ "name": "nextFundingRate", "type": "double" }
+]
+}

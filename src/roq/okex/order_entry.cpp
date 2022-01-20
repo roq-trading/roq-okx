@@ -528,6 +528,14 @@ void OrderEntry::operator()(server::Trace<json::Trades> const &) {
   log::fatal("Unexpected"sv);
 }
 
+void OrderEntry::operator()(server::Trace<json::IndexTickers> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void OrderEntry::operator()(server::Trace<json::FundingRate> const &) {
+  log::fatal("Unexpected"sv);
+}
+
 void OrderEntry::operator()(
     server::Trace<json::BooksL2Tbt> const &,
     [[maybe_unused]] const std::string_view &inst_id,

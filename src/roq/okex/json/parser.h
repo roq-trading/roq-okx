@@ -17,6 +17,8 @@
 
 #include "roq/okex/json/books_l2_tbt.h"
 #include "roq/okex/json/estimated_price.h"
+#include "roq/okex/json/funding_rate.h"
+#include "roq/okex/json/index_tickers.h"
 #include "roq/okex/json/instruments.h"
 #include "roq/okex/json/mark_price.h"
 #include "roq/okex/json/price_limit.h"
@@ -57,6 +59,8 @@ struct Parser final {
     virtual void operator()(server::Trace<json::Trades> const &) = 0;
     virtual void operator()(
         server::Trace<json::BooksL2Tbt> const &, const std::string_view &inst_id, Action) = 0;
+    virtual void operator()(server::Trace<json::IndexTickers> const &) = 0;
+    virtual void operator()(server::Trace<json::FundingRate> const &) = 0;
     // - private
     // -- event
     virtual void operator()(server::Trace<json::Login> const &) = 0;
