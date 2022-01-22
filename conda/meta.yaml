@@ -1,5 +1,5 @@
 package:
-  name: roq-okex
+  name: roq-okx
   version: {{ GIT_DESCRIBE_TAG }}
 
 source:
@@ -9,7 +9,7 @@ build:
   skip: True  # [win]
   number: {{ GIT_DESCRIBE_NUMBER }}
   run_exports:
-    - {{ pin_subpackage('roq-okex', max_pin='x.x') }}
+    - {{ pin_subpackage('roq-okx', max_pin='x.x') }}
 
 requirements:
   build:
@@ -36,4 +36,4 @@ about:
   license: Commercial
   license_family: PROPRIETARY
   license_file: LICENSE
-  summary: Roq OKEx Gateway
+  summary: Roq OKX Gateway

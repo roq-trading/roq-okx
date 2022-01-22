@@ -4,10 +4,10 @@
 
 #include "roq/core/json/parser.h"
 
-#include "roq/okex/json/parser.h"
+#include "roq/okx/json/parser.h"
 
 using namespace roq;
-using namespace roq::okex;
+using namespace roq::okx;
 
 using namespace std::literals;
 using namespace std::chrono_literals;

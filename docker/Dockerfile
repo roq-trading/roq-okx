@@ -4,9 +4,9 @@ MAINTAINER Hans Erik Thrane <info@roq-trading.com>
 
 COPY pkgs/ /pkgs/
 
-RUN conda install --quiet --yes --override-channels --channel file:///pkgs --channel defaults roq-okex
+RUN conda install --quiet --yes --override-channels --channel file:///pkgs --channel defaults roq-okx
 RUN rm -rf /pkgs
 
-ENTRYPOINT [ "/opt/conda/bin/roq-okex" ]
+ENTRYPOINT [ "/opt/conda/bin/roq-okx" ]
 
 CMD [ "--help" ]

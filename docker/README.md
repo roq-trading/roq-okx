@@ -1,4 +1,4 @@
-# Roq OKEx
+# Roq OKX
 
 Copyright (c) 2017-2021, Hans Erik Thrane
 All rights reserved.
@@ -17,4 +17,4 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 # Description
 
-The OKEx gateway ...
+The OKX gateway ...

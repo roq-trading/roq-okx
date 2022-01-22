@@ -6,7 +6,8 @@ All notable changes will be documented in this file.
 
 ### Changed
 
-* New URLs / end-points (OKEx) (#163)
+* Rename to OKX (from OKEx) (#164)
+* New URLs / end-points (#163)
 
 ### Added
 

@@ -13,7 +13,7 @@ message("Using GIT_REPO_VERSION=${GIT_REPO_VERSION}")
 
 # project
 
-project(roq-okex VERSION ${GIT_REPO_VERSION})
+project(roq-okx VERSION ${GIT_REPO_VERSION})
 
 # conda
 
@@ -70,7 +70,7 @@ include_directories(
 
 # sub-projects
 
-add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/roq/okex")
+add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/src/roq/okx")
 
 # test
 
@@ -95,7 +95,7 @@ endif(BUILD_BENCHMARK)
 
 # install
 
-install(FILES "share/config.toml" DESTINATION "${CMAKE_INSTALL_DATADIR}/roq-okex")
+install(FILES "share/config.toml" DESTINATION "${CMAKE_INSTALL_DATADIR}/roq-okx")
 
 install(FILES "${CMAKE_SOURCE_DIR}/CHANGELOG.md"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/doc/${PROJECT_NAME}")
