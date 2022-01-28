@@ -109,6 +109,12 @@
       "type": "bool",
       "default": false,
       "description": "allow price inversion?"
+    },
+    {
+      "name": "include_bad_subscriptions",
+      "type": "bool",
+      "default": false,
+      "description": "TEST"
     }
   ]
 }

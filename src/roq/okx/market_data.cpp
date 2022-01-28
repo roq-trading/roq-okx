@@ -219,7 +219,8 @@ void MarketData::subscribe(const std::span<std::string const> &symbols) {
   subscribe("trades"sv, "instId"sv, symbols);
   subscribe("books-l2-tbt"sv, "instId"sv, symbols);
   for (auto &symbol : symbols) {
-    if (shared_.extended_symbols.find(symbol) != shared_.extended_symbols.end()) {
+    if (flags::Flags::include_bad_subscriptions() ||
+        shared_.extended_symbols.find(symbol) != shared_.extended_symbols.end()) {
       subscribe("index-tickers"sv, "instId"sv, symbol);
       subscribe("funding-rate"sv, "instId"sv, symbol);
     }
