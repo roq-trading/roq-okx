@@ -23,7 +23,7 @@ namespace okx {
 namespace tools {
 
 namespace {
-static auto create_hmac(const std::string_view &secret) {
+auto create_hmac(const std::string_view &secret) {
   return core::crypto::HMAC_SHA256(secret);
 }
 }  // namespace

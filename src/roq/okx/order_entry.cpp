@@ -27,8 +27,8 @@ namespace roq {
 namespace okx {
 
 namespace {
-static const auto NAME = "ex"sv;
-static const auto SUPPORTS = utils::Mask{
+const auto NAME = "ex"sv;
+const auto SUPPORTS = utils::Mask{
     SupportType::CREATE_ORDER,
     SupportType::MODIFY_ORDER,
     SupportType::CANCEL_ORDER,
@@ -132,7 +132,7 @@ void OrderEntry::operator()(metrics::Writer &writer) {
 }
 
 namespace {
-static std::pair<json::OrderType, bool> compute_order_attributes(
+std::pair<json::OrderType, bool> compute_order_attributes(
     OrderType order_type, TimeInForce time_in_force, ExecutionInstruction execution_instruction) {
   bool reduce_only = false;
   json::OrderType order_type_;
