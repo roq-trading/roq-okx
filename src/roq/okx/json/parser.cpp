@@ -72,7 +72,7 @@ bool Parser::dispatch(
               dispatch_event<BalanceAndPosition>(handler, message, buffer, trace_info);
               return true;
             case Channel::POSITIONS:
-              dispatch_event<Positions>(handler, message, buffer, trace_info);
+              dispatch_event_array<Positions>(handler, message, buffer, trace_info);
               return true;
             case Channel::ORDERS:
               dispatch_event_frame<Orders>(handler, message, buffer, trace_info);

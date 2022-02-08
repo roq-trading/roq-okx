@@ -2,6 +2,7 @@
 
 #include "roq/okx/order_entry.h"
 
+#include <algorithm>
 #include <utility>
 
 #include "roq/utils/mask.h"
@@ -545,7 +546,7 @@ void OrderEntry::operator()(server::Trace<json::Login> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
     log::info<1>("event={{trace_info={}, login={}}}"sv, trace_info, login);
-    log::debug("event={{trace_info={}, login={}}}"sv, trace_info, login);
+    log::debug("login={}"sv, login);
     auto state = OrderEntryState::LOGIN;
     download_.check_relaxed(state);
   });
@@ -555,8 +556,36 @@ void OrderEntry::operator()(server::Trace<json::Account> const &event) {
   profile_.account([&]() {
     auto &[trace_info, account] = event;
     log::info<1>("event={{trace_info={}, account={}}}"sv, trace_info, account);
-    // log::debug("event={{trace_info={}, account={}}}"sv, trace_info, account);
+    // log::debug("account={}"sv, account);
     // XXX HANS
+    // {adj_eq="", details=[{avail_bal=nan, avail_eq=200.60108232016685,
+    // cash_bal=200.60108232016685, ccy="USDT", coin_usd_price=1.00094, cross_liab=nan,
+    // dis_eq=200.7896473375478, eq=200.60108232016685, eq_usd=200.7896473375478, frozen_bal=0,
+    // interest=nan, iso_eq=0, iso_liab=nan, iso_upl=0, liab=nan, max_loan=nan, mgn_ratio=nan,
+    // notional_lever=0, ord_frozen=0, stgy_eq=0, twap=0, upl_lib=nan, upl=0,
+    // u_time=1644315964843ms}], imr=nan, iso_eq=0, mgn_ratio=nan, mmr=nan, notional_usd=nan,
+    // ord_froz=nan, total_eq=200.7896473375478, u_time=1644329092740ms}
+    //
+    // {adj_eq="", details=[{avail_bal=nan, avail_eq=156.75001782016685,
+    // cash_bal=200.60108232016685, ccy="USDT", coin_usd_price=1.00103, cross_liab=nan,
+    // dis_eq=200.80770143495664, eq=200.60108232016685, eq_usd=200.80770143495664,
+    // frozen_bal=43.8510645, interest=nan, iso_eq=0, iso_liab=nan, iso_upl=0, liab=nan,
+    // max_loan=nan, mgn_ratio=nan, notional_lever=0, ord_frozen=43.6329, stgy_eq=0, twap=0,
+    // upl_lib=nan, upl=0, u_time=1644315964843ms}], imr=nan, iso_eq=0, mgn_ratio=nan, mmr=nan,
+    // notional_usd=nan, ord_froz=nan, total_eq=200.80770143495664, u_time=1644330087970ms}
+    //
+    // --> VERSION 1
+    for (auto &item : account.details) {
+      FundsUpdate funds_update{
+          .stream_id = stream_id_,
+          .account = security_.get_account(),
+          .currency = item.ccy,
+          .balance = item.cash_bal,
+          .hold = item.frozen_bal,
+          .external_account = {},
+      };
+      create_trace_and_dispatch(handler_, trace_info, funds_update, true);
+    }
   });
 }
 
@@ -565,9 +594,25 @@ void OrderEntry::operator()(server::Trace<json::BalanceAndPosition> const &event
     auto &[trace_info, balance_and_position] = event;
     log::info<1>(
         "event={{trace_info={}, balance_and_position={}}}"sv, trace_info, balance_and_position);
-    log::debug(
-        "event={{trace_info={}, balance_and_position={}}}"sv, trace_info, balance_and_position);
+    // log::debug("balance_and_position={}"sv, balance_and_position);
     // XXX HANS
+    // {p_time=1644328762595ms, event_type="snapshot", bal_data=[{ccy="USDT",
+    // cash_bal=200.60108232016685, u_time=1644315964843ms}], pos_data=[]}}
+    //
+    // --> VERSION 2
+    /*
+    for (auto &item : balance_and_position.bal_data) {
+      FundsUpdate funds_update{
+          .stream_id = stream_id_,
+          .account = security_.get_account(),
+          .currency = item.ccy,
+          .balance = item.cash_bal,
+          .hold = NaN,
+          .external_account = {},
+      };
+      create_trace_and_dispatch(handler_, trace_info, funds_update, true);
+    }
+    */
   });
 }
 
@@ -575,8 +620,32 @@ void OrderEntry::operator()(server::Trace<json::Positions> const &event) {
   profile_.positions([&]() {
     auto &[trace_info, positions] = event;
     log::info<1>("event={{trace_info={}, positions={}}}"sv, trace_info, positions);
-    log::debug("event={{trace_info={}, positions={}}}"sv, trace_info, positions);
+    // log::debug("positions={}"sv, positions);
     // XXX HANS
+    // positions={data=[{inst_type=SWAP, mgn_mode=CROSS, pos_side=NET, pos=1, pos_ccy="",
+    // avail_pos=nan, avg_px=43684, upl=-0.3838556139854337, upl_ratio=-0.008787098571225702,
+    // inst_id="BTC-USDT-SWAP", lever=10, liq_px=23739.456120525683, mark_px=43645.61443860146,
+    // imr=43.645614438601456, margin=nan, mgn_ratio=101.89638181694033, mmr=1.7458245775440586,
+    // liab=nan, liab_ccy="", interest=0, trade_id="186646171", notional_usd=436.88387140751286,
+    // opt_val=nan, adl=1, ccy="USDT", last=43644.7, usd_px=nan, delta_bs=nan, delta_pa=nan,
+    // gamma_bs=nan, gamma_pa=nan, theta_bs=nan, theta_pa=nan, vega_bs=nan, vega_pa=nan,
+    // c_time=1644330337903ms, u_time=1644330337903ms, p_time=1644331883291ms, base_bal=nan,
+    // quote_bal=nan, pos_id="325382268437037058"}]}
+    //
+    for (auto &item : positions.data) {
+      PositionUpdate position_update{
+          .stream_id = stream_id_,
+          .account = security_.get_account(),
+          .exchange = Flags::exchange(),
+          .symbol = item.inst_id,
+          .external_account{},
+          .long_quantity = std::max(0.0, item.pos),
+          .short_quantity = std::max(0.0, -item.pos),
+          .long_quantity_begin = NaN,
+          .short_quantity_begin = NaN,
+      };
+      create_trace_and_dispatch(handler_, trace_info, position_update, true);
+    }
   });
 }
 
@@ -584,7 +653,7 @@ void OrderEntry::operator()(server::Trace<json::Orders> const &event) {
   profile_.orders([&]() {
     auto &[trace_info, orders] = event;
     log::info<1>("event={{trace_info={}, orders={}}}"sv, trace_info, orders);
-    log::debug("event={{trace_info={}, orders={}}}"sv, trace_info, orders);
+    log::debug("orders={}"sv, orders);
     // XXX HANS
     // orders={code=0, msg="", arg={channel=ORDERS, inst_id="", inst_type="ANY",
     // uid="33594834598109184"}, data=[{acc_fill_sz=0, amend_result=0, avg_px=0, category=NORMAL,
@@ -643,7 +712,7 @@ void OrderEntry::operator()(server::Trace<json::OrderAck> const &event) {
   profile_.order_ack([&]() {
     auto &[trace_info, order_ack] = event;
     log::info<1>("event={{trace_info={}, order_ack={}}}"sv, trace_info, order_ack);
-    log::debug("event={{trace_info={}, order_ack={}}}"sv, trace_info, order_ack);
+    log::debug("order_ack={}"sv, order_ack);
     auto order_status = order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : order_ack.data) {
       oms::Response response{
@@ -671,7 +740,7 @@ void OrderEntry::operator()(server::Trace<json::AmendOrderAck> const &event) {
   profile_.amend_order_ack([&]() {
     auto &[trace_info, amend_order_ack] = event;
     log::info<1>("event={{trace_info={}, amend_order_ack={}}}"sv, trace_info, amend_order_ack);
-    log::debug("event={{trace_info={}, amend_order_ack={}}}"sv, trace_info, amend_order_ack);
+    log::debug("amend_order_ack={}"sv, amend_order_ack);
     auto order_status = amend_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : amend_order_ack.data) {
       oms::Response response{
@@ -699,7 +768,7 @@ void OrderEntry::operator()(server::Trace<json::CancelOrderAck> const &event) {
   profile_.cancel_order_ack([&]() {
     auto &[trace_info, cancel_order_ack] = event;
     log::info<1>("event={{trace_info={}, cancel_order_ack={}}}"sv, trace_info, cancel_order_ack);
-    log::debug("event={{trace_info={}, cancel_order_ack={}}}"sv, trace_info, cancel_order_ack);
+    log::debug("cancel_order_ack={}"sv, cancel_order_ack);
     auto order_status = cancel_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : cancel_order_ack.data) {
       oms::Response response{

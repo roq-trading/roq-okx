@@ -9,9 +9,11 @@
 	{ "name": "mgnMode", "type": "MarginMode" },
 	{ "name": "avgPx", "type": "double" },
 	{ "name": "ccy", "type": "std::string_view" },
-	{ "name": "posSide", "type": "Side" },
+	{ "name": "posSide", "type": "PositionSide" },
 	{ "name": "pos", "type": "double" },
 	{ "name": "posCcy", "type": "std::string_view" },
-	{ "name": "uTime", "type": "std::chrono::milliseconds" }
+	{ "name": "uTime", "type": "std::chrono::milliseconds" },
+	{ "name": "baseBal", "type": "double" },
+	{ "name": "quoteBal", "type": "double" }
 ]
 }

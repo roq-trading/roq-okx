@@ -23,4 +23,5 @@ $PREFIX ./roq-okx \
 	--metrics_listen_address 2345 \
 	--ws_public_uri "$WS_URI/public" \
 	--ws_private_uri "$WS_URI/private" \
+  --event_log_symlink \
 	$@

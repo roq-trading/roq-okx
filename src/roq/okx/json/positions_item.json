@@ -39,6 +39,9 @@
 	{ "name": "vegaPA", "type": "double" },
 	{ "name": "cTime", "type": "std::chrono::milliseconds" },
 	{ "name": "uTime", "type": "std::chrono::milliseconds" },
-	{ "name": "pTime", "type": "std::chrono::milliseconds" }
+	{ "name": "pTime", "type": "std::chrono::milliseconds" },
+	{ "name": "baseBal", "type": "double" },
+	{ "name": "quoteBal", "type": "double" },
+	{ "name": "posId", "type": "std::string_view" }
 ]
 }

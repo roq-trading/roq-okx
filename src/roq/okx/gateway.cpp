@@ -192,6 +192,10 @@ void Gateway::operator()(const server::Trace<FundsUpdate> &event, bool is_last) 
   dispatcher_(event, is_last);
 }
 
+void Gateway::operator()(const server::Trace<PositionUpdate> &event, bool is_last) {
+  dispatcher_(event, is_last);
+}
+
 void Gateway::operator()(MarketData::SymbolsUpdate &symbols_update) {
   auto [size, start_from] = shared_.symbols(symbols_update.symbols);
   ensure_symbol_slices(size);
