@@ -203,3 +203,29 @@ cancel order
 {"arg":{"channel":"orders","instType":"ANY","uid":"33594834598109184"},"data":[{"accFillSz":"0","amendResult":"","avgPx":"0","cTime":"1640194677237","category":"normal","ccy":"","clOrdId":"3MAAF2IDAAAQAAGSKMZCT5A3","code":"0","execType":"","fee":"0","feeCcy":"BTC","fillFee":"0","fillFeeCcy":"","fillNotionalUsd":"","fillPx":"","fillSz":"0","fillTime":"","instId":"BTC-USD-220325","instType":"FUTURES","lever":"10","msg":"","notionalUsd":"100.0","ordId":"393940260828377089","ordType":"limit","pnl":"0","posSide":"long","px":"30036.7","rebate":"0","rebateCcy":"BTC","reduceOnly":"false","reqId":"","side":"buy","slOrdPx":"","slTriggerPx":"","slTriggerPxType":"","source":"","state":"canceled","sz":"1","tag":"","tdMode":"isolated","tgtCcy":"","tpOrdPx":"","tpTriggerPx":"","tpTriggerPxType":"","tradeId":"","uTime":"1640194683650"}]}"
 */
 
+/*
+ * MAKER
+ orders={code=0, msg="", arg={channel=ORDERS, inst_id="", inst_type="ANY",
+ uid="187956862690435072"}, data=[{acc_fill_sz=1, amend_result=0, avg_px=43232.7, category=NORMAL,
+ ccy="", cl_ord_id="IIAAF2QDAAAQAAA3HSY5DNY7", code=0, c_time=1644333557740ms, exec_type=MAKER,
+ fee_ccy="USDT", fee=-0.08646540000000003, fill_fee_ccy="USDT", fill_fee=-0.08646540000000003,
+ fill_notional_usd="432.57800000000003", fill_px=43232.7, fill_sz=1, fill_time=1644333559434ms,
+ inst_id="BTC-USDT-SWAP", inst_type=SWAP, lever=10, msg="", notional_usd="432.57800000000003",
+ ord_id="411299983877636110", ord_type=LIMIT, pnl=0.11800000000000002, pos_side=NET, px=43232.7,
+ rebate_ccy="USDT", rebate=0, reduce_only=false, req_id="", side=SELL, sl_ord_px=nan,
+ sl_trigger_px=nan, sl_trigger_px_type=UNDEFINED, source="", state=FILLED, sz=1, tag="",
+ td_mode=CROSS, tgt_ccy="", tp_ord_px=nan, tp_trigger_px=nan, tp_trigger_px_type=UNDEFINED,
+ trade_id="186781262", u_time=1644333559437ms}]}
+
+ TAKER orders={code=0, msg="", arg={channel=ORDERS,
+ inst_id="", inst_type="ANY", uid="187956862690435072"}, data=[{acc_fill_sz=1, amend_result=0,
+ avg_px=43220.9, category=NORMAL, ccy="", cl_ord_id="HYAAF2IDAAAQAAF7FBQ45NY7", code=0,
+ c_time=1644333502163ms, exec_type=TAKER, fee_ccy="USDT", fee=-0.2161045, fill_fee_ccy="USDT",
+ fill_fee=-0.2161045, fill_notional_usd="432.398", fill_px=43220.9, fill_sz=1,
+ fill_time=1644333532480ms, inst_id="BTC-USDT-SWAP", inst_type=SWAP, lever=10, msg="",
+ notional_usd="432.398", ord_id="411299750770802690", ord_type=LIMIT, pnl=0, pos_side=NET, px=43221,
+ rebate_ccy="USDT", rebate=0, reduce_only=false, req_id="", side=BUY, sl_ord_px=nan,
+ sl_trigger_px=nan, sl_trigger_px_type=UNDEFINED, source="", state=FILLED, sz=1, tag="",
+ td_mode=CROSS, tgt_ccy="", tp_ord_px=nan, tp_trigger_px=nan, tp_trigger_px_type=UNDEFINED,
+ trade_id="186779689", u_time=1644333532483ms}]}
+*/

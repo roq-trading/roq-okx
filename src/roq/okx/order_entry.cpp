@@ -192,7 +192,7 @@ uint16_t OrderEntry::operator()(
       auto message = fmt::format(
           R"({{)"
           R"("id":"{}",)"
-          R"("op":"order",)"
+          R"("op":"batch-orders",)"
           R"("args":[{{)"
           R"("clOrdId":"{}",)"
           R"("tdMode":"{}",)"
@@ -222,7 +222,7 @@ uint16_t OrderEntry::operator()(
       auto message = fmt::format(
           R"({{)"
           R"("id":"{}",)"
-          R"("op":"order",)"
+          R"("op":"batch-orders",)"
           R"("args":[{{)"
           R"("clOrdId":"{}",)"
           R"("tdMode":"{}",)"
@@ -268,7 +268,7 @@ uint16_t OrderEntry::operator()(
   auto message = fmt::format(
       R"({{)"
       R"("id":"{}",)"
-      R"("op":"amend-order",)"
+      R"("op":"batch-amend-orders",)"
       R"("args":[{{)"
       R"("{}":"{}",)"
       R"("instId":"{}",)"
@@ -302,7 +302,7 @@ uint16_t OrderEntry::operator()(
   auto message = fmt::format(
       R"({{)"
       R"("id":"{}",)"
-      R"("op":"cancel-order",)"
+      R"("op":"batch-cancel-orders",)"
       R"("args":[{{)"
       R"("{}":"{}",)"
       R"("instId":"{}")"

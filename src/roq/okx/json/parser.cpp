@@ -116,12 +116,15 @@ bool Parser::dispatch(
       assert(false);
       break;
     case Operation::ORDER:
+    case Operation::BATCH_ORDERS:
       dispatch_event_frame<OrderAck>(handler, message, buffer, trace_info);
       return true;
     case Operation::AMEND_ORDER:
+    case Operation::BATCH_AMEND_ORDERS:
       dispatch_event_frame<AmendOrderAck>(handler, message, buffer, trace_info);
       return true;
     case Operation::CANCEL_ORDER:
+    case Operation::BATCH_CANCEL_ORDERS:
       dispatch_event_frame<CancelOrderAck>(handler, message, buffer, trace_info);
       return true;
   }
