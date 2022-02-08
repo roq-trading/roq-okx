@@ -21,6 +21,7 @@
 #include "roq/okx/shared.h"
 
 #include "roq/okx/json/parser.h"
+#include "roq/okx/json/trade_mode.h"
 
 namespace roq {
 namespace okx {
@@ -144,6 +145,8 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
   // state
   ConnectionStatus status_ = {};
   server::Download<OrderEntryState> download_;
+  // other
+  const json::TradeMode trade_mode_;
 };
 
 }  // namespace okx

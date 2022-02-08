@@ -115,6 +115,13 @@
       "type": "bool",
       "default": false,
       "description": "TEST"
+    },
+    {
+      "name": "trade_mode",
+      "type": "std::string",
+      "validator": "roq::core::flags::NonEmpty<std::string>",
+      "default": "cross",
+      "description": "Trade mode (string)"
     }
   ]
 }

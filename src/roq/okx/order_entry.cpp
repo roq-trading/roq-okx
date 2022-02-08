@@ -87,7 +87,8 @@ OrderEntry::OrderEntry(
           .heartbeat = create_metrics(name_, "heartbeat"sv),
       },
       security_(security), shared_(shared),
-      download_({}, [this](auto state) { return download(state); }) {
+      download_({}, [this](auto state) { return download(state); }),
+      trade_mode_(flags::Flags::trade_mode()) {
 }
 
 bool OrderEntry::ready() const {
@@ -181,11 +182,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(
 uint16_t OrderEntry::operator()(
     const Event<CreateOrder> &event, const oms::Order &, const std::string_view &request_id) {
   auto &[message_info, create_order] = event;
-  json::TradeMode trade_mode = json::TradeMode::ISOLATED;  // XXX maybe different for spot/futures
-  // cash didn't work for future
-  json::PositionSide position_side =
-      json::PositionSide::NET;               // XXX maybe infer from side + pos eff
-  position_side = json::PositionSide::LONG;  // XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+  json::PositionSide position_side = json::PositionSide::NET;  // XXX should be configurable
   auto side = json::map(create_order.side);
   auto [order_type, reduce_only] = compute_order_attributes(
       create_order.order_type, create_order.time_in_force, create_order.execution_instruction);
@@ -209,7 +206,7 @@ uint16_t OrderEntry::operator()(
           R"(}})"sv,
           ++request_id_,
           request_id,
-          trade_mode.as_raw_text(),
+          trade_mode_.as_raw_text(),
           position_side.as_raw_text(),
           create_order.symbol,
           side.as_raw_text(),
@@ -240,7 +237,7 @@ uint16_t OrderEntry::operator()(
           R"(}})"sv,
           ++request_id_,
           request_id,
-          trade_mode.as_raw_text(),
+          trade_mode_.as_raw_text(),
           position_side.as_raw_text(),
           create_order.symbol,
           side.as_raw_text(),
@@ -464,7 +461,7 @@ void OrderEntry::subscribe(
 void OrderEntry::parse(const std::string_view &message) {
   profile_.parse([&]() {
     try {
-      log::debug(R"(message="{}")"sv, message);
+      // log::debug(R"(message="{}")"sv, message);
       auto trace_info = server::create_trace_info();
       core::json::Buffer buffer(decode_buffer_);
       if (json::Parser::dispatch(*this, message, buffer, trace_info)) {
