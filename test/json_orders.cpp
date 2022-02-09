@@ -229,3 +229,7 @@ cancel order
  td_mode=CROSS, tgt_ccy="", tp_ord_px=nan, tp_trigger_px=nan, tp_trigger_px_type=UNDEFINED,
  trade_id="186779689", u_time=1644333532483ms}]}
 */
+
+/* download
+ * {"code":"0","data":[{"accFillSz":"0","avgPx":"","cTime":"1644376847070","category":"normal","ccy":"","clOrdId":"RMAAF2QDAAAQAAAA6LX6LQI7","fee":"0","feeCcy":"USDT","fillPx":"","fillSz":"0","fillTime":"","instId":"BTC-USDT-SWAP","instType":"SWAP","lever":"10","ordId":"411481552487612418","ordType":"limit","pnl":"0","posSide":"net","px":"33379","rebate":"0","rebateCcy":"USDT","side":"buy","slOrdPx":"","slTriggerPx":"","slTriggerPxType":"","source":"","state":"live","sz":"1","tag":"","tdMode":"cross","tgtCcy":"","tpOrdPx":"","tpTriggerPx":"","tpTriggerPxType":"","tradeId":"","uTime":"1644376847070"}],"msg":""}
+ */

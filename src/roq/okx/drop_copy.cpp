@@ -6,6 +6,7 @@
 #include <utility>
 
 #include "roq/utils/mask.h"
+#include "roq/utils/safe_cast.h"
 #include "roq/utils/update.h"
 
 #include "roq/core/back_emplacer.h"
@@ -16,6 +17,8 @@
 #include "roq/core/metrics/factory.h"
 
 #include "roq/okx/flags.h"
+
+#include "roq/okx/json/utils.h"
 
 using namespace std::literals;
 
@@ -188,7 +191,7 @@ void DropCopy::get_orders_ack(const server::Trace<core::web::Response> &event, u
     auto state = DropCopyState::ORDERS;
     try {
       auto [status, category, body] = response.result();
-      log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
+      // log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
       if (download_.skip(sequence, state)) {
         log::info("Download state={} has already been processed"sv, state);
         return;
@@ -212,7 +215,7 @@ void DropCopy::get_orders_ack(const server::Trace<core::web::Response> &event, u
           log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
           break;
       }
-      log::debug(R"(body="{}")"sv, body);
+      // log::debug(R"(body="{}")"sv, body);
       core::json::Buffer buffer(decode_buffer_);
       auto orders = core::json::Parser::create<json::Orders>(body, buffer);
       server::Trace event(trace_info, orders);
@@ -228,6 +231,41 @@ void DropCopy::get_orders_ack(const server::Trace<core::web::Response> &event, u
 void DropCopy::operator()(const server::Trace<json::Orders> &event) {
   auto &[trace_info, orders] = event;
   log::info<4>("orders={}"sv, orders);
+  for (auto &item : orders.data) {
+    auto side = json::map(item.side);
+    auto order_status = json::map(item.state);
+    oms::OrderUpdate order_update{
+        .account = security_.get_account(),
+        .exchange = Flags::exchange(),
+        .symbol = item.inst_id,
+        .side = side,
+        .position_effect = {},
+        .max_show_quantity = NaN,
+        .order_type = {},
+        .time_in_force = {},
+        .execution_instruction = {},
+        .order_template = {},
+        .create_time_utc = {},
+        .update_time_utc = utils::safe_cast(item.u_time),
+        .external_account = {},
+        .external_order_id = item.ord_id,
+        .status = order_status,
+        .quantity = item.sz,
+        .price = item.px,
+        .stop_price = NaN,
+        .remaining_quantity = NaN,
+        .traded_quantity = item.acc_fill_sz,
+        .average_traded_price = item.avg_px,
+        .last_traded_quantity = item.fill_sz,
+        .last_traded_price = item.fill_px,
+        .last_liquidity = {},
+    };
+    if (shared_.create_order(item.cl_ord_id, stream_id_, trace_info, order_update)) {
+    } else {
+      log::warn("*** EXTERNAL ORDER ***"sv);
+      log::warn("item={}"sv, item);
+    }
+  }
 }
 
 }  // namespace okx

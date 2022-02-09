@@ -116,6 +116,9 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
 
   void parse(const std::string_view &message);
 
+  void cancel_all_orders(
+      const std::span<std::pair<std::string_view, std::string_view>> &symbol_and_external_order_id);
+
  private:
   Handler &handler_;
   // config

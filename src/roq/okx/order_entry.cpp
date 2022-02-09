@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <utility>
+#include <vector>
 
 #include "roq/utils/mask.h"
 #include "roq/utils/safe_cast.h"
@@ -14,6 +15,8 @@
 #include "roq/core/metrics/factory.h"
 
 #include "roq/core/json/buffer.h"
+
+#include "roq/server.h"
 
 #include "roq/okx/flags.h"
 
@@ -320,7 +323,15 @@ uint16_t OrderEntry::operator()(
 
 uint16_t OrderEntry::operator()(
     const Event<CancelAllOrders> &, [[maybe_unused]] const std::string_view &request_id) {
-  // throw oms::NotSupported("not supported"sv);
+  struct Bridge final : public server::Dispatcher::OrderCallback {
+    void operator()(const oms::Order &order) override {
+      log::debug("order={}"sv, order);
+      symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id);
+    }
+    std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_ids;
+  } bridge;
+  shared_.dispatcher_.get_all_orders(bridge, security_.get_account());
+  cancel_all_orders(bridge.symbol_and_external_order_ids);
   return stream_id_;
 }
 
@@ -790,6 +801,27 @@ void OrderEntry::operator()(server::Trace<json::CancelOrderAck> const &event) {
       }
     }
   });
+}
+
+void OrderEntry::cancel_all_orders(
+    const std::span<std::pair<std::string_view, std::string_view>> &symbol_and_external_order_ids) {
+  for (auto &[symbol, external_order_id] : symbol_and_external_order_ids) {
+    auto message = fmt::format(
+        R"({{)"
+        R"("id":"{}",)"
+        R"("op":"batch-cancel-orders",)"
+        R"("args":[{{)"
+        R"("instId":"{}",)"
+        R"("ordId":"{}")"
+        R"(}})"
+        R"(])"
+        R"(}})"sv,
+        ++request_id_,
+        symbol,
+        external_order_id);
+    log::debug("message={}"sv, message);
+    connection_.send_text(message);
+  }
 }
 
 }  // namespace okx
