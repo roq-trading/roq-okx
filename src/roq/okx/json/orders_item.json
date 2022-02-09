@@ -23,7 +23,7 @@
 	{ "name": "instType", "type": "InstrumentType" },
 	{ "name": "lever", "type": "double" },
 	{ "name": "msg", "type": "std::string_view" },
-	{ "name": "notionalUsd", "type": "std::string_view" },
+	{ "name": "notionalUsd", "type": "double" },
 	{ "name": "ordId", "type": "std::string_view" },
 	{ "name": "ordType", "type": "OrderType" },
 	{ "name": "pnl", "type": "double" },

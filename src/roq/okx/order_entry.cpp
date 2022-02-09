@@ -677,6 +677,9 @@ void OrderEntry::operator()(server::Trace<json::Orders> const &event) {
     // tag="", td_mode=ISOLATED, tgt_ccy="", tp_ord_px=nan, tp_trigger_px=nan,
     // tp_trigger_px_type=UNDEFINED, trade_id="", u_time=1640184258331ms}]}}
     for (auto &item : orders.data) {
+      log::warn<1>::when(item.amend_result < 0, "*** AMEND HAS FAILED ***"sv);
+      log::warn<1>::when(
+          item.code != 0, R"(*** ERROR CODE={}, MSG="{}" ***)"sv, item.code, item.msg);
       auto side = json::map(item.side);
       auto order_status = json::map(item.state);
       oms::OrderUpdate order_update{

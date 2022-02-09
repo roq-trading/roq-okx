@@ -175,7 +175,55 @@ TEST(json_orders, parser) {
     void operator()(server::Trace<json::Orders> const &event) override {
       ++count_;
       auto &[trace_info, orders] = event;
-      // XXX HANS
+      auto &data = orders.data;
+      ASSERT_EQ(std::size(data), 1);
+      auto &d0 = data[0];
+      EXPECT_DOUBLE_EQ(d0.acc_fill_sz, 0.0);
+      EXPECT_EQ(d0.amend_result, 0);
+      EXPECT_DOUBLE_EQ(d0.avg_px, 0.0);
+      EXPECT_EQ(d0.c_time, 1640182694746ms);
+      EXPECT_EQ(d0.category, json::Category::NORMAL);
+      EXPECT_EQ(d0.ccy, ""sv);
+      EXPECT_EQ(d0.cl_ord_id, "abcABC125"sv);
+      EXPECT_EQ(d0.code, 0);
+      EXPECT_EQ(d0.exec_type, json::OrderFlowType::UNDEFINED);
+      EXPECT_DOUBLE_EQ(d0.fee, 0.0);
+      EXPECT_EQ(d0.fee_ccy, "BTC"sv);
+      EXPECT_DOUBLE_EQ(d0.fill_fee, 0.0);
+      EXPECT_EQ(d0.fill_fee_ccy, ""sv);
+      EXPECT_EQ(d0.fill_notional_usd, ""sv);
+      EXPECT_TRUE(std::isnan(d0.fill_px));
+      EXPECT_DOUBLE_EQ(d0.fill_sz, 0.0);
+      EXPECT_EQ(d0.fill_time, 0ms);
+      EXPECT_EQ(d0.inst_id, "BTC-USD-220325"sv);
+      EXPECT_EQ(d0.inst_type, json::InstrumentType::FUTURES);
+      EXPECT_DOUBLE_EQ(d0.lever, 10.0);
+      EXPECT_EQ(d0.msg, ""sv);
+      EXPECT_DOUBLE_EQ(d0.notional_usd, 100.0);
+      EXPECT_EQ(d0.ord_id, "393890002618445825"sv);
+      EXPECT_EQ(d0.ord_type, json::OrderType::LIMIT);
+      EXPECT_DOUBLE_EQ(d0.pnl, 0.0);
+      EXPECT_EQ(d0.pos_side, json::PositionSide::LONG);
+      EXPECT_DOUBLE_EQ(d0.px, 39919.4);
+      EXPECT_DOUBLE_EQ(d0.rebate, 0.0);
+      EXPECT_EQ(d0.rebate_ccy, "BTC"sv);
+      EXPECT_EQ(d0.reduce_only, false);
+      EXPECT_EQ(d0.req_id, ""sv);
+      EXPECT_EQ(d0.side, json::Side::BUY);
+      EXPECT_TRUE(std::isnan(d0.sl_ord_px));
+      EXPECT_TRUE(std::isnan(d0.sl_trigger_px));
+      EXPECT_EQ(d0.sl_trigger_px_type, json::TriggerPriceType::UNDEFINED);
+      EXPECT_EQ(d0.source, ""sv);
+      EXPECT_EQ(d0.state, json::OrderState::LIVE);
+      EXPECT_DOUBLE_EQ(d0.sz, 1.0);
+      EXPECT_EQ(d0.tag, ""sv);
+      EXPECT_EQ(d0.td_mode, json::TradeMode::ISOLATED);
+      EXPECT_EQ(d0.tgt_ccy, ""sv);
+      EXPECT_TRUE(std::isnan(d0.tp_ord_px));
+      EXPECT_TRUE(std::isnan(d0.tp_trigger_px));
+      EXPECT_EQ(d0.tp_trigger_px_type, json::TriggerPriceType::UNDEFINED);
+      EXPECT_EQ(d0.trade_id, ""sv);
+      EXPECT_EQ(d0.u_time, 1640182694746ms);
     }
     void operator()(server::Trace<json::OrderAck> const &) override { FAIL(); }
     void operator()(server::Trace<json::AmendOrderAck> const &) override { FAIL(); }

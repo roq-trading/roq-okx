@@ -76,23 +76,23 @@ TEST(json_balance_and_position, parser) {
       ++count_;
       auto &[trace_info, balance_and_position] = event;
       auto &bal_data = balance_and_position.bal_data;
-      EXPECT_EQ(std::size(bal_data), 3);
-      auto &bd0 = bal_data[0];
-      EXPECT_DOUBLE_EQ(bd0.cash_bal, 0.0121475);
-      EXPECT_EQ(bd0.ccy, "BTC"sv);
-      EXPECT_EQ(bd0.u_time, 1640088676388ms);
-      auto &bd1 = bal_data[1];
-      EXPECT_DOUBLE_EQ(bd1.cash_bal, 0.00000635);
-      EXPECT_EQ(bd1.ccy, "OMG"sv);
-      EXPECT_EQ(bd1.u_time, 1624937815126ms);
-      auto &bd2 = bal_data[2];
-      EXPECT_DOUBLE_EQ(bd2.cash_bal, 0.00005916);
-      EXPECT_EQ(bd2.ccy, "EOS"sv);
-      EXPECT_EQ(bd2.u_time, 1624937815179ms);
+      ASSERT_EQ(std::size(bal_data), 3);
+      auto &b0 = bal_data[0];
+      EXPECT_DOUBLE_EQ(b0.cash_bal, 0.0121475);
+      EXPECT_EQ(b0.ccy, "BTC"sv);
+      EXPECT_EQ(b0.u_time, 1640088676388ms);
+      auto &b1 = bal_data[1];
+      EXPECT_DOUBLE_EQ(b1.cash_bal, 0.00000635);
+      EXPECT_EQ(b1.ccy, "OMG"sv);
+      EXPECT_EQ(b1.u_time, 1624937815126ms);
+      auto &b2 = bal_data[2];
+      EXPECT_DOUBLE_EQ(b2.cash_bal, 0.00005916);
+      EXPECT_EQ(b2.ccy, "EOS"sv);
+      EXPECT_EQ(b2.u_time, 1624937815179ms);
       EXPECT_EQ(balance_and_position.event_type, "snapshot"sv);
       EXPECT_EQ(balance_and_position.p_time, 1640151123380ms);
       auto &pos_data = balance_and_position.pos_data;
-      EXPECT_EQ(std::size(pos_data), 0);
+      ASSERT_EQ(std::size(pos_data), 0);
     }
     void operator()(server::Trace<json::Positions> const &) override { FAIL(); }
     void operator()(server::Trace<json::Orders> const &) override { FAIL(); }
@@ -172,26 +172,30 @@ TEST(json_balance_and_position, sample_2) {
     void operator()(server::Trace<json::BalanceAndPosition> const &event) override {
       ++count_;
       auto &[trace_info, balance_and_position] = event;
-      /*
       auto &bal_data = balance_and_position.bal_data;
-      EXPECT_EQ(std::size(bal_data), 3);
-      auto &bd0 = bal_data[0];
-      EXPECT_DOUBLE_EQ(bd0.cash_bal, 0.0121475);
-      EXPECT_EQ(bd0.ccy, "BTC"sv);
-      EXPECT_EQ(bd0.u_time, 1640088676388ms);
-      auto &bd1 = bal_data[1];
-      EXPECT_DOUBLE_EQ(bd1.cash_bal, 0.00000635);
-      EXPECT_EQ(bd1.ccy, "OMG"sv);
-      EXPECT_EQ(bd1.u_time, 1624937815126ms);
-      auto &bd2 = bal_data[2];
-      EXPECT_DOUBLE_EQ(bd2.cash_bal, 0.00005916);
-      EXPECT_EQ(bd2.ccy, "EOS"sv);
-      EXPECT_EQ(bd2.u_time, 1624937815179ms);
+      ASSERT_EQ(std::size(bal_data), 1);
+      auto &b0 = bal_data[0];
+      EXPECT_DOUBLE_EQ(b0.cash_bal, 200.5137143201668551);
+      EXPECT_EQ(b0.ccy, "USDT"sv);
+      EXPECT_EQ(b0.u_time, 1644330337903ms);
       EXPECT_EQ(balance_and_position.event_type, "snapshot"sv);
-      EXPECT_EQ(balance_and_position.p_time, 1640151123380ms);
+      EXPECT_EQ(balance_and_position.p_time, 1644330371092ms);
       auto &pos_data = balance_and_position.pos_data;
-      EXPECT_EQ(std::size(pos_data), 0);
-      */
+      ASSERT_EQ(std::size(pos_data), 1);
+      auto &p0 = pos_data[0];
+      EXPECT_DOUBLE_EQ(p0.avg_px, 43684.0);
+      EXPECT_TRUE(std::isnan(p0.base_bal));
+      EXPECT_EQ(p0.ccy, "USDT"sv);
+      EXPECT_EQ(p0.inst_id, "BTC-USDT-SWAP"sv);
+      EXPECT_EQ(p0.inst_type, json::InstrumentType::SWAP);
+      EXPECT_EQ(p0.mgn_mode, json::MarginMode::CROSS);
+      EXPECT_DOUBLE_EQ(p0.pos, 1.0);
+      EXPECT_EQ(p0.pos_ccy, ""sv);
+      EXPECT_EQ(p0.pos_id, "325382268437037058"sv);
+      EXPECT_EQ(p0.pos_side, json::PositionSide::NET);
+      EXPECT_TRUE(std::isnan(p0.quote_bal));
+      EXPECT_EQ(p0.trade_id, "186646171"sv);
+      EXPECT_EQ(p0.u_time, 1644330337903ms);
     }
     void operator()(server::Trace<json::Positions> const &) override { FAIL(); }
     void operator()(server::Trace<json::Orders> const &) override { FAIL(); }
