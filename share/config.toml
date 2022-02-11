@@ -4,10 +4,10 @@ symbols = ".*"
 
   [accounts.A1]
   master = true
-  login = "YOUR_HITBTC_API_KEY_GOES_HERE"
-  password = "YOUR_HITBTC_PASSPHRASE_GOES_HERE"
-  secret = "YOUR_HITBTC_SECRET_GOES_HERE"
-  symbols = [ "BTC-.*", "ETH-.*" ]
+  login = "YOUR_OKX_API_KEY_GOES_HERE"
+  password = "YOUR_OKX_PASSPHRASE_GOES_HERE"
+  secret = "YOUR_OKX_SECRET_GOES_HERE"
+  symbols = [ ".*" ]
 
 [users]
 
@@ -18,7 +18,13 @@ symbols = ".*"
   [users.trader]
   password = "secret"
   accounts = [ "A1" ]
-  symbols = [ "BTC-USD" ]
-  monitor_period_secs = 60
-  ban_period_secs = 300
-  request_limit = 10
+  symbols = [ ".*BTC.*", ".*ETH.*" ]
+
+[rate_limits]
+
+  [rate_limits.global]
+    type = "ORDER_ACTION"
+    aggregate = true
+    request_limit = 100
+    monitor_period = "10s"
+    ban_period = "5m"
