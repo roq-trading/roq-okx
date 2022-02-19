@@ -354,12 +354,14 @@ void MarketData::operator()(server::Trace<json::Instruments> const &event) {
       if (all_symbols_.emplace(symbol).second)  // only include new
         symbols.emplace_back(symbol);
       ++counter;
+      auto security_type = json::map(item.inst_type);
+      auto option_type = json::map(item.opt_type);
       ReferenceData reference_data{
           .stream_id = stream_id_,
           .exchange = Flags::exchange(),
           .symbol = symbol,
           .description = {},
-          .security_type = json::map(item.inst_type),
+          .security_type = security_type,
           .base_currency = item.base_ccy,
           .quote_currency = item.quote_ccy,
           .margin_currency = item.settle_ccy,
@@ -369,7 +371,7 @@ void MarketData::operator()(server::Trace<json::Instruments> const &event) {
           .min_trade_vol = item.min_sz,
           .max_trade_vol = NaN,
           .trade_vol_step_size = NaN,
-          .option_type = json::map(item.opt_type),
+          .option_type = option_type,
           .strike_currency = {},
           .strike_price = item.stk,
           .underlying = item.uly,
@@ -380,11 +382,12 @@ void MarketData::operator()(server::Trace<json::Instruments> const &event) {
           .expiry_datetime_utc = utils::safe_cast(item.exp_time),
       };
       server::create_trace_and_dispatch(handler_, trace_info, reference_data, true);
+      auto trading_status = json::map(item.state);
       MarketStatus market_status{
           .stream_id = stream_id_,
           .exchange = Flags::exchange(),
           .symbol = item.inst_id,
-          .trading_status = json::map(item.state),
+          .trading_status = trading_status,
       };
       server::create_trace_and_dispatch(handler_, trace_info, market_status, true);
       // trying to reduce the number of symbols where we next extra subscriptions
@@ -552,13 +555,14 @@ void MarketData::operator()(
     for (auto &item : books_l2_tbt.asks)
       asks.emplace_back([&item](auto &result) { emplace(result, item); });
     // XXX HANS validate checksum
+    auto update_type = snapshot ? UpdateType::SNAPSHOT : UpdateType::INCREMENTAL;
     const MarketByPriceUpdate market_by_price_update{
         .stream_id = stream_id_,
         .exchange = Flags::exchange(),
         .symbol = inst_id,
         .bids = bids,
         .asks = asks,
-        .update_type = snapshot ? UpdateType::SNAPSHOT : UpdateType::INCREMENTAL,
+        .update_type = update_type,
         .exchange_time_utc = utils::safe_cast(books_l2_tbt.ts),
         .exchange_sequence = {},
         .price_decimals = {},

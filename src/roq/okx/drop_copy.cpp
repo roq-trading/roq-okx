@@ -200,6 +200,7 @@ void DropCopy::get_orders_ack(const server::Trace<core::web::Response> &event, u
         return;
       }
       switch (category) {
+        // using enum core::http::Category;  // XXX clang13
         case core::http::Category::UNKNOWN:
           log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
           break;
