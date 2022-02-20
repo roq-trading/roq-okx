@@ -5,6 +5,8 @@
 #include <string>
 #include <string_view>
 
+#include "roq/core/download.h"
+
 #include "roq/core/metrics/counter.h"
 #include "roq/core/metrics/latency.h"
 #include "roq/core/metrics/profile.h"
@@ -13,7 +15,6 @@
 
 #include "roq/core/web/client_socket.h"
 
-#include "roq/download.h"
 #include "roq/server.h"
 
 #include "roq/okx/order_entry_state.h"
@@ -148,7 +149,7 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
   Shared &shared_;
   // state
   ConnectionStatus status_ = {};
-  server::Download<OrderEntryState> download_;
+  core::Download<OrderEntryState> download_;
   // other
   const json::TradeMode trade_mode_;
 };

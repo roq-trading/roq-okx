@@ -6,6 +6,7 @@
 #include <string_view>
 
 #include "roq/core/buffer.h"
+#include "roq/core/download.h"
 
 #include "roq/core/metrics/counter.h"
 #include "roq/core/metrics/latency.h"
@@ -15,7 +16,6 @@
 
 #include "roq/core/web/client.h"
 
-#include "roq/download.h"
 #include "roq/server.h"
 
 #include "roq/okx/drop_copy_state.h"
@@ -87,7 +87,7 @@ class DropCopy final : public core::web::Client::Handler {
   Shared &shared_;
   // state
   ConnectionStatus status_ = {};
-  server::Download<DropCopyState> download_;
+  core::Download<DropCopyState> download_;
 };
 
 }  // namespace okx
