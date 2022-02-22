@@ -657,6 +657,7 @@ void OrderEntry::operator()(server::Trace<json::Orders> const &event) {
           .last_traded_quantity = item.fill_sz,
           .last_traded_price = item.fill_px,
           .last_liquidity = {},
+          .update_type = {},
       };
       if (shared_.update_order(
               item.cl_ord_id,

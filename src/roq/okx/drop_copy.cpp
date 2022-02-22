@@ -263,8 +263,14 @@ void DropCopy::operator()(const server::Trace<json::Orders> &event) {
         .last_traded_quantity = item.fill_sz,
         .last_traded_price = item.fill_px,
         .last_liquidity = {},
+        .update_type = UpdateType::SNAPSHOT,
     };
-    if (shared_.create_order(item.cl_ord_id, stream_id_, trace_info, order_update)) {
+    if (shared_.update_order(
+            item.cl_ord_id,
+            stream_id_,
+            trace_info,
+            order_update,
+            [&]([[maybe_unused]] auto &order) {})) {
     } else {
       log::warn("*** EXTERNAL ORDER ***"sv);
       log::warn("item={}"sv, item);
