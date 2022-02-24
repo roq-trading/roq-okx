@@ -326,18 +326,17 @@ uint16_t OrderEntry::operator()(
 
 uint16_t OrderEntry::operator()(
     const Event<CancelAllOrders> &, [[maybe_unused]] const std::string_view &request_id) {
-  struct Bridge final : public server::Dispatcher::OrderCallback {
-    void operator()(const oms::Order &order) override {
-      log::debug("order={}"sv, order);
-      symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id);
-    }
-    std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_ids;
-  } bridge;
-  if (shared_.dispatcher_.get_all_orders(bridge, security_.get_account())) {
+  std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_ids;
+  if (shared_.dispatcher_.get_all_orders(
+          [&](auto &order) {
+            log::debug("order={}"sv, order);
+            symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id);
+          },
+          security_.get_account())) {
   } else {
     log::info<1>("No orders"sv);
   }
-  cancel_all_orders(bridge.symbol_and_external_order_ids);
+  cancel_all_orders(symbol_and_external_order_ids);
   return stream_id_;
 }
 
