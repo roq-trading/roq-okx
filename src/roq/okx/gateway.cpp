@@ -31,17 +31,16 @@ auto create_security(const Config &config) {
 }
 
 template <typename T>
-auto create_drop_copy(
+auto create_rest(
     Gateway &gateway,
     core::io::Context &context,
     uint16_t &stream_id,
     T &security,
     Shared &shared) {
-  absl::flat_hash_map<std::string, std::unique_ptr<DropCopy>> result;
+  absl::flat_hash_map<std::string, std::unique_ptr<Rest>> result;
   for (auto &iter : security) {
     result.try_emplace(
-        iter.first,
-        std::make_unique<DropCopy>(gateway, context, ++stream_id, *iter.second, shared));
+        iter.first, std::make_unique<Rest>(gateway, context, ++stream_id, *iter.second, shared));
   }
   return result;
 }
@@ -77,15 +76,15 @@ auto create_market_data(
 Gateway::Gateway(server::Dispatcher &dispatcher, const Config &config)
     : dispatcher_(dispatcher), master_account_(config.get_master_account()),
       security_(create_security(config)), shared_(dispatcher),
-      drop_copy_(create_drop_copy(*this, context_, ++stream_id_, security_, shared_)),
+      rest_(create_rest(*this, context_, ++stream_id_, security_, shared_)),
       order_entry_(create_order_entry(*this, context_, stream_id_, security_, shared_)),
       market_data_(create_market_data(*this, context_, stream_id_, shared_)) {
 }
 
 void Gateway::operator()(const Event<Start> &event) {
   log::info("Starting the gateway..."sv);
-  for (auto &[_, drop_copy] : drop_copy_)
-    (*drop_copy)(event);
+  for (auto &[_, rest] : rest_)
+    (*rest)(event);
   for (auto &[_, order_entry] : order_entry_)
     if (static_cast<bool>(order_entry))
       (*order_entry)(event);
@@ -100,13 +99,13 @@ void Gateway::operator()(const Event<Stop> &event) {
   for (auto &[_, order_entry] : order_entry_)
     if (static_cast<bool>(order_entry))
       (*order_entry)(event);
-  for (auto &[_, drop_copy] : drop_copy_)
-    (*drop_copy)(event);
+  for (auto &[_, rest] : rest_)
+    (*rest)(event);
 }
 
 void Gateway::operator()(const Event<Timer> &event) {
-  for (auto &[_, drop_copy] : drop_copy_)
-    (*drop_copy)(event);
+  for (auto &[_, rest] : rest_)
+    (*rest)(event);
   for (auto &[_, order_entry] : order_entry_)
     if (static_cast<bool>(order_entry))
       (*order_entry)(event);
@@ -249,7 +248,7 @@ uint16_t Gateway::operator()(
 }
 
 void Gateway::operator()(metrics::Writer &writer) {
-  for (auto &iter : drop_copy_)
+  for (auto &iter : rest_)
     (*iter.second)(writer);
   for (auto &[_, order_entry] : order_entry_)
     if (static_cast<bool>(order_entry))

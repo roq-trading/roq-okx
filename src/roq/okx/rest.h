@@ -18,7 +18,6 @@
 
 #include "roq/server.h"
 
-#include "roq/okx/drop_copy_state.h"
 #include "roq/okx/security.h"
 #include "roq/okx/shared.h"
 
@@ -27,19 +26,17 @@
 namespace roq {
 namespace okx {
 
-class DropCopy final : public core::web::Client::Handler {
+class Rest final : public core::web::Client::Handler {
  public:
   struct Handler {
     virtual void operator()(server::Trace<StreamStatus> const &) = 0;
     virtual void operator()(server::Trace<ExternalLatency> const &) = 0;
-    virtual void operator()(server::Trace<ReferenceData> const &, bool is_last) = 0;
-    virtual void operator()(server::Trace<MarketStatus> const &, bool is_last) = 0;
   };
 
-  DropCopy(Handler &, core::io::Context &context, uint16_t stream_id, Security &, Shared &);
+  Rest(Handler &, core::io::Context &context, uint16_t stream_id, Security &, Shared &);
 
-  DropCopy(DropCopy &&) = delete;
-  DropCopy(const DropCopy &) = delete;
+  Rest(Rest &&) = delete;
+  Rest(const Rest &) = delete;
 
   bool ready() const { return status_ == ConnectionStatus::READY; }
 
@@ -56,10 +53,8 @@ class DropCopy final : public core::web::Client::Handler {
 
   void operator()(ConnectionStatus);
 
-  uint32_t download(DropCopyState);
-
   void get_orders();
-  void get_orders_ack(const server::Trace<core::web::Response> &, uint32_t sequence);
+  void get_orders_ack(const server::Trace<core::web::Response> &);
   void operator()(const server::Trace<json::Orders> &);
 
  private:
@@ -87,7 +82,7 @@ class DropCopy final : public core::web::Client::Handler {
   Shared &shared_;
   // state
   ConnectionStatus status_ = {};
-  core::Download<DropCopyState> download_;
+  bool download_orders_ = false;
 };
 
 }  // namespace okx

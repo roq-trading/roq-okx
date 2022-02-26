@@ -5,11 +5,11 @@ add_subdirectory(flags)
 set(SOURCES
     application.cpp
     config.cpp
-    drop_copy.cpp
     flags.cpp
     gateway.cpp
     market_data.cpp
     order_entry.cpp
+    rest.cpp
     security.cpp
     shared.cpp
     main.cpp)
@@ -19,7 +19,7 @@ add_subdirectory("tools")
 
 include(RoqAutogen)
 
-set(AUTOGEN_SCHEMAS order_entry_state.json drop_copy_state.json)
+set(AUTOGEN_SCHEMAS order_entry_state.json)
 
 roq_autogen(
   OUTPUT

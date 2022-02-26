@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include "roq/okx/drop_copy.h"
+#include "roq/okx/rest.h"
 
 #include <algorithm>
 #include <utility>
@@ -28,10 +28,7 @@ namespace okx {
 namespace {
 const auto NAME = "dc"sv;
 
-const auto SUPPORTS = utils::Mask{
-    SupportType::REFERENCE_DATA,
-    SupportType::MARKET_STATUS,
-};
+const auto SUPPORTS = utils::Mask<SupportType>{};
 
 struct create_metrics final : public core::metrics::Factory {
   explicit create_metrics(const std::string_view &group, const std::string_view &function)
@@ -56,7 +53,7 @@ auto create_connection(auto &handler, auto &context) {
 }
 }  // namespace
 
-DropCopy::DropCopy(
+Rest::Rest(
     Handler &handler,
     core::io::Context &context,
     uint16_t stream_id,
@@ -74,24 +71,31 @@ DropCopy::DropCopy(
       latency_{
           .ping = create_metrics(name_, "ping"sv),
       },
-      security_(security), shared_(shared),
-      download_(Flags::rest_request_timeout(), [this](auto state) { return download(state); }) {
+      security_(security), shared_(shared) {
 }
 
-void DropCopy::operator()(const Event<Start> &) {
+void Rest::operator()(const Event<Start> &) {
   connection_.start();
 }
 
-void DropCopy::operator()(const Event<Stop> &) {
+void Rest::operator()(const Event<Stop> &) {
   connection_.stop();
 }
 
-void DropCopy::operator()(const Event<Timer> &event) {
+void Rest::operator()(const Event<Timer> &event) {
   auto now = event.value.now;
   connection_.refresh(now);
+  if (ready() && !download_orders_) {
+    auto &request_response = shared_.request_response[security_.get_account()];
+    if (request_response.respond_orders < request_response.request_orders) {
+      log::info<1>("Download orders..."sv);
+      get_orders();
+      download_orders_ = true;
+    }
+  }
 }
 
-void DropCopy::operator()(metrics::Writer &writer) {
+void Rest::operator()(metrics::Writer &writer) {
   writer
       // counter
       .write(counter_.disconnect, metrics::COUNTER)
@@ -102,7 +106,7 @@ void DropCopy::operator()(metrics::Writer &writer) {
       .write(latency_.ping, metrics::LATENCY);
 }
 
-void DropCopy::operator()(ConnectionStatus status) {
+void Rest::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
     auto trace_info = server::create_trace_info();
     StreamStatus stream_status{
@@ -118,23 +122,17 @@ void DropCopy::operator()(ConnectionStatus status) {
   }
 }
 
-void DropCopy::operator()(const core::web::Client::Connected &) {
-  if (download_.downloading()) {
-    download_.bump();
-  } else {
-    (*this)(ConnectionStatus::DOWNLOADING);
-    download_.begin();
-  }
+void Rest::operator()(const core::web::Client::Connected &) {
+  (*this)(ConnectionStatus::READY);
 }
 
-void DropCopy::operator()(const core::web::Client::Disconnected &) {
+void Rest::operator()(const core::web::Client::Disconnected &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
-  if (!download_.downloading())
-    download_.reset();
+  download_orders_ = false;
 }
 
-void DropCopy::operator()(const core::web::Client::Latency &latency) {
+void Rest::operator()(const core::web::Client::Latency &latency) {
   auto trace_info = server::create_trace_info();
   ExternalLatency external_latency{
       .stream_id = stream_id_,
@@ -145,25 +143,9 @@ void DropCopy::operator()(const core::web::Client::Latency &latency) {
   latency_.ping.update(latency.sample);
 }
 
-uint32_t DropCopy::download(DropCopyState state) {
-  switch (state) {
-    case DropCopyState::UNDEFINED:
-      assert(false);
-      break;
-    case DropCopyState::ORDERS:
-      get_orders();
-      return 1;
-    case DropCopyState::DONE:
-      (*this)(ConnectionStatus::READY);
-      return {};
-  }
-  assert(false);
-  return {};
-}
-
 // orders-pending
 
-void DropCopy::get_orders() {
+void Rest::get_orders() {
   profile_.orders([&]() {
     auto method = core::http::Method::GET;
     auto path = "/api/v5/trade/orders-pending"sv;
@@ -178,27 +160,20 @@ void DropCopy::get_orders() {
         .body = {},
         .quality_of_service = {},
     };
-    auto sequence = download_.sequence();
-    connection_(
-        "orders"sv, request, [this, sequence]([[maybe_unused]] auto &request_id, auto &response) {
-          auto trace_info = server::create_trace_info();
-          server::Trace event(trace_info, response);
-          get_orders_ack(event, sequence);
-        });
+    connection_("orders"sv, request, [this]([[maybe_unused]] auto &request_id, auto &response) {
+      auto trace_info = server::create_trace_info();
+      server::Trace event(trace_info, response);
+      get_orders_ack(event);
+    });
   });
 }
 
-void DropCopy::get_orders_ack(const server::Trace<core::web::Response> &event, uint32_t sequence) {
+void Rest::get_orders_ack(const server::Trace<core::web::Response> &event) {
   profile_.orders_ack([&]() {
     auto &[trace_info, response] = event;
-    auto state = DropCopyState::ORDERS;
     try {
       auto [status, category, body] = response.result();
       // log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
-      if (download_.skip(sequence, state)) {
-        log::info("Download state={} has already been processed"sv, state);
-        return;
-      }
       switch (category) {
         // using enum core::http::Category;  // XXX clang13
         case core::http::Category::UNKNOWN:
@@ -224,15 +199,16 @@ void DropCopy::get_orders_ack(const server::Trace<core::web::Response> &event, u
       auto orders = core::json::Parser::create<json::Orders>(body, buffer);
       server::Trace event(trace_info, orders);
       (*this)(event);
-      download_.check(state);
+      download_orders_ = false;
+      auto &request_response = shared_.request_response[security_.get_account()];
+      request_response.respond_orders = core::clock::GetSystem();
     } catch (core::NetworkError &e) {
       log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
-      download_.retry(state);
     }
   });
 }
 
-void DropCopy::operator()(const server::Trace<json::Orders> &event) {
+void Rest::operator()(const server::Trace<json::Orders> &event) {
   auto &[trace_info, orders] = event;
   log::info<4>("orders={}"sv, orders);
   for (auto &item : orders.data) {

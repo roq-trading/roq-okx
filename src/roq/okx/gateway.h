@@ -14,9 +14,9 @@
 #include "roq/core/io/context.h"
 
 #include "roq/okx/config.h"
-#include "roq/okx/drop_copy.h"
 #include "roq/okx/market_data.h"
 #include "roq/okx/order_entry.h"
+#include "roq/okx/rest.h"
 #include "roq/okx/security.h"
 #include "roq/okx/shared.h"
 
@@ -24,7 +24,7 @@ namespace roq {
 namespace okx {
 
 class Gateway final : public server::Handler,
-                      public DropCopy::Handler,
+                      public Rest::Handler,
                       public OrderEntry::Handler,
                       public MarketData::Handler {
  public:
@@ -89,7 +89,7 @@ class Gateway final : public server::Handler,
   // seed
   uint16_t stream_id_ = {};
   // streams
-  absl::flat_hash_map<std::string, std::unique_ptr<DropCopy>> drop_copy_;
+  absl::flat_hash_map<std::string, std::unique_ptr<Rest>> rest_;
   absl::flat_hash_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
   std::vector<std::unique_ptr<MarketData>> market_data_;
 };

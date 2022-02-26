@@ -112,6 +112,7 @@ void OrderEntry::operator()(const Event<Stop> &) {
 
 void OrderEntry::operator()(const Event<Timer> &event) {
   connection_.refresh(event.value.now);
+  check_response_orders();
 }
 
 void OrderEntry::operator()(metrics::Writer &writer) {
@@ -402,7 +403,10 @@ uint32_t OrderEntry::download(OrderEntryState state) {
       return 1;
     case OrderEntryState::SUBSCRIBE:
       subscribe();
-      return {};
+      return 1;
+    case OrderEntryState::ORDERS:
+      request_orders();
+      return 1;
     case OrderEntryState::DONE:
       (*this)(ConnectionStatus::READY);
       return {};
@@ -504,6 +508,8 @@ void OrderEntry::operator()(server::Trace<json::Subscribe> const &event) {
     auto &[trace_info, subscribe] = event;
     log::info<1>("event={{trace_info={}, subscribe={}}}"sv, trace_info, subscribe);
     log::debug("event={{trace_info={}, subscribe={}}}"sv, trace_info, subscribe);
+    if (subscribe.channel == json::Channel::ORDERS)
+      download_.check(OrderEntryState::SUBSCRIBE);
   });
 }
 
@@ -777,6 +783,22 @@ void OrderEntry::cancel_all_orders(
         external_order_id);
     log::debug("message={}"sv, message);
     connection_.send_text(message);
+  }
+}
+
+void OrderEntry::request_orders() {
+  log::info("Requesting order download..."sv);
+  auto &request_response = shared_.request_response[security_.get_account()];
+  request_response.request_orders = core::clock::GetSystem();
+}
+
+void OrderEntry::check_response_orders() {
+  if (download_.state() != OrderEntryState::ORDERS)
+    return;
+  auto &request_response = shared_.request_response[security_.get_account()];
+  if (request_response.request_orders < request_response.respond_orders) {
+    log::info("Order download has completed!"sv);
+    download_.check(OrderEntryState::ORDERS);
   }
 }
 

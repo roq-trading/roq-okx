@@ -4,6 +4,7 @@
 "values": [
 	{ "name": "login" },
 	{ "name": "subscribe" },
+	{ "name": "orders" },
 	{ "name": "done" }
 ]
 }
