@@ -18,6 +18,7 @@
 
 #include "roq/server.h"
 
+#include "roq/okx/request.h"
 #include "roq/okx/security.h"
 #include "roq/okx/shared.h"
 
@@ -33,7 +34,7 @@ class Rest final : public core::web::Client::Handler {
     virtual void operator()(server::Trace<ExternalLatency> const &) = 0;
   };
 
-  Rest(Handler &, core::io::Context &context, uint16_t stream_id, Security &, Shared &);
+  Rest(Handler &, core::io::Context &context, uint16_t stream_id, Security &, Shared &, Request &);
 
   Rest(Rest &&) = delete;
   Rest(const Rest &) = delete;
@@ -78,8 +79,9 @@ class Rest final : public core::web::Client::Handler {
   } latency_;
   // security
   Security &security_;
-  // cache
+  // shared
   Shared &shared_;
+  Request &request_;
   // state
   ConnectionStatus status_ = {};
   bool download_orders_ = false;

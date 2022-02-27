@@ -65,7 +65,8 @@ OrderEntry::OrderEntry(
     core::io::Context &context,
     uint16_t stream_id,
     Security &security,
-    Shared &shared)
+    Shared &shared,
+    Request &request)
     : handler_(handler), stream_id_(stream_id), name_(fmt::format("{}:{}"sv, stream_id_, NAME)),
       connection_(create_connection(*this, context)), decode_buffer_(Flags::decode_buffer_size()),
       request_id_(static_cast<uint64_t>(stream_id_) * 1000000),  // scale (debugging)
@@ -93,7 +94,7 @@ OrderEntry::OrderEntry(
           .ping = create_metrics(name_, "ping"sv),
           .heartbeat = create_metrics(name_, "heartbeat"sv),
       },
-      security_(security), shared_(shared),
+      security_(security), shared_(shared), request_(request),
       download_({}, [this](auto state) { return download(state); }),
       trade_mode_(flags::Flags::trade_mode()) {
 }
@@ -788,15 +789,13 @@ void OrderEntry::cancel_all_orders(
 
 void OrderEntry::request_orders() {
   log::info("Requesting order download..."sv);
-  auto &request_response = shared_.request_response[security_.get_account()];
-  request_response.request_orders = core::clock::GetSystem();
+  request_.request_orders = core::clock::GetSystem();
 }
 
 void OrderEntry::check_response_orders() {
   if (download_.state() != OrderEntryState::ORDERS)
     return;
-  auto &request_response = shared_.request_response[security_.get_account()];
-  if (request_response.request_orders < request_response.respond_orders) {
+  if (request_.request_orders < request_.respond_orders) {
     log::info("Order download has completed!"sv);
     download_.check(OrderEntryState::ORDERS);
   }

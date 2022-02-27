@@ -4,6 +4,7 @@
 
 #include <string>
 #include <string_view>
+#include <utility>
 
 #include "roq/core/download.h"
 
@@ -18,6 +19,7 @@
 #include "roq/server.h"
 
 #include "roq/okx/order_entry_state.h"
+#include "roq/okx/request.h"
 #include "roq/okx/security.h"
 #include "roq/okx/shared.h"
 
@@ -37,7 +39,7 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
     virtual void operator()(const server::Trace<PositionUpdate> &, bool is_last) = 0;
   };
 
-  OrderEntry(Handler &, core::io::Context &, uint16_t stream_id, Security &, Shared &);
+  OrderEntry(Handler &, core::io::Context &, uint16_t stream_id, Security &, Shared &, Request &);
 
   OrderEntry(OrderEntry &&) = delete;
   OrderEntry(const OrderEntry &) = delete;
@@ -148,8 +150,9 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
   } latency_;
   // security
   Security &security_;
-  // cache
+  // shared
   Shared &shared_;
+  Request &request_;
   // state
   ConnectionStatus status_ = {};
   core::Download<OrderEntryState> download_;

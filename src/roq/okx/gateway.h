@@ -16,6 +16,7 @@
 #include "roq/okx/config.h"
 #include "roq/okx/market_data.h"
 #include "roq/okx/order_entry.h"
+#include "roq/okx/request.h"
 #include "roq/okx/rest.h"
 #include "roq/okx/security.h"
 #include "roq/okx/shared.h"
@@ -86,6 +87,7 @@ class Gateway final : public server::Handler,
   core::io::Context context_;
   // shared
   Shared shared_;
+  absl::flat_hash_map<std::string, Request> request_;
   // seed
   uint16_t stream_id_ = {};
   // streams

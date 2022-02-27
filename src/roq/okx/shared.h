@@ -53,12 +53,6 @@ struct Shared final {
 
   // experimental
   absl::flat_hash_set<std::string> extended_symbols;
-
-  struct RequestResponse final {
-    std::chrono::nanoseconds request_orders = {};
-    std::chrono::nanoseconds respond_orders = {};
-  };
-  absl::flat_hash_map<std::string, RequestResponse> request_response;
 };
 
 }  // namespace okx

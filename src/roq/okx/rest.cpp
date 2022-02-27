@@ -58,7 +58,8 @@ Rest::Rest(
     core::io::Context &context,
     uint16_t stream_id,
     Security &security,
-    Shared &shared)
+    Shared &shared,
+    Request &request)
     : handler_(handler), stream_id_(stream_id), name_(fmt::format("{}:{}"sv, stream_id_, NAME)),
       connection_(create_connection(*this, context)), decode_buffer_(Flags::decode_buffer_size()),
       counter_{
@@ -71,7 +72,7 @@ Rest::Rest(
       latency_{
           .ping = create_metrics(name_, "ping"sv),
       },
-      security_(security), shared_(shared) {
+      security_(security), shared_(shared), request_(request) {
 }
 
 void Rest::operator()(const Event<Start> &) {
@@ -86,8 +87,7 @@ void Rest::operator()(const Event<Timer> &event) {
   auto now = event.value.now;
   connection_.refresh(now);
   if (ready() && !download_orders_) {
-    auto &request_response = shared_.request_response[security_.get_account()];
-    if (request_response.respond_orders < request_response.request_orders) {
+    if (request_.respond_orders < request_.request_orders) {
       log::info<1>("Download orders..."sv);
       get_orders();
       download_orders_ = true;
@@ -200,8 +200,7 @@ void Rest::get_orders_ack(const server::Trace<core::web::Response> &event) {
       server::Trace event(trace_info, orders);
       (*this)(event);
       download_orders_ = false;
-      auto &request_response = shared_.request_response[security_.get_account()];
-      request_response.respond_orders = core::clock::GetSystem();
+      request_.respond_orders = core::clock::GetSystem();
     } catch (core::NetworkError &e) {
       log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
     }

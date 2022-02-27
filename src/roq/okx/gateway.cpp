@@ -30,33 +30,42 @@ auto create_security(const Config &config) {
   return result;
 }
 
-template <typename T>
+auto create_request(const Config &config) {
+  absl::flat_hash_map<std::string, Request> result;
+  for (auto &[_, iter] : config.accounts)
+    result.try_emplace(iter.name, Request{});
+  return result;
+}
+
 auto create_rest(
     Gateway &gateway,
     core::io::Context &context,
     uint16_t &stream_id,
-    T &security,
-    Shared &shared) {
+    auto &security_by_account,
+    Shared &shared,
+    auto &request_by_account) {
   absl::flat_hash_map<std::string, std::unique_ptr<Rest>> result;
-  for (auto &iter : security) {
+  for (auto &[account, security] : security_by_account) {
+    auto &request = request_by_account[account];
     result.try_emplace(
-        iter.first, std::make_unique<Rest>(gateway, context, ++stream_id, *iter.second, shared));
+        account, std::make_unique<Rest>(gateway, context, ++stream_id, *security, shared, request));
   }
   return result;
 }
 
-template <typename T>
 auto create_order_entry(
     Gateway &gateway,
     core::io::Context &context,
     uint16_t &stream_id,
-    T &security,
-    Shared &shared) {
+    auto &security_by_account,
+    Shared &shared,
+    auto &request_by_account) {
   absl::flat_hash_map<std::string, std::unique_ptr<OrderEntry>> result;
-  for (auto &iter : security) {
+  for (auto &[account, security] : security_by_account) {
+    auto &request = request_by_account[account];
     result.try_emplace(
-        iter.first,
-        std::make_unique<OrderEntry>(gateway, context, ++stream_id, *iter.second, shared));
+        account,
+        std::make_unique<OrderEntry>(gateway, context, ++stream_id, *security, shared, request));
   }
   return result;
 }
@@ -75,9 +84,9 @@ auto create_market_data(
 
 Gateway::Gateway(server::Dispatcher &dispatcher, const Config &config)
     : dispatcher_(dispatcher), master_account_(config.get_master_account()),
-      security_(create_security(config)), shared_(dispatcher),
-      rest_(create_rest(*this, context_, ++stream_id_, security_, shared_)),
-      order_entry_(create_order_entry(*this, context_, stream_id_, security_, shared_)),
+      security_(create_security(config)), shared_(dispatcher), request_(create_request(config)),
+      rest_(create_rest(*this, context_, ++stream_id_, security_, shared_, request_)),
+      order_entry_(create_order_entry(*this, context_, stream_id_, security_, shared_, request_)),
       market_data_(create_market_data(*this, context_, stream_id_, shared_)) {
 }
 
