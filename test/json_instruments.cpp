@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_instruments, parser) {
+TEST_CASE("json_instruments_parser", "json_instruments") {
   // note! truncated
   auto message = R"({)"
                  R"("arg":{)"
@@ -110,30 +112,30 @@ TEST(json_instruments, parser) {
       ++count_;
       auto &[trace_info, instruments] = event;
       auto &data = instruments.data;
-      ASSERT_EQ(std::size(data), 3);
+      REQUIRE(std::size(data) == 3);
       // d0
       auto &d0 = data[0];
-      EXPECT_EQ(d0.alias, ""sv);
-      EXPECT_EQ(d0.base_ccy, "BCD"sv);
-      EXPECT_EQ(d0.category, "2"sv);
-      EXPECT_EQ(std::isnan(d0.ct_mult), true);
-      EXPECT_EQ(d0.ct_type, json::ContractType::UNDEFINED);
-      EXPECT_EQ(std::isnan(d0.ct_val), true);
-      EXPECT_EQ(d0.ct_val_ccy, ""sv);
-      EXPECT_EQ(d0.exp_time, 0ms);
-      EXPECT_EQ(d0.inst_id, "BCD-BTC"sv);
-      EXPECT_EQ(d0.inst_type, json::InstrumentType::SPOT);
-      EXPECT_EQ(std::isnan(d0.lever), true);
-      EXPECT_EQ(d0.list_time, 0ms);
-      EXPECT_DOUBLE_EQ(d0.lot_sz, 0.0001);
-      EXPECT_DOUBLE_EQ(d0.min_sz, 1.0);
-      EXPECT_EQ(d0.opt_type, json::OptionType::UNDEFINED);
-      EXPECT_EQ(d0.quote_ccy, "BTC"sv);
-      EXPECT_EQ(d0.settle_ccy, ""sv);
-      EXPECT_EQ(d0.state, json::State::LIVE);
-      EXPECT_EQ(std::isnan(d0.stk), true);
-      EXPECT_DOUBLE_EQ(d0.tick_sz, 0.0000001);
-      EXPECT_EQ(d0.uly, ""sv);
+      CHECK(d0.alias == ""sv);
+      CHECK(d0.base_ccy == "BCD"sv);
+      CHECK(d0.category == "2"sv);
+      CHECK(std::isnan(d0.ct_mult) == true);
+      CHECK(d0.ct_type == json::ContractType::UNDEFINED);
+      CHECK(std::isnan(d0.ct_val) == true);
+      CHECK(d0.ct_val_ccy == ""sv);
+      CHECK(d0.exp_time == 0ms);
+      CHECK(d0.inst_id == "BCD-BTC"sv);
+      CHECK(d0.inst_type == json::InstrumentType::SPOT);
+      CHECK(std::isnan(d0.lever) == true);
+      CHECK(d0.list_time == 0ms);
+      CHECK(d0.lot_sz == 0.0001_a);
+      CHECK(d0.min_sz == 1.0_a);
+      CHECK(d0.opt_type == json::OptionType::UNDEFINED);
+      CHECK(d0.quote_ccy == "BTC"sv);
+      CHECK(d0.settle_ccy == ""sv);
+      CHECK(d0.state == json::State::LIVE);
+      CHECK(std::isnan(d0.stk) == true);
+      CHECK(d0.tick_sz == 0.0000001_a);
+      CHECK(d0.uly == ""sv);
     }
     void operator()(server::Trace<json::EstimatedPrice> const &) override { FAIL(); }
     void operator()(server::Trace<json::PriceLimit> const &) override { FAIL(); }
@@ -164,6 +166,6 @@ TEST(json_instruments, parser) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }

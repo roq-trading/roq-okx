@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_positions, parser) {
+TEST_CASE("json_positions_parser", "json_positions") {
   auto message =
       // R"({"arg":{"channel":"positions","instType":"ANY","uid":"33594834598109184"},"data":[]}")";
       R"({)"
@@ -105,49 +107,49 @@ TEST(json_positions, parser) {
       ++count_;
       auto &[trace_info, positions] = event;
       auto &data = positions.data;
-      ASSERT_EQ(std::size(data), 1);
+      REQUIRE(std::size(data) == 1);
       auto &d0 = data[0];
-      EXPECT_EQ(d0.adl, 1);
-      EXPECT_TRUE(std::isnan(d0.avail_pos));
-      EXPECT_DOUBLE_EQ(d0.avg_px, 43684.0);
-      EXPECT_TRUE(std::isnan(d0.base_bal));
-      EXPECT_EQ(d0.c_time, 1644330337903ms);
-      EXPECT_EQ(d0.ccy, "USDT"sv);
-      EXPECT_TRUE(std::isnan(d0.delta_bs));
-      EXPECT_TRUE(std::isnan(d0.delta_pa));
-      EXPECT_TRUE(std::isnan(d0.gamma_bs));
-      EXPECT_TRUE(std::isnan(d0.gamma_pa));
-      EXPECT_DOUBLE_EQ(d0.imr, 43.69104315276841);
-      EXPECT_EQ(d0.inst_id, "BTC-USDT-SWAP"sv);
-      EXPECT_EQ(d0.inst_type, json::InstrumentType::SWAP);
-      EXPECT_DOUBLE_EQ(d0.interest, 0.0);
-      EXPECT_DOUBLE_EQ(d0.last, 43692.1);
-      EXPECT_DOUBLE_EQ(d0.lever, 10.0);
-      EXPECT_TRUE(std::isnan(d0.liab));
-      EXPECT_EQ(d0.liab_ccy, ""sv);
-      EXPECT_DOUBLE_EQ(d0.liq_px, 23739.456120525683);
-      EXPECT_TRUE(std::isnan(d0.margin));
-      EXPECT_DOUBLE_EQ(d0.mark_px, 43691.043152768407);
-      EXPECT_EQ(d0.mgn_mode, json::MarginMode::CROSS);
-      EXPECT_DOUBLE_EQ(d0.mgn_ratio, 102.02149323145969);
-      EXPECT_DOUBLE_EQ(d0.mmr, 1.7476417261107364);
-      EXPECT_DOUBLE_EQ(d0.notional_usd, 437.3735565851034);
-      EXPECT_TRUE(std::isnan(d0.opt_val));
-      EXPECT_EQ(d0.p_time, 1644330793928ms);
-      EXPECT_DOUBLE_EQ(d0.pos, 1.0);
-      EXPECT_EQ(d0.pos_ccy, ""sv);
-      EXPECT_EQ(d0.pos_id, "325382268437037058"sv);
-      EXPECT_EQ(d0.pos_side, json::PositionSide::NET);
-      EXPECT_TRUE(std::isnan(d0.quote_bal));
-      EXPECT_TRUE(std::isnan(d0.theta_bs));
-      EXPECT_TRUE(std::isnan(d0.theta_pa));
-      EXPECT_EQ(d0.trade_id, "186646171"sv);
-      EXPECT_EQ(d0.u_time, 1644330337903ms);
-      EXPECT_DOUBLE_EQ(d0.upl, 0.0704315276840498);
-      EXPECT_DOUBLE_EQ(d0.upl_ratio, 0.0016122957532283);
-      EXPECT_TRUE(std::isnan(d0.usd_px));
-      EXPECT_TRUE(std::isnan(d0.vega_bs));
-      EXPECT_TRUE(std::isnan(d0.vega_pa));
+      CHECK(d0.adl == 1);
+      CHECK(std::isnan(d0.avail_pos) == true);
+      CHECK(d0.avg_px == 43684.0_a);
+      CHECK(std::isnan(d0.base_bal) == true);
+      CHECK(d0.c_time == 1644330337903ms);
+      CHECK(d0.ccy == "USDT"sv);
+      CHECK(std::isnan(d0.delta_bs) == true);
+      CHECK(std::isnan(d0.delta_pa) == true);
+      CHECK(std::isnan(d0.gamma_bs) == true);
+      CHECK(std::isnan(d0.gamma_pa) == true);
+      CHECK(d0.imr == 43.69104315276841_a);
+      CHECK(d0.inst_id == "BTC-USDT-SWAP"sv);
+      CHECK(d0.inst_type == json::InstrumentType::SWAP);
+      CHECK(d0.interest == 0.0_a);
+      CHECK(d0.last == 43692.1_a);
+      CHECK(d0.lever == 10.0_a);
+      CHECK(std::isnan(d0.liab) == true);
+      CHECK(d0.liab_ccy == ""sv);
+      CHECK(d0.liq_px == 23739.456120525683_a);
+      CHECK(std::isnan(d0.margin) == true);
+      CHECK(d0.mark_px == 43691.043152768407_a);
+      CHECK(d0.mgn_mode == json::MarginMode::CROSS);
+      CHECK(d0.mgn_ratio == 102.02149323145969_a);
+      CHECK(d0.mmr == 1.7476417261107364_a);
+      CHECK(d0.notional_usd == 437.3735565851034_a);
+      CHECK(std::isnan(d0.opt_val) == true);
+      CHECK(d0.p_time == 1644330793928ms);
+      CHECK(d0.pos == 1.0_a);
+      CHECK(d0.pos_ccy == ""sv);
+      CHECK(d0.pos_id == "325382268437037058"sv);
+      CHECK(d0.pos_side == json::PositionSide::NET);
+      CHECK(std::isnan(d0.quote_bal) == true);
+      CHECK(std::isnan(d0.theta_bs) == true);
+      CHECK(std::isnan(d0.theta_pa) == true);
+      CHECK(d0.trade_id == "186646171"sv);
+      CHECK(d0.u_time == 1644330337903ms);
+      CHECK(d0.upl == 0.0704315276840498_a);
+      CHECK(d0.upl_ratio == 0.0016122957532283_a);
+      CHECK(std::isnan(d0.usd_px) == true);
+      CHECK(std::isnan(d0.vega_bs) == true);
+      CHECK(std::isnan(d0.vega_pa) == true);
     }
     void operator()(server::Trace<json::Orders> const &) override { FAIL(); }
     void operator()(server::Trace<json::OrderAck> const &) override { FAIL(); }
@@ -161,6 +163,6 @@ TEST(json_positions, parser) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }

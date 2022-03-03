@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_order_ack, parser_success) {
+TEST_CASE("json_order_ack_parser_success", "json_order_ack") {
   auto message = R"({)"
                  R"("code":"0",)"
                  R"("data":[{)"
@@ -67,18 +69,18 @@ TEST(json_order_ack, parser_success) {
     void operator()(server::Trace<json::OrderAck> const &event) override {
       ++count_;
       auto &[trace_info, order_ack] = event;
-      EXPECT_EQ(order_ack.code, 0);
+      CHECK(order_ack.code == 0);
       auto &data = order_ack.data;
-      ASSERT_EQ(std::size(data), 1);
+      REQUIRE(std::size(data) == 1);
       auto &d0 = data[0];
-      EXPECT_EQ(d0.cl_ord_id, "abcABC123"sv);
-      EXPECT_EQ(d0.ord_id, "393513242072608785"sv);
-      EXPECT_EQ(d0.s_code, 0);
-      EXPECT_EQ(d0.s_msg, ""sv);
-      EXPECT_EQ(d0.tag, ""sv);
-      EXPECT_EQ(order_ack.id, "1000001"sv);
-      EXPECT_EQ(order_ack.msg, ""sv);
-      EXPECT_EQ(order_ack.op, json::Operation::ORDER);
+      CHECK(d0.cl_ord_id == "abcABC123"sv);
+      CHECK(d0.ord_id == "393513242072608785"sv);
+      CHECK(d0.s_code == 0);
+      CHECK(d0.s_msg == ""sv);
+      CHECK(d0.tag == ""sv);
+      CHECK(order_ack.id == "1000001"sv);
+      CHECK(order_ack.msg == ""sv);
+      CHECK(order_ack.op == json::Operation::ORDER);
     }
     void operator()(server::Trace<json::AmendOrderAck> const &) override { FAIL(); }
     void operator()(server::Trace<json::CancelOrderAck> const &) override { FAIL(); }
@@ -90,11 +92,11 @@ TEST(json_order_ack, parser_success) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }
 
-TEST(json_order_ack, parser_failure) {
+TEST_CASE("json_order_ack_parser_failure", "json_order_ack") {
   auto message = R"({)"
                  R"("code":"1",)"
                  R"("data":[{)"
@@ -139,18 +141,18 @@ TEST(json_order_ack, parser_failure) {
     void operator()(server::Trace<json::OrderAck> const &event) override {
       ++count_;
       auto &[trace_info, order_ack] = event;
-      EXPECT_EQ(order_ack.code, 1);
+      CHECK(order_ack.code == 1);
       auto &data = order_ack.data;
-      ASSERT_EQ(std::size(data), 1);
+      REQUIRE(std::size(data) == 1);
       auto &d0 = data[0];
-      EXPECT_EQ(d0.cl_ord_id, "abcABC125"sv);
-      EXPECT_EQ(d0.ord_id, ""sv);
-      EXPECT_EQ(d0.s_code, 51016);
-      EXPECT_EQ(d0.s_msg, "Duplicated client order ID"sv);
-      EXPECT_EQ(d0.tag, ""sv);
-      EXPECT_EQ(order_ack.id, "2000001"sv);
-      EXPECT_EQ(order_ack.msg, ""sv);
-      EXPECT_EQ(order_ack.op, json::Operation::ORDER);
+      CHECK(d0.cl_ord_id == "abcABC125"sv);
+      CHECK(d0.ord_id == ""sv);
+      CHECK(d0.s_code == 51016);
+      CHECK(d0.s_msg == "Duplicated client order ID"sv);
+      CHECK(d0.tag == ""sv);
+      CHECK(order_ack.id == "2000001"sv);
+      CHECK(order_ack.msg == ""sv);
+      CHECK(order_ack.op == json::Operation::ORDER);
     }
     void operator()(server::Trace<json::AmendOrderAck> const &) override { FAIL(); }
     void operator()(server::Trace<json::CancelOrderAck> const &) override { FAIL(); }
@@ -162,6 +164,6 @@ TEST(json_order_ack, parser_failure) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }

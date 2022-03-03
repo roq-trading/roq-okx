@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_trades, parser) {
+TEST_CASE("json_trades_parser", "json_trades") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"trades",)"
@@ -54,14 +56,14 @@ TEST(json_trades, parser) {
       ++count_;
       auto &[trace_info, trades] = event;
       auto &data = trades.data;
-      ASSERT_EQ(std::size(data), 1);
+      REQUIRE(std::size(data) == 1);
       auto &d0 = data[0];
-      EXPECT_EQ(d0.inst_id, "BTC-USD-220325"sv);
-      EXPECT_EQ(d0.trade_id, "7789395"sv);
-      EXPECT_DOUBLE_EQ(d0.px, 50387.4);
-      EXPECT_DOUBLE_EQ(d0.sz, 5.0);
-      EXPECT_EQ(d0.side, json::Side::BUY);
-      EXPECT_EQ(d0.ts, 1640157052811ms);
+      CHECK(d0.inst_id == "BTC-USD-220325"sv);
+      CHECK(d0.trade_id == "7789395"sv);
+      CHECK(d0.px == 50387.4_a);
+      CHECK(d0.sz == 5.0_a);
+      CHECK(d0.side == json::Side::BUY);
+      CHECK(d0.ts == 1640157052811ms);
     }
     void operator()(
         server::Trace<json::BooksL2Tbt> const &,
@@ -87,6 +89,6 @@ TEST(json_trades, parser) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }

@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_orders, download_empty) {
+TEST_CASE("json_orders_download_empty", "json_orders") {
   auto message = R"({)"
                  R"("code":"0",)"
                  R"("data":[],)"
@@ -31,12 +33,12 @@ TEST(json_orders, download_empty) {
   core::Buffer buffer(8192);
   core::json::Buffer buffer_(buffer);
   auto obj = core::json::Parser::create<json::Orders>(message, buffer_);
-  EXPECT_EQ(obj.code, 0);
-  ASSERT_EQ(std::size(obj.data), 0);
-  EXPECT_EQ(obj.msg, ""sv);
+  CHECK(obj.code == 0);
+  REQUIRE(std::size(obj.data) == 0);
+  CHECK(obj.msg == ""sv);
 }
 
-TEST(json_orders, download) {
+TEST_CASE("json_orders_download", "json_orders") {
   auto message = R"({)"
                  R"("code":"0",)"
                  R"("data":[{)"
@@ -83,13 +85,13 @@ TEST(json_orders, download) {
   core::Buffer buffer(8192);
   core::json::Buffer buffer_(buffer);
   auto obj = core::json::Parser::create<json::Orders>(message, buffer_);
-  EXPECT_EQ(obj.code, 0);
-  ASSERT_EQ(std::size(obj.data), 1);
+  CHECK(obj.code == 0);
+  REQUIRE(std::size(obj.data) == 1);
   // XXX HANS
-  EXPECT_EQ(obj.msg, ""sv);
+  CHECK(obj.msg == ""sv);
 }
 
-TEST(json_orders, parser) {
+TEST_CASE("json_orders_parser", "json_orders") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"orders",)"
@@ -176,54 +178,54 @@ TEST(json_orders, parser) {
       ++count_;
       auto &[trace_info, orders] = event;
       auto &data = orders.data;
-      ASSERT_EQ(std::size(data), 1);
+      REQUIRE(std::size(data) == 1);
       auto &d0 = data[0];
-      EXPECT_DOUBLE_EQ(d0.acc_fill_sz, 0.0);
-      EXPECT_EQ(d0.amend_result, 0);
-      EXPECT_DOUBLE_EQ(d0.avg_px, 0.0);
-      EXPECT_EQ(d0.c_time, 1640182694746ms);
-      EXPECT_EQ(d0.category, json::Category::NORMAL);
-      EXPECT_EQ(d0.ccy, ""sv);
-      EXPECT_EQ(d0.cl_ord_id, "abcABC125"sv);
-      EXPECT_EQ(d0.code, 0);
-      EXPECT_EQ(d0.exec_type, json::OrderFlowType::UNDEFINED);
-      EXPECT_DOUBLE_EQ(d0.fee, 0.0);
-      EXPECT_EQ(d0.fee_ccy, "BTC"sv);
-      EXPECT_DOUBLE_EQ(d0.fill_fee, 0.0);
-      EXPECT_EQ(d0.fill_fee_ccy, ""sv);
-      EXPECT_EQ(d0.fill_notional_usd, ""sv);
-      EXPECT_TRUE(std::isnan(d0.fill_px));
-      EXPECT_DOUBLE_EQ(d0.fill_sz, 0.0);
-      EXPECT_EQ(d0.fill_time, 0ms);
-      EXPECT_EQ(d0.inst_id, "BTC-USD-220325"sv);
-      EXPECT_EQ(d0.inst_type, json::InstrumentType::FUTURES);
-      EXPECT_DOUBLE_EQ(d0.lever, 10.0);
-      EXPECT_EQ(d0.msg, ""sv);
-      EXPECT_DOUBLE_EQ(d0.notional_usd, 100.0);
-      EXPECT_EQ(d0.ord_id, "393890002618445825"sv);
-      EXPECT_EQ(d0.ord_type, json::OrderType::LIMIT);
-      EXPECT_DOUBLE_EQ(d0.pnl, 0.0);
-      EXPECT_EQ(d0.pos_side, json::PositionSide::LONG);
-      EXPECT_DOUBLE_EQ(d0.px, 39919.4);
-      EXPECT_DOUBLE_EQ(d0.rebate, 0.0);
-      EXPECT_EQ(d0.rebate_ccy, "BTC"sv);
-      EXPECT_EQ(d0.reduce_only, false);
-      EXPECT_EQ(d0.req_id, ""sv);
-      EXPECT_EQ(d0.side, json::Side::BUY);
-      EXPECT_TRUE(std::isnan(d0.sl_ord_px));
-      EXPECT_TRUE(std::isnan(d0.sl_trigger_px));
-      EXPECT_EQ(d0.sl_trigger_px_type, json::TriggerPriceType::UNDEFINED);
-      EXPECT_EQ(d0.source, ""sv);
-      EXPECT_EQ(d0.state, json::OrderState::LIVE);
-      EXPECT_DOUBLE_EQ(d0.sz, 1.0);
-      EXPECT_EQ(d0.tag, ""sv);
-      EXPECT_EQ(d0.td_mode, json::TradeMode::ISOLATED);
-      EXPECT_EQ(d0.tgt_ccy, ""sv);
-      EXPECT_TRUE(std::isnan(d0.tp_ord_px));
-      EXPECT_TRUE(std::isnan(d0.tp_trigger_px));
-      EXPECT_EQ(d0.tp_trigger_px_type, json::TriggerPriceType::UNDEFINED);
-      EXPECT_EQ(d0.trade_id, ""sv);
-      EXPECT_EQ(d0.u_time, 1640182694746ms);
+      CHECK(d0.acc_fill_sz == 0.0_a);
+      CHECK(d0.amend_result == 0);
+      CHECK(d0.avg_px == 0.0_a);
+      CHECK(d0.c_time == 1640182694746ms);
+      CHECK(d0.category == json::Category::NORMAL);
+      CHECK(d0.ccy == ""sv);
+      CHECK(d0.cl_ord_id == "abcABC125"sv);
+      CHECK(d0.code == 0);
+      CHECK(d0.exec_type == json::OrderFlowType::UNDEFINED);
+      CHECK(d0.fee == 0.0_a);
+      CHECK(d0.fee_ccy == "BTC"sv);
+      CHECK(d0.fill_fee == 0.0_a);
+      CHECK(d0.fill_fee_ccy == ""sv);
+      CHECK(d0.fill_notional_usd == ""sv);
+      CHECK(std::isnan(d0.fill_px) == true);
+      CHECK(d0.fill_sz == 0.0_a);
+      CHECK(d0.fill_time == 0ms);
+      CHECK(d0.inst_id == "BTC-USD-220325"sv);
+      CHECK(d0.inst_type == json::InstrumentType::FUTURES);
+      CHECK(d0.lever == 10.0_a);
+      CHECK(d0.msg == ""sv);
+      CHECK(d0.notional_usd == 100.0_a);
+      CHECK(d0.ord_id == "393890002618445825"sv);
+      CHECK(d0.ord_type == json::OrderType::LIMIT);
+      CHECK(d0.pnl == 0.0_a);
+      CHECK(d0.pos_side == json::PositionSide::LONG);
+      CHECK(d0.px == 39919.4_a);
+      CHECK(d0.rebate == 0.0_a);
+      CHECK(d0.rebate_ccy == "BTC"sv);
+      CHECK(d0.reduce_only == false);
+      CHECK(d0.req_id == ""sv);
+      CHECK(d0.side == json::Side::BUY);
+      CHECK(std::isnan(d0.sl_ord_px) == true);
+      CHECK(std::isnan(d0.sl_trigger_px) == true);
+      CHECK(d0.sl_trigger_px_type == json::TriggerPriceType::UNDEFINED);
+      CHECK(d0.source == ""sv);
+      CHECK(d0.state == json::OrderState::LIVE);
+      CHECK(d0.sz == 1.0_a);
+      CHECK(d0.tag == ""sv);
+      CHECK(d0.td_mode == json::TradeMode::ISOLATED);
+      CHECK(d0.tgt_ccy == ""sv);
+      CHECK(std::isnan(d0.tp_ord_px) == true);
+      CHECK(std::isnan(d0.tp_trigger_px) == true);
+      CHECK(d0.tp_trigger_px_type == json::TriggerPriceType::UNDEFINED);
+      CHECK(d0.trade_id == ""sv);
+      CHECK(d0.u_time == 1640182694746ms);
     }
     void operator()(server::Trace<json::OrderAck> const &) override { FAIL(); }
     void operator()(server::Trace<json::AmendOrderAck> const &) override { FAIL(); }
@@ -236,8 +238,8 @@ TEST(json_orders, parser) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }
 
 /*

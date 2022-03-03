@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_amend_order_ack, parser_success) {
+TEST_CASE("json_amend_order_ack_parser_success", "json_amend_order_ack") {
   auto message = R"({)"
                  R"("code":"0",)"
                  R"("data":[{)"
@@ -68,19 +70,19 @@ TEST(json_amend_order_ack, parser_success) {
     void operator()(server::Trace<json::AmendOrderAck> const &event) override {
       ++count_;
       auto &[trace_info, amend_order_ack] = event;
-      EXPECT_EQ(amend_order_ack.code, 0);
+      CHECK(amend_order_ack.code == 0);
       auto &data = amend_order_ack.data;
-      ASSERT_EQ(std::size(data), 1);
+      REQUIRE(std::size(data) == 1);
       auto &d0 = data[0];
-      EXPECT_EQ(d0.cl_ord_id, "CMAAF2IDAAAQAAFQDIHPD4Y3"sv);
-      EXPECT_EQ(d0.ord_id, "393936310213439488"sv);
-      EXPECT_EQ(d0.req_id, ""sv);
-      EXPECT_EQ(d0.s_code, 0);
-      EXPECT_EQ(d0.s_msg, ""sv);
-      EXPECT_EQ(d0.tag, ""sv);
-      EXPECT_EQ(amend_order_ack.id, "2000002"sv);
-      EXPECT_EQ(amend_order_ack.msg, ""sv);
-      EXPECT_EQ(amend_order_ack.op, json::Operation::AMEND_ORDER);
+      CHECK(d0.cl_ord_id == "CMAAF2IDAAAQAAFQDIHPD4Y3"sv);
+      CHECK(d0.ord_id == "393936310213439488"sv);
+      CHECK(d0.req_id == ""sv);
+      CHECK(d0.s_code == 0);
+      CHECK(d0.s_msg == ""sv);
+      CHECK(d0.tag == ""sv);
+      CHECK(amend_order_ack.id == "2000002"sv);
+      CHECK(amend_order_ack.msg == ""sv);
+      CHECK(amend_order_ack.op == json::Operation::AMEND_ORDER);
     }
     void operator()(server::Trace<json::CancelOrderAck> const &) override { FAIL(); }
 
@@ -91,6 +93,6 @@ TEST(json_amend_order_ack, parser_success) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }

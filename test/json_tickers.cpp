@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_tickers, parser) {
+TEST_CASE("json_tickers_parser", "json_tickers") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"tickers",)"
@@ -63,24 +65,24 @@ TEST(json_tickers, parser) {
       ++count_;
       auto &[trace_info, tickers] = event;
       auto &data = tickers.data;
-      ASSERT_EQ(std::size(data), 1);
+      REQUIRE(std::size(data) == 1);
       auto &d0 = data[0];
-      EXPECT_EQ(d0.inst_type, json::InstrumentType::FUTURES);
-      EXPECT_EQ(d0.inst_id, "BTC-USD-220325"sv);
-      EXPECT_DOUBLE_EQ(d0.last, 50326.8);
-      EXPECT_DOUBLE_EQ(d0.last_sz, 1.0);
-      EXPECT_DOUBLE_EQ(d0.ask_px, 50330.5);
-      EXPECT_DOUBLE_EQ(d0.ask_sz, 19.0);
-      EXPECT_DOUBLE_EQ(d0.bid_px, 50330.4);
-      EXPECT_DOUBLE_EQ(d0.bid_sz, 51.0);
-      EXPECT_DOUBLE_EQ(d0.open24h, 49905.2);
-      EXPECT_DOUBLE_EQ(d0.high24h, 50900.0);
-      EXPECT_DOUBLE_EQ(d0.low24h, 49474.0);
-      EXPECT_DOUBLE_EQ(d0.sod_utc0, 50107.5);
-      EXPECT_DOUBLE_EQ(d0.sod_utc8, 49646.5);
-      EXPECT_DOUBLE_EQ(d0.vol_ccy24h, 7544.4991);
-      EXPECT_DOUBLE_EQ(d0.vol24h, 3778623.0);
-      EXPECT_EQ(d0.ts, 1640156513987ms);
+      CHECK(d0.inst_type == json::InstrumentType::FUTURES);
+      CHECK(d0.inst_id == "BTC-USD-220325"sv);
+      CHECK(d0.last == 50326.8_a);
+      CHECK(d0.last_sz == 1.0_a);
+      CHECK(d0.ask_px == 50330.5_a);
+      CHECK(d0.ask_sz == 19.0_a);
+      CHECK(d0.bid_px == 50330.4_a);
+      CHECK(d0.bid_sz == 51.0_a);
+      CHECK(d0.open24h == 49905.2_a);
+      CHECK(d0.high24h == 50900.0_a);
+      CHECK(d0.low24h == 49474.0_a);
+      CHECK(d0.sod_utc0 == 50107.5_a);
+      CHECK(d0.sod_utc8 == 49646.5_a);
+      CHECK(d0.vol_ccy24h == 7544.4991_a);
+      CHECK(d0.vol24h == 3778623.0_a);
+      CHECK(d0.ts == 1640156513987ms);
     }
     void operator()(server::Trace<json::Trades> const &) override { FAIL(); }
     void operator()(
@@ -107,6 +109,6 @@ TEST(json_tickers, parser) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }

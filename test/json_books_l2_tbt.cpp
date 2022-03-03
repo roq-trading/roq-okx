@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_books_l2_tbt, parser) {
+TEST_CASE("json_books_l2_tbt_parser", "json_books_l2_tbt") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"books-l2-tbt",)"
@@ -62,25 +64,25 @@ TEST(json_books_l2_tbt, parser) {
         json::Action action) override {
       ++count_;
       auto &[trace_info, books_l2_tbt] = event;
-      EXPECT_EQ(inst_id, "BTC-USD-220325"sv);
-      EXPECT_EQ(action, json::Action::SNAPSHOT);
+      CHECK(inst_id == "BTC-USD-220325"sv);
+      CHECK(action == json::Action::SNAPSHOT);
       auto &asks = books_l2_tbt.asks;
-      ASSERT_EQ(std::size(asks), 2);
+      REQUIRE(std::size(asks) == 2);
       // a0
       auto &a0 = asks[0];
-      EXPECT_DOUBLE_EQ(a0.price, 50441.1);
-      EXPECT_DOUBLE_EQ(a0.size, 24.0);
-      EXPECT_EQ(a0.liquidated_orders, 0);
-      EXPECT_EQ(a0.orders, 1);
+      CHECK(a0.price == 50441.1_a);
+      CHECK(a0.size == 24.0_a);
+      CHECK(a0.liquidated_orders == 0);
+      CHECK(a0.orders == 1);
       // a1
       auto &bids = books_l2_tbt.bids;
-      ASSERT_EQ(std::size(bids), 2);
+      REQUIRE(std::size(bids) == 2);
       // b0
       auto &b0 = bids[0];
-      EXPECT_DOUBLE_EQ(b0.price, 50441);
-      EXPECT_DOUBLE_EQ(b0.size, 199.0);
-      EXPECT_EQ(b0.liquidated_orders, 0);
-      EXPECT_EQ(b0.orders, 3);
+      CHECK(b0.price == 50441_a);
+      CHECK(b0.size == 199.0_a);
+      CHECK(b0.liquidated_orders == 0);
+      CHECK(b0.orders == 3);
     }
     void operator()(server::Trace<json::IndexTickers> const &) override { FAIL(); }
     void operator()(server::Trace<json::FundingRate> const &) override { FAIL(); }
@@ -100,6 +102,6 @@ TEST(json_books_l2_tbt, parser) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }

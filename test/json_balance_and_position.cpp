@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_balance_and_position, parser) {
+TEST_CASE("json_balance_and_position_parser", "json_balance_and_position") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"balance_and_position",)"
@@ -76,23 +78,23 @@ TEST(json_balance_and_position, parser) {
       ++count_;
       auto &[trace_info, balance_and_position] = event;
       auto &bal_data = balance_and_position.bal_data;
-      ASSERT_EQ(std::size(bal_data), 3);
+      REQUIRE(std::size(bal_data) == 3);
       auto &b0 = bal_data[0];
-      EXPECT_DOUBLE_EQ(b0.cash_bal, 0.0121475);
-      EXPECT_EQ(b0.ccy, "BTC"sv);
-      EXPECT_EQ(b0.u_time, 1640088676388ms);
+      CHECK(b0.cash_bal == 0.0121475_a);
+      CHECK(b0.ccy == "BTC"sv);
+      CHECK(b0.u_time == 1640088676388ms);
       auto &b1 = bal_data[1];
-      EXPECT_DOUBLE_EQ(b1.cash_bal, 0.00000635);
-      EXPECT_EQ(b1.ccy, "OMG"sv);
-      EXPECT_EQ(b1.u_time, 1624937815126ms);
+      CHECK(b1.cash_bal == 0.00000635_a);
+      CHECK(b1.ccy == "OMG"sv);
+      CHECK(b1.u_time == 1624937815126ms);
       auto &b2 = bal_data[2];
-      EXPECT_DOUBLE_EQ(b2.cash_bal, 0.00005916);
-      EXPECT_EQ(b2.ccy, "EOS"sv);
-      EXPECT_EQ(b2.u_time, 1624937815179ms);
-      EXPECT_EQ(balance_and_position.event_type, "snapshot"sv);
-      EXPECT_EQ(balance_and_position.p_time, 1640151123380ms);
+      CHECK(b2.cash_bal == 0.00005916_a);
+      CHECK(b2.ccy == "EOS"sv);
+      CHECK(b2.u_time == 1624937815179ms);
+      CHECK(balance_and_position.event_type == "snapshot"sv);
+      CHECK(balance_and_position.p_time == 1640151123380ms);
       auto &pos_data = balance_and_position.pos_data;
-      ASSERT_EQ(std::size(pos_data), 0);
+      REQUIRE(std::size(pos_data) == 0);
     }
     void operator()(server::Trace<json::Positions> const &) override { FAIL(); }
     void operator()(server::Trace<json::Orders> const &) override { FAIL(); }
@@ -107,11 +109,11 @@ TEST(json_balance_and_position, parser) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }
 
-TEST(json_balance_and_position, sample_2) {
+TEST_CASE("json_balance_and_position_sample_2", "json_balance_and_position") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"balance_and_position",)"
@@ -173,29 +175,29 @@ TEST(json_balance_and_position, sample_2) {
       ++count_;
       auto &[trace_info, balance_and_position] = event;
       auto &bal_data = balance_and_position.bal_data;
-      ASSERT_EQ(std::size(bal_data), 1);
+      REQUIRE(std::size(bal_data) == 1);
       auto &b0 = bal_data[0];
-      EXPECT_DOUBLE_EQ(b0.cash_bal, 200.5137143201668551);
-      EXPECT_EQ(b0.ccy, "USDT"sv);
-      EXPECT_EQ(b0.u_time, 1644330337903ms);
-      EXPECT_EQ(balance_and_position.event_type, "snapshot"sv);
-      EXPECT_EQ(balance_and_position.p_time, 1644330371092ms);
+      CHECK(b0.cash_bal == 200.5137143201668551_a);
+      CHECK(b0.ccy == "USDT"sv);
+      CHECK(b0.u_time == 1644330337903ms);
+      CHECK(balance_and_position.event_type == "snapshot"sv);
+      CHECK(balance_and_position.p_time == 1644330371092ms);
       auto &pos_data = balance_and_position.pos_data;
-      ASSERT_EQ(std::size(pos_data), 1);
+      REQUIRE(std::size(pos_data) == 1);
       auto &p0 = pos_data[0];
-      EXPECT_DOUBLE_EQ(p0.avg_px, 43684.0);
-      EXPECT_TRUE(std::isnan(p0.base_bal));
-      EXPECT_EQ(p0.ccy, "USDT"sv);
-      EXPECT_EQ(p0.inst_id, "BTC-USDT-SWAP"sv);
-      EXPECT_EQ(p0.inst_type, json::InstrumentType::SWAP);
-      EXPECT_EQ(p0.mgn_mode, json::MarginMode::CROSS);
-      EXPECT_DOUBLE_EQ(p0.pos, 1.0);
-      EXPECT_EQ(p0.pos_ccy, ""sv);
-      EXPECT_EQ(p0.pos_id, "325382268437037058"sv);
-      EXPECT_EQ(p0.pos_side, json::PositionSide::NET);
-      EXPECT_TRUE(std::isnan(p0.quote_bal));
-      EXPECT_EQ(p0.trade_id, "186646171"sv);
-      EXPECT_EQ(p0.u_time, 1644330337903ms);
+      CHECK(p0.avg_px == 43684.0_a);
+      CHECK(std::isnan(p0.base_bal) == true);
+      CHECK(p0.ccy == "USDT"sv);
+      CHECK(p0.inst_id == "BTC-USDT-SWAP"sv);
+      CHECK(p0.inst_type == json::InstrumentType::SWAP);
+      CHECK(p0.mgn_mode == json::MarginMode::CROSS);
+      CHECK(p0.pos == 1.0_a);
+      CHECK(p0.pos_ccy == ""sv);
+      CHECK(p0.pos_id == "325382268437037058"sv);
+      CHECK(p0.pos_side == json::PositionSide::NET);
+      CHECK(std::isnan(p0.quote_bal) == true);
+      CHECK(p0.trade_id == "186646171"sv);
+      CHECK(p0.u_time == 1644330337903ms);
     }
     void operator()(server::Trace<json::Positions> const &) override { FAIL(); }
     void operator()(server::Trace<json::Orders> const &) override { FAIL(); }
@@ -210,6 +212,6 @@ TEST(json_balance_and_position, sample_2) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }

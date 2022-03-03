@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_cancel_order_ack, parser_success) {
+TEST_CASE("json_cancel_order_ack_parser_success", "json_cancel_order_ack") {
   auto message = R"({)"
                  R"("code":"0",)"
                  R"("data":[{)"
@@ -68,18 +70,18 @@ TEST(json_cancel_order_ack, parser_success) {
     void operator()(server::Trace<json::CancelOrderAck> const &event) override {
       ++count_;
       auto &[trace_info, cancel_order_ack] = event;
-      EXPECT_EQ(cancel_order_ack.code, 0);
+      CHECK(cancel_order_ack.code == 0);
       auto &data = cancel_order_ack.data;
-      ASSERT_EQ(std::size(data), 1);
+      REQUIRE(std::size(data) == 1);
       auto &d0 = data[0];
-      EXPECT_EQ(d0.cl_ord_id, "3MAAF2IDAAAQAAGSKMZCT5A3"sv);
-      EXPECT_EQ(d0.ord_id, "393940260828377089"sv);
-      EXPECT_EQ(d0.s_code, 0);
-      EXPECT_EQ(d0.s_msg, ""sv);
-      EXPECT_EQ(d0.tag, ""sv);
-      EXPECT_EQ(cancel_order_ack.id, "2000003"sv);
-      EXPECT_EQ(cancel_order_ack.msg, ""sv);
-      EXPECT_EQ(cancel_order_ack.op, json::Operation::CANCEL_ORDER);
+      CHECK(d0.cl_ord_id == "3MAAF2IDAAAQAAGSKMZCT5A3"sv);
+      CHECK(d0.ord_id == "393940260828377089"sv);
+      CHECK(d0.s_code == 0);
+      CHECK(d0.s_msg == ""sv);
+      CHECK(d0.tag == ""sv);
+      CHECK(cancel_order_ack.id == "2000003"sv);
+      CHECK(cancel_order_ack.msg == ""sv);
+      CHECK(cancel_order_ack.op == json::Operation::CANCEL_ORDER);
     }
 
    private:
@@ -89,8 +91,8 @@ TEST(json_cancel_order_ack, parser_success) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }
 
 // {"event":"error","msg":"channel:estimated-price,instType:FUTURES doesn't exist","code":"60018"}"

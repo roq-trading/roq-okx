@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_account, parser) {
+TEST_CASE("json_account_parser", "json_account") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"account",)"
@@ -140,45 +142,45 @@ TEST(json_account, parser) {
     void operator()(server::Trace<json::Account> const &event) override {
       ++count_;
       auto &[trace_info, account] = event;
-      EXPECT_EQ(account.adj_eq, ""sv);
+      CHECK(account.adj_eq == ""sv);
       auto &details = account.details;
-      EXPECT_EQ(std::size(account.details), 3);
+      CHECK(std::size(account.details) == 3);
       // d0
       auto &d0 = details[0];
-      EXPECT_EQ(std::isnan(d0.avail_bal), true);
-      EXPECT_DOUBLE_EQ(d0.avail_eq, 0.0121475);
-      EXPECT_DOUBLE_EQ(d0.cash_bal, 0.0121475);
-      EXPECT_EQ(d0.ccy, "BTC"sv);
-      EXPECT_DOUBLE_EQ(d0.coin_usd_price, 49079.0);
-      EXPECT_EQ(std::isnan(d0.cross_liab), true);
-      EXPECT_DOUBLE_EQ(d0.dis_eq, 596.1871525);
-      EXPECT_DOUBLE_EQ(d0.eq, 0.0121475);
-      EXPECT_DOUBLE_EQ(d0.eq_usd, 596.1871525);
-      EXPECT_DOUBLE_EQ(d0.frozen_bal, 0.0);
-      EXPECT_EQ(std::isnan(d0.interest), true);
-      EXPECT_DOUBLE_EQ(d0.iso_eq, 0.0);
-      EXPECT_EQ(std::isnan(d0.iso_liab), true);
-      EXPECT_DOUBLE_EQ(d0.iso_upl, 0.0);
-      EXPECT_EQ(std::isnan(d0.liab), true);
-      EXPECT_EQ(std::isnan(d0.max_loan), true);
-      EXPECT_EQ(std::isnan(d0.mgn_ratio), true);
-      EXPECT_DOUBLE_EQ(d0.notional_lever, 0.0);
-      EXPECT_DOUBLE_EQ(d0.ord_frozen, 0.0);
-      EXPECT_DOUBLE_EQ(d0.stgy_eq, 0.0);
-      EXPECT_DOUBLE_EQ(d0.twap, 0.0);
-      EXPECT_EQ(d0.u_time, 1640088676388ms);
-      EXPECT_DOUBLE_EQ(d0.upl, 0.0);
+      CHECK(std::isnan(d0.avail_bal) == true);
+      CHECK(d0.avail_eq == 0.0121475_a);
+      CHECK(d0.cash_bal == 0.0121475_a);
+      CHECK(d0.ccy == "BTC"sv);
+      CHECK(d0.coin_usd_price == 49079.0_a);
+      CHECK(std::isnan(d0.cross_liab) == true);
+      CHECK(d0.dis_eq == 596.1871525_a);
+      CHECK(d0.eq == 0.0121475_a);
+      CHECK(d0.eq_usd == 596.1871525_a);
+      CHECK(d0.frozen_bal == 0.0_a);
+      CHECK(std::isnan(d0.interest) == true);
+      CHECK(d0.iso_eq == 0.0_a);
+      CHECK(std::isnan(d0.iso_liab) == true);
+      CHECK(d0.iso_upl == 0.0_a);
+      CHECK(std::isnan(d0.liab) == true);
+      CHECK(std::isnan(d0.max_loan) == true);
+      CHECK(std::isnan(d0.mgn_ratio) == true);
+      CHECK(d0.notional_lever == 0.0_a);
+      CHECK(d0.ord_frozen == 0.0_a);
+      CHECK(d0.stgy_eq == 0.0_a);
+      CHECK(d0.twap == 0.0_a);
+      CHECK(d0.u_time == 1640088676388ms);
+      CHECK(d0.upl == 0.0_a);
       // d1
       // d2
       // ...
-      EXPECT_EQ(std::isnan(account.imr), true);
-      EXPECT_DOUBLE_EQ(account.iso_eq, 0.0);
-      EXPECT_EQ(std::isnan(account.mgn_ratio), true);
-      EXPECT_EQ(std::isnan(account.mmr), true);
-      EXPECT_EQ(std::isnan(account.notional_usd), true);
-      EXPECT_EQ(std::isnan(account.ord_froz), true);
-      EXPECT_DOUBLE_EQ(account.total_eq, 596.187389493646);
-      EXPECT_EQ(account.u_time, 1640151696581ms);
+      CHECK(std::isnan(account.imr) == true);
+      CHECK(account.iso_eq == 0.0_a);
+      CHECK(std::isnan(account.mgn_ratio) == true);
+      CHECK(std::isnan(account.mmr) == true);
+      CHECK(std::isnan(account.notional_usd) == true);
+      CHECK(std::isnan(account.ord_froz) == true);
+      CHECK(account.total_eq == 596.187389493646_a);
+      CHECK(account.u_time == 1640151696581ms);
     }
     void operator()(server::Trace<json::BalanceAndPosition> const &) override { FAIL(); }
     void operator()(server::Trace<json::Positions> const &) override { FAIL(); }
@@ -194,6 +196,6 @@ TEST(json_account, parser) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }

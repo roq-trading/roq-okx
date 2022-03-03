@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_funding_rate, parser) {
+TEST_CASE("json_funding_rate_parser", "json_funding_rate") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"funding-rate",)"
@@ -62,13 +64,13 @@ TEST(json_funding_rate, parser) {
       ++count_;
       auto &[trace_info, trades] = event;
       auto &data = trades.data;
-      ASSERT_EQ(std::size(data), 1);
+      REQUIRE(std::size(data) == 1);
       auto &d0 = data[0];
-      EXPECT_DOUBLE_EQ(d0.funding_rate, -0.00006384);
-      EXPECT_EQ(d0.funding_time, 1642665600000ms);
-      EXPECT_EQ(d0.inst_id, "BTC-USD-SWAP"sv);
-      EXPECT_EQ(d0.inst_type, json::InstrumentType::SWAP);
-      EXPECT_DOUBLE_EQ(d0.next_funding_rate, -0.00005);
+      CHECK(d0.funding_rate == -0.00006384_a);
+      CHECK(d0.funding_time == 1642665600000ms);
+      CHECK(d0.inst_id == "BTC-USD-SWAP"sv);
+      CHECK(d0.inst_type == json::InstrumentType::SWAP);
+      CHECK(d0.next_funding_rate == -0.00005_a);
     }
     void operator()(server::Trace<json::Login> const &) override { FAIL(); }
     void operator()(server::Trace<json::Account> const &) override { FAIL(); }
@@ -86,6 +88,6 @@ TEST(json_funding_rate, parser) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }

@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_index_tickers, parser) {
+TEST_CASE("json_index_tickers_parser", "json_index_tickers") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"index-tickers",)"
@@ -64,16 +66,16 @@ TEST(json_index_tickers, parser) {
       ++count_;
       auto &[trace_info, trades] = event;
       auto &data = trades.data;
-      ASSERT_EQ(std::size(data), 1);
+      REQUIRE(std::size(data) == 1);
       auto &d0 = data[0];
-      EXPECT_EQ(d0.inst_id, "BTC-USDT"sv);
-      EXPECT_DOUBLE_EQ(d0.idx_px, 41756.7);
-      EXPECT_DOUBLE_EQ(d0.open24h, 42427.3);
-      EXPECT_DOUBLE_EQ(d0.high24h, 42560.7);
-      EXPECT_DOUBLE_EQ(d0.low24h, 41147.5);
-      EXPECT_DOUBLE_EQ(d0.sod_utc0, 41663.1);
-      EXPECT_DOUBLE_EQ(d0.sod_utc8, 41984.2);
-      EXPECT_EQ(d0.ts, 1642643951284ms);
+      CHECK(d0.inst_id == "BTC-USDT"sv);
+      CHECK(d0.idx_px == 41756.7_a);
+      CHECK(d0.open24h == 42427.3_a);
+      CHECK(d0.high24h == 42560.7_a);
+      CHECK(d0.low24h == 41147.5_a);
+      CHECK(d0.sod_utc0 == 41663.1_a);
+      CHECK(d0.sod_utc8 == 41984.2_a);
+      CHECK(d0.ts == 1642643951284ms);
     }
     void operator()(server::Trace<json::FundingRate> const &) override { FAIL(); }
     void operator()(server::Trace<json::Login> const &) override { FAIL(); }
@@ -92,6 +94,6 @@ TEST(json_index_tickers, parser) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }

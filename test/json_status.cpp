@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include <gtest/gtest.h>
+#include <catch2/catch.hpp>
 
 #include "roq/core/json/parser.h"
 
@@ -12,6 +12,8 @@ using namespace roq::okx;
 using namespace std::literals;
 using namespace std::chrono_literals;
 
+using namespace Catch::literals;
+
 namespace {
 auto create_trace_info() {
   return server::TraceInfo{
@@ -22,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST(json_status, parser) {
+TEST_CASE("json_status_parser", "json_status") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"status")"
@@ -50,15 +52,15 @@ TEST(json_status, parser) {
     void operator()(server::Trace<json::Status> const &event) override {
       ++count_;
       auto &[trace_info, status] = event;
-      EXPECT_EQ(status.begin, 1639645200000ms);
-      EXPECT_EQ(status.end, 1639647600000ms);
-      EXPECT_EQ(status.href, ""sv);
-      EXPECT_EQ(status.sche_desc, ""sv);
-      EXPECT_EQ(status.service_type, 0);
-      EXPECT_EQ(status.state, "completed"sv);
-      EXPECT_EQ(status.system, "unified"sv);
-      EXPECT_EQ(status.title, "Unified Account WebSocket system upgrade"sv);
-      EXPECT_EQ(status.ts, 1639647646363ms);
+      CHECK(status.begin == 1639645200000ms);
+      CHECK(status.end == 1639647600000ms);
+      CHECK(status.href == ""sv);
+      CHECK(status.sche_desc == ""sv);
+      CHECK(status.service_type == 0);
+      CHECK(status.state == "completed"sv);
+      CHECK(status.system == "unified"sv);
+      CHECK(status.title == "Unified Account WebSocket system upgrade"sv);
+      CHECK(status.ts == 1639647646363ms);
     }
     void operator()(server::Trace<json::Instruments> const &) override { FAIL(); }
     void operator()(server::Trace<json::EstimatedPrice> const &) override { FAIL(); }
@@ -90,6 +92,6 @@ TEST(json_status, parser) {
   core::json::Buffer buffer_(buffer);
   auto trace_info = create_trace_info();
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
-  EXPECT_TRUE(res);
-  EXPECT_EQ(handler.get_count(), 1);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
 }
