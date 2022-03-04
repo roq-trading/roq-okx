@@ -24,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST_CASE("json_funding_rate_parser", "json_funding_rate") {
+TEST_CASE("json_funding_rate_parser", "[json_funding_rate]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"funding-rate",)"

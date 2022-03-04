@@ -24,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST_CASE("json_positions_parser", "json_positions") {
+TEST_CASE("json_positions_parser", "[json_positions]") {
   auto message =
       // R"({"arg":{"channel":"positions","instType":"ANY","uid":"33594834598109184"},"data":[]}")";
       R"({)"

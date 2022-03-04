@@ -24,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST_CASE("json_index_tickers_parser", "json_index_tickers") {
+TEST_CASE("json_index_tickers_parser", "[json_index_tickers]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"index-tickers",)"

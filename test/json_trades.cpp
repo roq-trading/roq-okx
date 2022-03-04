@@ -24,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST_CASE("json_trades_parser", "json_trades") {
+TEST_CASE("json_trades_parser", "[json_trades]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"trades",)"

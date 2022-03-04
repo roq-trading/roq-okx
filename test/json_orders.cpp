@@ -24,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST_CASE("json_orders_download_empty", "json_orders") {
+TEST_CASE("json_orders_download_empty", "[json_orders]") {
   auto message = R"({)"
                  R"("code":"0",)"
                  R"("data":[],)"
@@ -38,7 +38,7 @@ TEST_CASE("json_orders_download_empty", "json_orders") {
   CHECK(obj.msg == ""sv);
 }
 
-TEST_CASE("json_orders_download", "json_orders") {
+TEST_CASE("json_orders_download", "[json_orders]") {
   auto message = R"({)"
                  R"("code":"0",)"
                  R"("data":[{)"
@@ -91,7 +91,7 @@ TEST_CASE("json_orders_download", "json_orders") {
   CHECK(obj.msg == ""sv);
 }
 
-TEST_CASE("json_orders_parser", "json_orders") {
+TEST_CASE("json_orders_parser", "[json_orders]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"orders",)"

@@ -24,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST_CASE("json_amend_order_ack_parser_success", "json_amend_order_ack") {
+TEST_CASE("json_amend_order_ack_parser_success", "[json_amend_order_ack]") {
   auto message = R"({)"
                  R"("code":"0",)"
                  R"("data":[{)"

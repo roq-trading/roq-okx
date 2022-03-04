@@ -24,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST_CASE("json_instruments_parser", "json_instruments") {
+TEST_CASE("json_instruments_parser", "[json_instruments]") {
   // note! truncated
   auto message = R"({)"
                  R"("arg":{)"

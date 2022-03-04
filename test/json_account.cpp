@@ -24,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST_CASE("json_account_parser", "json_account") {
+TEST_CASE("json_account_parser", "[json_account]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"account",)"

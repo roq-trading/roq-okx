@@ -24,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST_CASE("json_order_ack_parser_success", "json_order_ack") {
+TEST_CASE("json_order_ack_parser_success", "[json_order_ack]") {
   auto message = R"({)"
                  R"("code":"0",)"
                  R"("data":[{)"
@@ -96,7 +96,7 @@ TEST_CASE("json_order_ack_parser_success", "json_order_ack") {
   CHECK(handler.get_count() == 1);
 }
 
-TEST_CASE("json_order_ack_parser_failure", "json_order_ack") {
+TEST_CASE("json_order_ack_parser_failure", "[json_order_ack]") {
   auto message = R"({)"
                  R"("code":"1",)"
                  R"("data":[{)"

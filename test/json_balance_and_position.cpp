@@ -24,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST_CASE("json_balance_and_position_parser", "json_balance_and_position") {
+TEST_CASE("json_balance_and_position_parser", "[json_balance_and_position]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"balance_and_position",)"
@@ -113,7 +113,7 @@ TEST_CASE("json_balance_and_position_parser", "json_balance_and_position") {
   CHECK(handler.get_count() == 1);
 }
 
-TEST_CASE("json_balance_and_position_sample_2", "json_balance_and_position") {
+TEST_CASE("json_balance_and_position_sample_2", "[json_balance_and_position]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"balance_and_position",)"

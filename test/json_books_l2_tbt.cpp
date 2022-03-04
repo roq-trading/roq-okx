@@ -24,7 +24,7 @@ auto create_trace_info() {
 }
 }  // namespace
 
-TEST_CASE("json_books_l2_tbt_parser", "json_books_l2_tbt") {
+TEST_CASE("json_books_l2_tbt_parser", "[json_books_l2_tbt]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"books-l2-tbt",)"
