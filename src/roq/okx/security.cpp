@@ -1,10 +1,10 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include "roq/okx/security.h"
+#include "roq/okx/security.hpp"
 
-#include "roq/utils/safe_cast.h"
+#include "roq/utils/safe_cast.hpp"
 
-#include "roq/core/clock.h"
+#include "roq/core/clock.hpp"
 
 namespace roq {
 namespace okx {

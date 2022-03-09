@@ -5,11 +5,11 @@
 #include <string>
 #include <string_view>
 
-#include "roq/core/http/method.h"
+#include "roq/core/http/method.hpp"
 
-#include "roq/okx/config.h"
+#include "roq/okx/config.hpp"
 
-#include "roq/okx/tools/hasher.h"
+#include "roq/okx/tools/hasher.hpp"
 
 namespace roq {
 namespace okx {

@@ -6,9 +6,9 @@
 #include <string>
 #include <string_view>
 
-#include "roq/core/http/method.h"
+#include "roq/core/http/method.hpp"
 
-#include "roq/core/crypto/hmac.h"
+#include "roq/core/crypto/hmac.hpp"
 
 namespace roq {
 namespace okx {

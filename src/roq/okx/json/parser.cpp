@@ -1,16 +1,16 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include "roq/okx/json/parser.h"
+#include "roq/okx/json/parser.hpp"
 
 #include <utility>
 
-#include "roq/logging.h"
+#include "roq/logging.hpp"
 
-#include "roq/okx/json/action.h"
-#include "roq/okx/json/arg.h"
-#include "roq/okx/json/event_type.h"
+#include "roq/okx/json/action.hpp"
+#include "roq/okx/json/arg.hpp"
+#include "roq/okx/json/event_type.hpp"
 
-#include "roq/okx/json/frame.h"
+#include "roq/okx/json/frame.hpp"
 
 using namespace std::literals;
 

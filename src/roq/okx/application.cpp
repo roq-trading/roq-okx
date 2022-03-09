@@ -1,10 +1,10 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include "roq/okx/application.h"
+#include "roq/okx/application.hpp"
 
-#include "roq/okx/config.h"
-#include "roq/okx/flags.h"
-#include "roq/okx/gateway.h"
+#include "roq/okx/config.hpp"
+#include "roq/okx/flags.hpp"
+#include "roq/okx/gateway.hpp"
 
 using namespace std::literals;
 

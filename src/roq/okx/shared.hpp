@@ -9,13 +9,13 @@
 #include <utility>
 #include <vector>
 
-#include "roq/api.h"
-#include "roq/server.h"
+#include "roq/api.hpp"
+#include "roq/server.hpp"
 
-#include "roq/core/memory.h"
-#include "roq/core/symbols.h"
+#include "roq/core/memory.hpp"
+#include "roq/core/symbols.hpp"
 
-#include "roq/core/limit/rate_limiter.h"
+#include "roq/core/limit/rate_limiter.hpp"
 
 namespace roq {
 namespace okx {

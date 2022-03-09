@@ -1,20 +1,20 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include "roq/okx/tools/hasher.h"
+#include "roq/okx/tools/hasher.hpp"
 
 #include <fmt/format.h>
 
 #include <array>
 
-#include "roq/logging.h"
+#include "roq/logging.hpp"
 
-#include "roq/utils/chrono.h"
+#include "roq/utils/chrono.hpp"
 
-#include "roq/core/iso_datetime.h"
+#include "roq/core/iso_datetime.hpp"
 
-#include "roq/core/binascii/base64.h"
+#include "roq/core/binascii/base64.hpp"
 
-#include "roq/core/crypto/sha.h"
+#include "roq/core/crypto/sha.hpp"
 
 using namespace std::literals;
 

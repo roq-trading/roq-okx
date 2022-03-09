@@ -2,7 +2,7 @@
 
 #pragma once
 
-#include "roq/okx/flags/flags.h"
+#include "roq/okx/flags/flags.hpp"
 
 namespace roq {
 namespace okx {

@@ -2,9 +2,9 @@
 
 #include <catch2/catch.hpp>
 
-#include "roq/core/json/parser.h"
+#include "roq/core/json/parser.hpp"
 
-#include "roq/okx/json/parser.h"
+#include "roq/okx/json/parser.hpp"
 
 using namespace roq;
 using namespace roq::okx;

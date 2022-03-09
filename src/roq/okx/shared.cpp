@@ -1,8 +1,8 @@
 /* Copyright (c) 2017-2022, Hans Erik Thrane */
 
-#include "roq/okx/shared.h"
+#include "roq/okx/shared.hpp"
 
-#include "roq/okx/flags.h"
+#include "roq/okx/flags.hpp"
 
 namespace roq {
 namespace okx {
