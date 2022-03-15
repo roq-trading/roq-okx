@@ -5,7 +5,7 @@
 #include <algorithm>
 #include <utility>
 
-#include "roq/utils/mask.hpp"
+#include "roq/mask.hpp"
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
 
@@ -28,7 +28,7 @@ namespace okx {
 namespace {
 const auto NAME = "dc"sv;
 
-const auto SUPPORTS = utils::Mask<SupportType>{};
+const auto SUPPORTS = Mask<SupportType>{};
 
 struct create_metrics final : public core::metrics::Factory {
   explicit create_metrics(const std::string_view &group, const std::string_view &function)

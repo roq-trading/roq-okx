@@ -6,7 +6,7 @@
 #include <utility>
 #include <vector>
 
-#include "roq/utils/mask.hpp"
+#include "roq/mask.hpp"
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
 
@@ -32,7 +32,7 @@ namespace okx {
 
 namespace {
 const auto NAME = "ex"sv;
-const auto SUPPORTS = utils::Mask{
+const auto SUPPORTS = Mask{
     SupportType::CREATE_ORDER,
     SupportType::MODIFY_ORDER,
     SupportType::CANCEL_ORDER,
