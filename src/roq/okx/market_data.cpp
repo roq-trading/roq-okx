@@ -216,7 +216,7 @@ void MarketData::subscribe_static() {
   // subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
 }
 
-void MarketData::subscribe(const std::span<std::string const> &symbols) {
+void MarketData::subscribe(const std::span<Symbol const> &symbols) {
   if (std::empty(symbols))
     return;
   // subscribe("price-limit"sv, "instType"sv, symbols);
@@ -270,7 +270,7 @@ void MarketData::subscribe(
 void MarketData::subscribe(
     const std::string_view &channel,
     const std::string_view &selector,
-    const std::span<std::string const> &values) {
+    const std::span<Symbol const> &values) {
   assert(!std::empty(values));
   auto prefix = fmt::format(
       R"({{)"
@@ -344,7 +344,7 @@ void MarketData::operator()(server::Trace<json::Instruments> const &event) {
   profile_.instruments([&]() {
     auto &[trace_info, instruments] = event;
     log::info<1>("event={{trace_info={}, instruments={}}}"sv, trace_info, instruments);
-    std::vector<std::string> symbols;
+    std::vector<Symbol> symbols;
     symbols.reserve(std::size(instruments.data));
     size_t counter = {};
     for (auto &item : instruments.data) {

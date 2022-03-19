@@ -52,7 +52,7 @@ struct Shared final {
   core::Symbols symbols;
 
   // experimental
-  absl::flat_hash_set<std::string> extended_symbols;
+  absl::flat_hash_set<Symbol> extended_symbols;
 };
 
 }  // namespace okx

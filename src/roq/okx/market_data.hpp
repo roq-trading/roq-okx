@@ -30,7 +30,7 @@ namespace okx {
 class MarketData final : public core::web::ClientSocket::Handler, public json::Parser::Handler {
  public:
   struct SymbolsUpdate final {
-    std::vector<std::string> &symbols;
+    std::vector<Symbol> &symbols;
   };
 
   struct Handler {
@@ -78,7 +78,7 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
 
   void subscribe_static();
 
-  void subscribe(const std::span<std::string const> &symbols);
+  void subscribe(const std::span<Symbol const> &symbols);
 
   void subscribe(const std::string_view &channel);
   void subscribe(
@@ -88,7 +88,7 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   void subscribe(
       const std::string_view &channel,
       const std::string_view &selector,
-      const std::span<std::string const> &values);
+      const std::span<Symbol const> &values);
 
   void parse(const std::string_view &message);
 
@@ -147,7 +147,7 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   } latency_;
   // cache
   Shared &shared_;
-  absl::flat_hash_set<std::string> all_symbols_;  // only master (index 0)
+  absl::flat_hash_set<Symbol> all_symbols_;  // only master (index 0)
   // state
   ConnectionStatus status_ = {};
   // queue
