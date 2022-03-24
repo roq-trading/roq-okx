@@ -542,9 +542,7 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
 }
 
 void MarketData::operator()(
-    Trace<json::BooksL2Tbt> const &event,
-    const std::string_view &inst_id,
-    json::Action action) {
+    Trace<json::BooksL2Tbt> const &event, const std::string_view &inst_id, json::Action action) {
   profile_.books_l2_tbt([&]() {
     auto &[trace_info, books_l2_tbt] = event;
     log::info<3>(
