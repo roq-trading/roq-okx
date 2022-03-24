@@ -57,17 +57,17 @@ class Gateway final : public server::Handler,
 
   // many
 
-  void operator()(server::Trace<StreamStatus> const &) override;
-  void operator()(server::Trace<ExternalLatency> const &) override;
-  void operator()(server::Trace<ReferenceData> const &, bool is_last) override;
-  void operator()(server::Trace<MarketStatus> const &, bool is_last) override;
-  void operator()(server::Trace<TopOfBook> const &, bool is_last) override;
-  void operator()(server::Trace<MarketByPriceUpdate> const &, bool is_last, bool refresh) override;
-  void operator()(server::Trace<TradeSummary> const &, bool is_last) override;
-  void operator()(server::Trace<StatisticsUpdate> const &, bool is_last) override;
-  void operator()(const server::Trace<TradeUpdate> &, bool is_last, uint8_t user_id) override;
-  void operator()(server::Trace<FundsUpdate> const &, bool is_last) override;
-  void operator()(server::Trace<PositionUpdate> const &, bool is_last) override;
+  void operator()(Trace<StreamStatus> const &) override;
+  void operator()(Trace<ExternalLatency> const &) override;
+  void operator()(Trace<ReferenceData> const &, bool is_last) override;
+  void operator()(Trace<MarketStatus> const &, bool is_last) override;
+  void operator()(Trace<TopOfBook> const &, bool is_last) override;
+  void operator()(Trace<MarketByPriceUpdate> const &, bool is_last, bool refresh) override;
+  void operator()(Trace<TradeSummary> const &, bool is_last) override;
+  void operator()(Trace<StatisticsUpdate> const &, bool is_last) override;
+  void operator()(const Trace<TradeUpdate> &, bool is_last, uint8_t user_id) override;
+  void operator()(Trace<FundsUpdate> const &, bool is_last) override;
+  void operator()(Trace<PositionUpdate> const &, bool is_last) override;
 
   void operator()(MarketData::SymbolsUpdate &) override;
 

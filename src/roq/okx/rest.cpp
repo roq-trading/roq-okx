@@ -119,7 +119,7 @@ void Rest::operator()(ConnectionStatus status) {
         .priority = Priority::PRIMARY,
     };
     log::info("stream_status={}"sv, stream_status);
-    server::create_trace_and_dispatch(handler_, trace_info, stream_status);
+    create_trace_and_dispatch(handler_, trace_info, stream_status);
   }
 }
 
@@ -140,7 +140,7 @@ void Rest::operator()(const core::web::Client::Latency &latency) {
       .account = {},
       .latency = latency.sample,
   };
-  server::create_trace_and_dispatch(handler_, trace_info, external_latency);
+  create_trace_and_dispatch(handler_, trace_info, external_latency);
   latency_.ping.update(latency.sample);
 }
 
@@ -163,13 +163,13 @@ void Rest::get_orders() {
     };
     connection_("orders"sv, request, [this]([[maybe_unused]] auto &request_id, auto &response) {
       auto trace_info = server::create_trace_info();
-      server::Trace event(trace_info, response);
+      Trace event(trace_info, response);
       get_orders_ack(event);
     });
   });
 }
 
-void Rest::get_orders_ack(const server::Trace<core::web::Response> &event) {
+void Rest::get_orders_ack(const Trace<core::web::Response> &event) {
   profile_.orders_ack([&]() {
     auto &[trace_info, response] = event;
     try {
@@ -198,7 +198,7 @@ void Rest::get_orders_ack(const server::Trace<core::web::Response> &event) {
       // log::debug(R"(body="{}")"sv, body);
       core::json::Buffer buffer(decode_buffer_);
       auto orders = core::json::Parser::create<json::Orders>(body, buffer);
-      server::Trace event(trace_info, orders);
+      Trace event(trace_info, orders);
       (*this)(event);
       download_orders_ = false;
       request_.respond_orders = core::clock::GetSystem();
@@ -208,7 +208,7 @@ void Rest::get_orders_ack(const server::Trace<core::web::Response> &event) {
   });
 }
 
-void Rest::operator()(const server::Trace<json::Orders> &event) {
+void Rest::operator()(const Trace<json::Orders> &event) {
   auto &[trace_info, orders] = event;
   log::info<4>("orders={}"sv, orders);
   for (auto &item : orders.data) {

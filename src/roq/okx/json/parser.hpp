@@ -45,40 +45,40 @@ namespace json {
 struct Parser final {
   struct Handler {
     // events
-    virtual void operator()(server::Trace<json::Error> const &) = 0;
-    virtual void operator()(server::Trace<json::Subscribe> const &) = 0;
-    virtual void operator()(server::Trace<json::Unsubscribe> const &) = 0;
+    virtual void operator()(Trace<json::Error> const &) = 0;
+    virtual void operator()(Trace<json::Subscribe> const &) = 0;
+    virtual void operator()(Trace<json::Unsubscribe> const &) = 0;
     // push
     // - public
-    virtual void operator()(server::Trace<json::Status> const &) = 0;
-    virtual void operator()(server::Trace<json::Instruments> const &) = 0;
-    virtual void operator()(server::Trace<json::EstimatedPrice> const &) = 0;
-    virtual void operator()(server::Trace<json::PriceLimit> const &) = 0;
-    virtual void operator()(server::Trace<json::MarkPrice> const &) = 0;
-    virtual void operator()(server::Trace<json::Tickers> const &) = 0;
-    virtual void operator()(server::Trace<json::Trades> const &) = 0;
+    virtual void operator()(Trace<json::Status> const &) = 0;
+    virtual void operator()(Trace<json::Instruments> const &) = 0;
+    virtual void operator()(Trace<json::EstimatedPrice> const &) = 0;
+    virtual void operator()(Trace<json::PriceLimit> const &) = 0;
+    virtual void operator()(Trace<json::MarkPrice> const &) = 0;
+    virtual void operator()(Trace<json::Tickers> const &) = 0;
+    virtual void operator()(Trace<json::Trades> const &) = 0;
     virtual void operator()(
-        server::Trace<json::BooksL2Tbt> const &, const std::string_view &inst_id, Action) = 0;
-    virtual void operator()(server::Trace<json::IndexTickers> const &) = 0;
-    virtual void operator()(server::Trace<json::FundingRate> const &) = 0;
+        Trace<json::BooksL2Tbt> const &, const std::string_view &inst_id, Action) = 0;
+    virtual void operator()(Trace<json::IndexTickers> const &) = 0;
+    virtual void operator()(Trace<json::FundingRate> const &) = 0;
     // - private
     // -- event
-    virtual void operator()(server::Trace<json::Login> const &) = 0;
-    virtual void operator()(server::Trace<json::Account> const &) = 0;
-    virtual void operator()(server::Trace<json::BalanceAndPosition> const &) = 0;
-    virtual void operator()(server::Trace<json::Positions> const &) = 0;
-    virtual void operator()(server::Trace<json::Orders> const &) = 0;
+    virtual void operator()(Trace<json::Login> const &) = 0;
+    virtual void operator()(Trace<json::Account> const &) = 0;
+    virtual void operator()(Trace<json::BalanceAndPosition> const &) = 0;
+    virtual void operator()(Trace<json::Positions> const &) = 0;
+    virtual void operator()(Trace<json::Orders> const &) = 0;
     // -- ack
-    virtual void operator()(server::Trace<json::OrderAck> const &) = 0;
-    virtual void operator()(server::Trace<json::AmendOrderAck> const &) = 0;
-    virtual void operator()(server::Trace<json::CancelOrderAck> const &) = 0;
+    virtual void operator()(Trace<json::OrderAck> const &) = 0;
+    virtual void operator()(Trace<json::AmendOrderAck> const &) = 0;
+    virtual void operator()(Trace<json::CancelOrderAck> const &) = 0;
   };
 
   static bool dispatch(
       Handler &handler,
       std::string_view const &message,
       core::json::Buffer &,
-      server::TraceInfo const &);
+      TraceInfo const &);
 
  private:
   template <typename T, typename... Args>
@@ -86,7 +86,7 @@ struct Parser final {
       Handler &,
       std::string_view const &message,
       core::json::Buffer &,
-      server::TraceInfo const &,
+      TraceInfo const &,
       Args &&...);
 
   template <typename T, typename... Args>
@@ -94,7 +94,7 @@ struct Parser final {
       Handler &,
       std::string_view const &message,
       core::json::Buffer &,
-      server::TraceInfo const &,
+      TraceInfo const &,
       Args &&...args);
 
   template <typename T, typename... Args>
@@ -102,7 +102,7 @@ struct Parser final {
       Handler &,
       std::string_view const &message,
       core::json::Buffer &,
-      server::TraceInfo const &,
+      TraceInfo const &,
       Args &&...args);
 };
 

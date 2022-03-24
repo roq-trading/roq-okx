@@ -367,7 +367,7 @@ void OrderEntry::operator()(const core::web::ClientSocket::Latency &latency) {
       .account = security_.get_account(),
       .latency = latency.sample,
   };
-  server::create_trace_and_dispatch(handler_, trace_info, external_latency);
+  create_trace_and_dispatch(handler_, trace_info, external_latency);
   latency_.ping.update(latency.sample);
 }
 
@@ -391,7 +391,7 @@ void OrderEntry::operator()(ConnectionStatus status) {
         .priority = Priority::PRIMARY,
     };
     log::info("stream_status={}"sv, stream_status);
-    server::create_trace_and_dispatch(handler_, trace_info, stream_status);
+    create_trace_and_dispatch(handler_, trace_info, stream_status);
   }
 }
 
@@ -498,14 +498,14 @@ void OrderEntry::parse(const std::string_view &message) {
   });
 }
 
-void OrderEntry::operator()(server::Trace<json::Error> const &event) {
+void OrderEntry::operator()(Trace<json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
     log::fatal("event={{trace_info={}, error={}}}"sv, trace_info, error);
   });
 }
 
-void OrderEntry::operator()(server::Trace<json::Subscribe> const &event) {
+void OrderEntry::operator()(Trace<json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
     log::info<1>("event={{trace_info={}, subscribe={}}}"sv, trace_info, subscribe);
@@ -515,7 +515,7 @@ void OrderEntry::operator()(server::Trace<json::Subscribe> const &event) {
   });
 }
 
-void OrderEntry::operator()(server::Trace<json::Unsubscribe> const &event) {
+void OrderEntry::operator()(Trace<json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("event={{trace_info={}, unsubscribe={}}}"sv, trace_info, unsubscribe);
@@ -523,50 +523,50 @@ void OrderEntry::operator()(server::Trace<json::Unsubscribe> const &event) {
   });
 }
 
-void OrderEntry::operator()(server::Trace<json::Status> const &) {
+void OrderEntry::operator()(Trace<json::Status> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void OrderEntry::operator()(server::Trace<json::Instruments> const &) {
+void OrderEntry::operator()(Trace<json::Instruments> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void OrderEntry::operator()(server::Trace<json::EstimatedPrice> const &) {
+void OrderEntry::operator()(Trace<json::EstimatedPrice> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void OrderEntry::operator()(server::Trace<json::PriceLimit> const &) {
+void OrderEntry::operator()(Trace<json::PriceLimit> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void OrderEntry::operator()(server::Trace<json::MarkPrice> const &) {
+void OrderEntry::operator()(Trace<json::MarkPrice> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void OrderEntry::operator()(server::Trace<json::Tickers> const &) {
+void OrderEntry::operator()(Trace<json::Tickers> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void OrderEntry::operator()(server::Trace<json::Trades> const &) {
+void OrderEntry::operator()(Trace<json::Trades> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void OrderEntry::operator()(server::Trace<json::IndexTickers> const &) {
+void OrderEntry::operator()(Trace<json::IndexTickers> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void OrderEntry::operator()(server::Trace<json::FundingRate> const &) {
+void OrderEntry::operator()(Trace<json::FundingRate> const &) {
   log::fatal("Unexpected"sv);
 }
 
 void OrderEntry::operator()(
-    server::Trace<json::BooksL2Tbt> const &,
+    Trace<json::BooksL2Tbt> const &,
     [[maybe_unused]] const std::string_view &inst_id,
     json::Action) {
   log::fatal("Unexpected"sv);
 }
 
-void OrderEntry::operator()(server::Trace<json::Login> const &event) {
+void OrderEntry::operator()(Trace<json::Login> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
     log::info<1>("event={{trace_info={}, login={}}}"sv, trace_info, login);
@@ -576,7 +576,7 @@ void OrderEntry::operator()(server::Trace<json::Login> const &event) {
   });
 }
 
-void OrderEntry::operator()(server::Trace<json::Account> const &event) {
+void OrderEntry::operator()(Trace<json::Account> const &event) {
   profile_.account([&]() {
     auto &[trace_info, account] = event;
     log::info<1>("event={{trace_info={}, account={}}}"sv, trace_info, account);
@@ -595,7 +595,7 @@ void OrderEntry::operator()(server::Trace<json::Account> const &event) {
   });
 }
 
-void OrderEntry::operator()(server::Trace<json::BalanceAndPosition> const &event) {
+void OrderEntry::operator()(Trace<json::BalanceAndPosition> const &event) {
   profile_.balance_and_position([&]() {
     auto &[trace_info, balance_and_position] = event;
     log::info<1>(
@@ -604,7 +604,7 @@ void OrderEntry::operator()(server::Trace<json::BalanceAndPosition> const &event
   });
 }
 
-void OrderEntry::operator()(server::Trace<json::Positions> const &event) {
+void OrderEntry::operator()(Trace<json::Positions> const &event) {
   profile_.positions([&]() {
     auto &[trace_info, positions] = event;
     log::info<1>("event={{trace_info={}, positions={}}}"sv, trace_info, positions);
@@ -628,7 +628,7 @@ void OrderEntry::operator()(server::Trace<json::Positions> const &event) {
   });
 }
 
-void OrderEntry::operator()(server::Trace<json::Orders> const &event) {
+void OrderEntry::operator()(Trace<json::Orders> const &event) {
   profile_.orders([&]() {
     auto &[trace_info, orders] = event;
     log::info<1>("event={{trace_info={}, orders={}}}"sv, trace_info, orders);
@@ -680,7 +680,7 @@ void OrderEntry::operator()(server::Trace<json::Orders> const &event) {
   });
 }
 
-void OrderEntry::operator()(server::Trace<json::OrderAck> const &event) {
+void OrderEntry::operator()(Trace<json::OrderAck> const &event) {
   profile_.order_ack([&]() {
     auto &[trace_info, order_ack] = event;
     log::info<1>("event={{trace_info={}, order_ack={}}}"sv, trace_info, order_ack);
@@ -709,7 +709,7 @@ void OrderEntry::operator()(server::Trace<json::OrderAck> const &event) {
   });
 }
 
-void OrderEntry::operator()(server::Trace<json::AmendOrderAck> const &event) {
+void OrderEntry::operator()(Trace<json::AmendOrderAck> const &event) {
   profile_.amend_order_ack([&]() {
     auto &[trace_info, amend_order_ack] = event;
     log::info<1>("event={{trace_info={}, amend_order_ack={}}}"sv, trace_info, amend_order_ack);
@@ -738,7 +738,7 @@ void OrderEntry::operator()(server::Trace<json::AmendOrderAck> const &event) {
   });
 }
 
-void OrderEntry::operator()(server::Trace<json::CancelOrderAck> const &event) {
+void OrderEntry::operator()(Trace<json::CancelOrderAck> const &event) {
   profile_.cancel_order_ack([&]() {
     auto &[trace_info, cancel_order_ack] = event;
     log::info<1>("event={{trace_info={}, cancel_order_ack={}}}"sv, trace_info, cancel_order_ack);

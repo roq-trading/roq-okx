@@ -32,11 +32,11 @@ namespace okx {
 class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::Handler {
  public:
   struct Handler {
-    virtual void operator()(const server::Trace<StreamStatus> &) = 0;
-    virtual void operator()(const server::Trace<ExternalLatency> &) = 0;
-    virtual void operator()(const server::Trace<TradeUpdate> &, bool is_last, uint8_t user_id) = 0;
-    virtual void operator()(const server::Trace<FundsUpdate> &, bool is_last) = 0;
-    virtual void operator()(const server::Trace<PositionUpdate> &, bool is_last) = 0;
+    virtual void operator()(const Trace<StreamStatus> &) = 0;
+    virtual void operator()(const Trace<ExternalLatency> &) = 0;
+    virtual void operator()(const Trace<TradeUpdate> &, bool is_last, uint8_t user_id) = 0;
+    virtual void operator()(const Trace<FundsUpdate> &, bool is_last) = 0;
+    virtual void operator()(const Trace<PositionUpdate> &, bool is_last) = 0;
   };
 
   OrderEntry(Handler &, core::io::Context &, uint16_t stream_id, Security &, Shared &, Request &);
@@ -76,32 +76,32 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
   void operator()(const core::web::ClientSocket::Text &) override;
   void operator()(const core::web::ClientSocket::Binary &) override;
 
-  void operator()(server::Trace<json::Error> const &) override;
-  void operator()(server::Trace<json::Subscribe> const &) override;
-  void operator()(server::Trace<json::Unsubscribe> const &) override;
+  void operator()(Trace<json::Error> const &) override;
+  void operator()(Trace<json::Subscribe> const &) override;
+  void operator()(Trace<json::Unsubscribe> const &) override;
 
-  void operator()(server::Trace<json::Status> const &) override;
-  void operator()(server::Trace<json::Instruments> const &) override;
-  void operator()(server::Trace<json::EstimatedPrice> const &) override;
-  void operator()(server::Trace<json::PriceLimit> const &) override;
-  void operator()(server::Trace<json::MarkPrice> const &) override;
-  void operator()(server::Trace<json::Tickers> const &) override;
-  void operator()(server::Trace<json::Trades> const &) override;
+  void operator()(Trace<json::Status> const &) override;
+  void operator()(Trace<json::Instruments> const &) override;
+  void operator()(Trace<json::EstimatedPrice> const &) override;
+  void operator()(Trace<json::PriceLimit> const &) override;
+  void operator()(Trace<json::MarkPrice> const &) override;
+  void operator()(Trace<json::Tickers> const &) override;
+  void operator()(Trace<json::Trades> const &) override;
   void operator()(
-      server::Trace<json::BooksL2Tbt> const &,
+      Trace<json::BooksL2Tbt> const &,
       const std::string_view &inst_id,
       json::Action) override;
-  void operator()(server::Trace<json::IndexTickers> const &) override;
-  void operator()(server::Trace<json::FundingRate> const &) override;
+  void operator()(Trace<json::IndexTickers> const &) override;
+  void operator()(Trace<json::FundingRate> const &) override;
 
-  void operator()(server::Trace<json::Login> const &) override;
-  void operator()(server::Trace<json::Account> const &) override;
-  void operator()(server::Trace<json::BalanceAndPosition> const &) override;
-  void operator()(server::Trace<json::Positions> const &) override;
-  void operator()(server::Trace<json::Orders> const &) override;
-  void operator()(server::Trace<json::OrderAck> const &) override;
-  void operator()(server::Trace<json::AmendOrderAck> const &) override;
-  void operator()(server::Trace<json::CancelOrderAck> const &) override;
+  void operator()(Trace<json::Login> const &) override;
+  void operator()(Trace<json::Account> const &) override;
+  void operator()(Trace<json::BalanceAndPosition> const &) override;
+  void operator()(Trace<json::Positions> const &) override;
+  void operator()(Trace<json::Orders> const &) override;
+  void operator()(Trace<json::OrderAck> const &) override;
+  void operator()(Trace<json::AmendOrderAck> const &) override;
+  void operator()(Trace<json::CancelOrderAck> const &) override;
 
  private:
   void operator()(ConnectionStatus);
