@@ -1,10 +1,22 @@
 {
-"name": "BooksL2TbtItem",
-"type": "array_item",
-"values": [
-	{ "name": "price", "type": "double" },
-	{ "name": "size", "type": "double" },
-	{ "name": "liquidated_orders", "type": "uint32_t" },
-	{ "name": "orders", "type": "uint32_t" }
-]
+  "name": "BooksL2TbtItem",
+  "type": "array_item",
+  "values": [
+    {
+      "name": "price",
+      "type": "double"
+    },
+    {
+      "name": "size",
+      "type": "double"
+    },
+    {
+      "name": "liquidated_orders",
+      "type": "uint32_t"
+    },
+    {
+      "name": "orders",
+      "type": "uint32_t"
+    }
+  ]
 }

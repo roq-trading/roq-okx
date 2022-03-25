@@ -1,8 +1,14 @@
 {
-"name": "OptionType",
-"type": "enum",
-"values": [
-	{ "raw": "C", "name": "call" },
-	{ "raw": "P", "name": "put" }
-]
+  "name": "OptionType",
+  "type": "enum",
+  "values": [
+    {
+      "raw": "C",
+      "name": "call"
+    },
+    {
+      "raw": "P",
+      "name": "put"
+    }
+  ]
 }

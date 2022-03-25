@@ -1,22 +1,70 @@
 {
-"name": "TickersItem",
-"type": "item",
-"values": [
-	{ "name": "instType", "type": "InstrumentType" },
-	{ "name": "instId", "type": "std::string_view" },
-	{ "name": "last", "type": "double" },
-	{ "name": "lastSz", "type": "double" },
-	{ "name": "askPx", "type": "double" },
-	{ "name": "askSz", "type": "double" },
-	{ "name": "bidPx", "type": "double" },
-	{ "name": "bidSz", "type": "double" },
-	{ "name": "open24h", "type": "double" },
-	{ "name": "high24h", "type": "double" },
-	{ "name": "low24h", "type": "double" },
-	{ "name": "sodUtc0", "type": "double" },
-	{ "name": "sodUtc8", "type": "double" },
-	{ "name": "volCcy24h", "type": "double" },
-	{ "name": "vol24h", "type": "double" },
-	{ "name": "ts", "type": "std::chrono::milliseconds" }
-]
+  "name": "TickersItem",
+  "type": "item",
+  "values": [
+    {
+      "name": "instType",
+      "type": "InstrumentType"
+    },
+    {
+      "name": "instId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "last",
+      "type": "double"
+    },
+    {
+      "name": "lastSz",
+      "type": "double"
+    },
+    {
+      "name": "askPx",
+      "type": "double"
+    },
+    {
+      "name": "askSz",
+      "type": "double"
+    },
+    {
+      "name": "bidPx",
+      "type": "double"
+    },
+    {
+      "name": "bidSz",
+      "type": "double"
+    },
+    {
+      "name": "open24h",
+      "type": "double"
+    },
+    {
+      "name": "high24h",
+      "type": "double"
+    },
+    {
+      "name": "low24h",
+      "type": "double"
+    },
+    {
+      "name": "sodUtc0",
+      "type": "double"
+    },
+    {
+      "name": "sodUtc8",
+      "type": "double"
+    },
+    {
+      "name": "volCcy24h",
+      "type": "double"
+    },
+    {
+      "name": "vol24h",
+      "type": "double"
+    },
+    {
+      "name": "ts",
+      "type": "std::chrono::milliseconds"
+    }
+  ]
 }

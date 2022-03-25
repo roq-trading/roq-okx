@@ -1,7 +1,10 @@
 {
-"name": "EstimatedPrice",
-"type": "array",
-"values": [
-	{ "name": "data", "type": "std::span<EstimatedPriceItem>" }
-]
+  "name": "EstimatedPrice",
+  "type": "array",
+  "values": [
+    {
+      "name": "data",
+      "type": "std::span<EstimatedPriceItem>"
+    }
+  ]
 }

@@ -1,9 +1,18 @@
 {
-"name": "BalanceAndPositionBalanceItem",
-"type": "item",
-"values": [
-	{ "name": "ccy", "type": "std::string_view" },
-	{ "name": "cashBal", "type": "double" },
-	{ "name": "uTime", "type": "std::chrono::milliseconds" }
-]
+  "name": "BalanceAndPositionBalanceItem",
+  "type": "item",
+  "values": [
+    {
+      "name": "ccy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "cashBal",
+      "type": "double"
+    },
+    {
+      "name": "uTime",
+      "type": "std::chrono::milliseconds"
+    }
+  ]
 }

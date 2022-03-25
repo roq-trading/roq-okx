@@ -1,7 +1,10 @@
 {
-"name": "MarkPrice",
-"type": "array",
-"values": [
-	{ "name": "data", "type": "std::span<MarkPriceItem>" }
-]
+  "name": "MarkPrice",
+  "type": "array",
+  "values": [
+    {
+      "name": "data",
+      "type": "std::span<MarkPriceItem>"
+    }
+  ]
 }

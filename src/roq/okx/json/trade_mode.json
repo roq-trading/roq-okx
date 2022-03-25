@@ -1,9 +1,15 @@
 {
-"name": "TradeMode",
-"type": "enum",
-"values": [
-	{ "name": "cross" },
-	{ "name": "isolated" },
-	{ "name": "cash" }
-]
+  "name": "TradeMode",
+  "type": "enum",
+  "values": [
+    {
+      "name": "cross"
+    },
+    {
+      "name": "isolated"
+    },
+    {
+      "name": "cash"
+    }
+  ]
 }

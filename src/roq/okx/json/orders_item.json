@@ -1,52 +1,190 @@
 {
-"name": "OrdersItem",
-"type": "item",
-"values": [
-	{ "name": "accFillSz", "type": "double" },
-	{ "name": "amendResult", "type": "int32_t" },
-	{ "name": "avgPx", "type": "double" },
-	{ "name": "category", "type": "Category" },
-	{ "name": "ccy", "type": "std::string_view" },
-	{ "name": "clOrdId", "type": "std::string_view" },
-	{ "name": "code", "type": "int32_t" },
-	{ "name": "cTime", "type": "std::chrono::milliseconds" },
-	{ "name": "execType", "type": "OrderFlowType" },
-	{ "name": "feeCcy", "type": "std::string_view" },
-	{ "name": "fee", "type": "double" },
-	{ "name": "fillFeeCcy", "type": "std::string_view" },
-	{ "name": "fillFee", "type": "double" },
-	{ "name": "fillNotionalUsd", "type": "std::string_view" },
-	{ "name": "fillPx", "type": "double" },
-	{ "name": "fillSz", "type": "double" },
-	{ "name": "fillTime", "type": "std::chrono::milliseconds" },
-	{ "name": "instId", "type": "std::string_view" },
-	{ "name": "instType", "type": "InstrumentType" },
-	{ "name": "lever", "type": "double" },
-	{ "name": "msg", "type": "std::string_view" },
-	{ "name": "notionalUsd", "type": "double" },
-	{ "name": "ordId", "type": "std::string_view" },
-	{ "name": "ordType", "type": "OrderType" },
-	{ "name": "pnl", "type": "double" },
-	{ "name": "posSide", "type": "PositionSide" },
-	{ "name": "px", "type": "double" },
-	{ "name": "rebateCcy", "type": "std::string_view" },
-	{ "name": "rebate", "type": "double" },
-	{ "name": "reduceOnly", "type": "bool" },
-	{ "name": "reqId", "type": "std::string_view" },
-	{ "name": "side", "type": "Side" },
-	{ "name": "slOrdPx", "type": "double" },
-	{ "name": "slTriggerPx", "type": "double" },
-	{ "name": "slTriggerPxType", "type": "TriggerPriceType" },
-	{ "name": "source", "type": "std::string_view" },
-	{ "name": "state", "type": "OrderState" },
-	{ "name": "sz", "type": "double" },
-	{ "name": "tag", "type": "std::string_view" },
-	{ "name": "tdMode", "type": "TradeMode" },
-	{ "name": "tgtCcy", "type": "std::string_view" },
-	{ "name": "tpOrdPx", "type": "double" },
-	{ "name": "tpTriggerPx", "type": "double" },
-	{ "name": "tpTriggerPxType", "type": "TriggerPriceType" },
-	{ "name": "tradeId", "type": "std::string_view" },
-	{ "name": "uTime", "type": "std::chrono::milliseconds" }
-]
+  "name": "OrdersItem",
+  "type": "item",
+  "values": [
+    {
+      "name": "accFillSz",
+      "type": "double"
+    },
+    {
+      "name": "amendResult",
+      "type": "int32_t"
+    },
+    {
+      "name": "avgPx",
+      "type": "double"
+    },
+    {
+      "name": "category",
+      "type": "Category"
+    },
+    {
+      "name": "ccy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "clOrdId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "code",
+      "type": "int32_t"
+    },
+    {
+      "name": "cTime",
+      "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "execType",
+      "type": "OrderFlowType"
+    },
+    {
+      "name": "feeCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "fee",
+      "type": "double"
+    },
+    {
+      "name": "fillFeeCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "fillFee",
+      "type": "double"
+    },
+    {
+      "name": "fillNotionalUsd",
+      "type": "std::string_view"
+    },
+    {
+      "name": "fillPx",
+      "type": "double"
+    },
+    {
+      "name": "fillSz",
+      "type": "double"
+    },
+    {
+      "name": "fillTime",
+      "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "instId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "instType",
+      "type": "InstrumentType"
+    },
+    {
+      "name": "lever",
+      "type": "double"
+    },
+    {
+      "name": "msg",
+      "type": "std::string_view"
+    },
+    {
+      "name": "notionalUsd",
+      "type": "double"
+    },
+    {
+      "name": "ordId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "ordType",
+      "type": "OrderType"
+    },
+    {
+      "name": "pnl",
+      "type": "double"
+    },
+    {
+      "name": "posSide",
+      "type": "PositionSide"
+    },
+    {
+      "name": "px",
+      "type": "double"
+    },
+    {
+      "name": "rebateCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "rebate",
+      "type": "double"
+    },
+    {
+      "name": "reduceOnly",
+      "type": "bool"
+    },
+    {
+      "name": "reqId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "side",
+      "type": "Side"
+    },
+    {
+      "name": "slOrdPx",
+      "type": "double"
+    },
+    {
+      "name": "slTriggerPx",
+      "type": "double"
+    },
+    {
+      "name": "slTriggerPxType",
+      "type": "TriggerPriceType"
+    },
+    {
+      "name": "source",
+      "type": "std::string_view"
+    },
+    {
+      "name": "state",
+      "type": "OrderState"
+    },
+    {
+      "name": "sz",
+      "type": "double"
+    },
+    {
+      "name": "tag",
+      "type": "std::string_view"
+    },
+    {
+      "name": "tdMode",
+      "type": "TradeMode"
+    },
+    {
+      "name": "tgtCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "tpOrdPx",
+      "type": "double"
+    },
+    {
+      "name": "tpTriggerPx",
+      "type": "double"
+    },
+    {
+      "name": "tpTriggerPxType",
+      "type": "TriggerPriceType"
+    },
+    {
+      "name": "tradeId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "uTime",
+      "type": "std::chrono::milliseconds"
+    }
+  ]
 }

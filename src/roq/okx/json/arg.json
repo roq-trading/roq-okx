@@ -1,10 +1,22 @@
 {
-"name": "Arg",
-"type": "item",
-"values": [
-	{ "name": "channel", "type": "Channel" },
-	{ "name": "instId", "type": "std::string_view" },
-	{ "name": "instType", "type": "std::string_view" },
-	{ "name": "uid", "type": "std::string_view" }
-]
+  "name": "Arg",
+  "type": "item",
+  "values": [
+    {
+      "name": "channel",
+      "type": "Channel"
+    },
+    {
+      "name": "instId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "instType",
+      "type": "std::string_view"
+    },
+    {
+      "name": "uid",
+      "type": "std::string_view"
+    }
+  ]
 }

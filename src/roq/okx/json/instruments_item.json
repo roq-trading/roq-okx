@@ -1,27 +1,90 @@
 {
-"name": "InstrumentsItem",
-"type": "item",
-"values": [
-	{ "name": "alias", "type": "std::string_view" },
-	{ "name": "baseCcy", "type": "std::string_view" },
-	{ "name": "category", "type": "std::string_view" },
-	{ "name": "ctMult", "type": "double" },
-	{ "name": "ctType", "type": "ContractType" },
-	{ "name": "ctValCcy", "type": "std::string_view" },
-	{ "name": "ctVal", "type": "double" },
-	{ "name": "expTime", "type": "std::chrono::milliseconds" },
-	{ "name": "instId", "type": "std::string_view" },
-	{ "name": "instType", "type": "InstrumentType" },
-	{ "name": "lever", "type": "double" },
-	{ "name": "listTime", "type": "std::chrono::milliseconds" },
-	{ "name": "lotSz", "type": "double" },
-	{ "name": "minSz", "type": "double" },
-	{ "name": "optType", "type": "OptionType" },
-	{ "name": "quoteCcy", "type": "std::string_view" },
-	{ "name": "settleCcy", "type": "std::string_view" },
-	{ "name": "state", "type": "State" },
-	{ "name": "stk", "type": "double" },
-	{ "name": "tickSz", "type": "double" },
-	{ "name": "uly", "type": "std::string_view" }
-]
+  "name": "InstrumentsItem",
+  "type": "item",
+  "values": [
+    {
+      "name": "alias",
+      "type": "std::string_view"
+    },
+    {
+      "name": "baseCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "category",
+      "type": "std::string_view"
+    },
+    {
+      "name": "ctMult",
+      "type": "double"
+    },
+    {
+      "name": "ctType",
+      "type": "ContractType"
+    },
+    {
+      "name": "ctValCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "ctVal",
+      "type": "double"
+    },
+    {
+      "name": "expTime",
+      "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "instId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "instType",
+      "type": "InstrumentType"
+    },
+    {
+      "name": "lever",
+      "type": "double"
+    },
+    {
+      "name": "listTime",
+      "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "lotSz",
+      "type": "double"
+    },
+    {
+      "name": "minSz",
+      "type": "double"
+    },
+    {
+      "name": "optType",
+      "type": "OptionType"
+    },
+    {
+      "name": "quoteCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "settleCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "state",
+      "type": "State"
+    },
+    {
+      "name": "stk",
+      "type": "double"
+    },
+    {
+      "name": "tickSz",
+      "type": "double"
+    },
+    {
+      "name": "uly",
+      "type": "std::string_view"
+    }
+  ]
 }

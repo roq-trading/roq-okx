@@ -1,7 +1,10 @@
 {
-"name": "Tickers",
-"type": "array",
-"values": [
-	{ "name": "data", "type": "std::span<TickersItem>" }
-]
+  "name": "Tickers",
+  "type": "array",
+  "values": [
+    {
+      "name": "data",
+      "type": "std::span<TickersItem>"
+    }
+  ]
 }

@@ -1,10 +1,22 @@
 {
-"name": "Orders",
-"type": "comp",
-"values": [
-	{ "name": "code", "type": "int32_t" },
-	{ "name": "msg", "type": "std::string_view" },
-	{ "name": "arg", "type": "Arg" },
-	{ "name": "data", "type": "std::span<OrdersItem>" }
-]
+  "name": "Orders",
+  "type": "comp",
+  "values": [
+    {
+      "name": "code",
+      "type": "int32_t"
+    },
+    {
+      "name": "msg",
+      "type": "std::string_view"
+    },
+    {
+      "name": "arg",
+      "type": "Arg"
+    },
+    {
+      "name": "data",
+      "type": "std::span<OrdersItem>"
+    }
+  ]
 }

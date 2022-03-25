@@ -1,10 +1,18 @@
 {
-"name": "EventType",
-"type": "enum",
-"values": [
-	{ "name": "error" },
-	{ "name": "login" },
-	{ "name": "subscribe" },
-	{ "name": "unsubscribe" }
-]
+  "name": "EventType",
+  "type": "enum",
+  "values": [
+    {
+      "name": "error"
+    },
+    {
+      "name": "login"
+    },
+    {
+      "name": "subscribe"
+    },
+    {
+      "name": "unsubscribe"
+    }
+  ]
 }

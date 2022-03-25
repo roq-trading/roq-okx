@@ -1,10 +1,22 @@
 {
-"name": "BalanceAndPosition",
-"type": "comp",
-"values": [
-	{ "name": "pTime", "type": "std::chrono::milliseconds" },
-	{ "name": "eventType", "type": "std::string_view" },
-	{ "name": "balData", "type": "std::span<BalanceAndPositionBalanceItem>" },
-	{ "name": "posData", "type": "std::span<BalanceAndPositionPositionItem>" }
-]
+  "name": "BalanceAndPosition",
+  "type": "comp",
+  "values": [
+    {
+      "name": "pTime",
+      "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "eventType",
+      "type": "std::string_view"
+    },
+    {
+      "name": "balData",
+      "type": "std::span<BalanceAndPositionBalanceItem>"
+    },
+    {
+      "name": "posData",
+      "type": "std::span<BalanceAndPositionPositionItem>"
+    }
+  ]
 }

@@ -1,47 +1,170 @@
 {
-"name": "PositionsItem",
-"type": "item",
-"values": [
-	{ "name": "instType", "type": "InstrumentType" },
-	{ "name": "mgnMode", "type": "MarginMode" },
-	{ "name": "posSide", "type": "PositionSide" },
-	{ "name": "pos", "type": "double" },
-	{ "name": "posCcy", "type": "std::string_view" },
-	{ "name": "availPos", "type": "double" },
-	{ "name": "avgPx", "type": "double" },
-	{ "name": "upl", "type": "double" },
-	{ "name": "uplRatio", "type": "double" },
-	{ "name": "instId", "type": "std::string_view" },
-	{ "name": "lever", "type": "double" },
-	{ "name": "liqPx", "type": "double" },
-	{ "name": "markPx", "type": "double" },
-	{ "name": "imr", "type": "double" },
-	{ "name": "margin", "type": "double" },
-	{ "name": "mgnRatio", "type": "double" },
-	{ "name": "mmr", "type": "double" },
-	{ "name": "liab", "type": "double" },
-	{ "name": "liabCcy", "type": "std::string_view" },
-	{ "name": "interest", "type": "double" },
-	{ "name": "tradeId", "type": "std::string_view" },
-	{ "name": "notionalUsd", "type": "double" },
-	{ "name": "optVal", "type": "double" },
-	{ "name": "adl", "type": "int32_t" },
-	{ "name": "ccy", "type": "std::string_view" },
-	{ "name": "last", "type": "double" },
-	{ "name": "usdPx", "type": "double" },
-	{ "name": "deltaBS", "type": "double" },
-	{ "name": "deltaPA", "type": "double" },
-	{ "name": "gammaBS", "type": "double" },
-	{ "name": "gammaPA", "type": "double" },
-	{ "name": "thetaBS", "type": "double" },
-	{ "name": "thetaPA", "type": "double" },
-	{ "name": "vegaBS", "type": "double" },
-	{ "name": "vegaPA", "type": "double" },
-	{ "name": "cTime", "type": "std::chrono::milliseconds" },
-	{ "name": "uTime", "type": "std::chrono::milliseconds" },
-	{ "name": "pTime", "type": "std::chrono::milliseconds" },
-	{ "name": "baseBal", "type": "double" },
-	{ "name": "quoteBal", "type": "double" },
-	{ "name": "posId", "type": "std::string_view" }
-]
+  "name": "PositionsItem",
+  "type": "item",
+  "values": [
+    {
+      "name": "instType",
+      "type": "InstrumentType"
+    },
+    {
+      "name": "mgnMode",
+      "type": "MarginMode"
+    },
+    {
+      "name": "posSide",
+      "type": "PositionSide"
+    },
+    {
+      "name": "pos",
+      "type": "double"
+    },
+    {
+      "name": "posCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "availPos",
+      "type": "double"
+    },
+    {
+      "name": "avgPx",
+      "type": "double"
+    },
+    {
+      "name": "upl",
+      "type": "double"
+    },
+    {
+      "name": "uplRatio",
+      "type": "double"
+    },
+    {
+      "name": "instId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "lever",
+      "type": "double"
+    },
+    {
+      "name": "liqPx",
+      "type": "double"
+    },
+    {
+      "name": "markPx",
+      "type": "double"
+    },
+    {
+      "name": "imr",
+      "type": "double"
+    },
+    {
+      "name": "margin",
+      "type": "double"
+    },
+    {
+      "name": "mgnRatio",
+      "type": "double"
+    },
+    {
+      "name": "mmr",
+      "type": "double"
+    },
+    {
+      "name": "liab",
+      "type": "double"
+    },
+    {
+      "name": "liabCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "interest",
+      "type": "double"
+    },
+    {
+      "name": "tradeId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "notionalUsd",
+      "type": "double"
+    },
+    {
+      "name": "optVal",
+      "type": "double"
+    },
+    {
+      "name": "adl",
+      "type": "int32_t"
+    },
+    {
+      "name": "ccy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "last",
+      "type": "double"
+    },
+    {
+      "name": "usdPx",
+      "type": "double"
+    },
+    {
+      "name": "deltaBS",
+      "type": "double"
+    },
+    {
+      "name": "deltaPA",
+      "type": "double"
+    },
+    {
+      "name": "gammaBS",
+      "type": "double"
+    },
+    {
+      "name": "gammaPA",
+      "type": "double"
+    },
+    {
+      "name": "thetaBS",
+      "type": "double"
+    },
+    {
+      "name": "thetaPA",
+      "type": "double"
+    },
+    {
+      "name": "vegaBS",
+      "type": "double"
+    },
+    {
+      "name": "vegaPA",
+      "type": "double"
+    },
+    {
+      "name": "cTime",
+      "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "uTime",
+      "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "pTime",
+      "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "baseBal",
+      "type": "double"
+    },
+    {
+      "name": "quoteBal",
+      "type": "double"
+    },
+    {
+      "name": "posId",
+      "type": "std::string_view"
+    }
+  ]
 }

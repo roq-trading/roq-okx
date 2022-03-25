@@ -1,10 +1,22 @@
 {
-"name": "MarkPriceItem",
-"type": "item",
-"values": [
-	{ "name": "instType", "type": "InstrumentType" },
-	{ "name": "instId", "type": "std::string_view" },
-	{ "name": "markPx", "type": "double" },
-	{ "name": "ts", "type": "std::chrono::milliseconds" }
-]
+  "name": "MarkPriceItem",
+  "type": "item",
+  "values": [
+    {
+      "name": "instType",
+      "type": "InstrumentType"
+    },
+    {
+      "name": "instId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "markPx",
+      "type": "double"
+    },
+    {
+      "name": "ts",
+      "type": "std::chrono::milliseconds"
+    }
+  ]
 }

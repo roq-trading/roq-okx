@@ -88,9 +88,7 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
   void operator()(Trace<json::Tickers> const &) override;
   void operator()(Trace<json::Trades> const &) override;
   void operator()(
-      Trace<json::BooksL2Tbt> const &,
-      const std::string_view &inst_id,
-      json::Action) override;
+      Trace<json::BooksL2Tbt> const &, const std::string_view &inst_id, json::Action) override;
   void operator()(Trace<json::IndexTickers> const &) override;
   void operator()(Trace<json::FundingRate> const &) override;
 

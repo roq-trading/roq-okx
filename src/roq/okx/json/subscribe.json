@@ -1,8 +1,14 @@
 {
-"name": "Subscribe",
-"type": "item",
-"values": [
-	{ "name": "channel", "type": "Channel" },
-	{ "name": "instId", "type": "std::string_view" }
-]
+  "name": "Subscribe",
+  "type": "item",
+  "values": [
+    {
+      "name": "channel",
+      "type": "Channel"
+    },
+    {
+      "name": "instId",
+      "type": "std::string_view"
+    }
+  ]
 }

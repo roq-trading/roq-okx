@@ -1,10 +1,22 @@
 {
-"name": "PriceLimitItem",
-"type": "item",
-"values": [
-	{ "name": "instType", "type": "InstrumentType" },
-	{ "name": "instId", "type": "std::string_view" },
-	{ "name": "buyLmt", "type": "double" },
-	{ "name": "SellLmt", "type": "double" }
-]
+  "name": "PriceLimitItem",
+  "type": "item",
+  "values": [
+    {
+      "name": "instType",
+      "type": "InstrumentType"
+    },
+    {
+      "name": "instId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "buyLmt",
+      "type": "double"
+    },
+    {
+      "name": "SellLmt",
+      "type": "double"
+    }
+  ]
 }

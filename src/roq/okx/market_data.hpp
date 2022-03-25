@@ -39,8 +39,7 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
     virtual void operator()(Trace<ReferenceData> const &, bool is_last) = 0;
     virtual void operator()(const Trace<MarketStatus> &, bool is_last) = 0;
     virtual void operator()(const Trace<TopOfBook> &, bool is_last) = 0;
-    virtual void operator()(
-        const Trace<MarketByPriceUpdate> &, bool is_last, bool refresh) = 0;
+    virtual void operator()(const Trace<MarketByPriceUpdate> &, bool is_last, bool refresh) = 0;
     virtual void operator()(const Trace<TradeSummary> &, bool is_last) = 0;
     virtual void operator()(const Trace<StatisticsUpdate> &, bool is_last) = 0;
     // cross-communication
@@ -104,9 +103,7 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   void operator()(Trace<json::Tickers> const &) override;
   void operator()(Trace<json::Trades> const &) override;
   void operator()(
-      Trace<json::BooksL2Tbt> const &,
-      const std::string_view &inst_id,
-      json::Action) override;
+      Trace<json::BooksL2Tbt> const &, const std::string_view &inst_id, json::Action) override;
   void operator()(Trace<json::IndexTickers> const &) override;
   void operator()(Trace<json::FundingRate> const &) override;
 

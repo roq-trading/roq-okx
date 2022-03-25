@@ -1,9 +1,15 @@
 {
-"name": "TriggerPriceType",
-"type": "enum",
-"values": [
-	{ "name": "last" },
-	{ "name": "index" },
-	{ "name": "mark" }
-]
+  "name": "TriggerPriceType",
+  "type": "enum",
+  "values": [
+    {
+      "name": "last"
+    },
+    {
+      "name": "index"
+    },
+    {
+      "name": "mark"
+    }
+  ]
 }

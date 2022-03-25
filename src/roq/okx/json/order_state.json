@@ -1,10 +1,18 @@
 {
-"name": "OrderState",
-"type": "enum",
-"values": [
-	{ "name": "canceled" },
-	{ "name": "live" },
-	{ "name": "partially_filled" },
-	{ "name": "filled" }
-]
+  "name": "OrderState",
+  "type": "enum",
+  "values": [
+    {
+      "name": "canceled"
+    },
+    {
+      "name": "live"
+    },
+    {
+      "name": "partially_filled"
+    },
+    {
+      "name": "filled"
+    }
+  ]
 }
