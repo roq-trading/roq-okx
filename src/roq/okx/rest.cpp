@@ -28,7 +28,7 @@ namespace okx {
 namespace {
 const auto NAME = "dc"sv;
 
-const auto SUPPORTS = Mask<SupportType>{};
+const Mask<SupportType> SUPPORTS;
 
 struct create_metrics final : public core::metrics::Factory {
   explicit create_metrics(const std::string_view &group, const std::string_view &function)
@@ -113,7 +113,7 @@ void Rest::operator()(ConnectionStatus status) {
     StreamStatus stream_status{
         .stream_id = stream_id_,
         .account = {},
-        .supports = SUPPORTS.get(),
+        .supports = SUPPORTS,
         .status = status_,
         .type = StreamType::REST,
         .priority = Priority::PRIMARY,
@@ -223,7 +223,7 @@ void Rest::operator()(const Trace<json::Orders> &event) {
         .max_show_quantity = NaN,
         .order_type = {},
         .time_in_force = {},
-        .execution_instruction = {},
+        .execution_instructions = {},
         .order_template = {},
         .create_time_utc = {},
         .update_time_utc = utils::safe_cast(item.u_time),

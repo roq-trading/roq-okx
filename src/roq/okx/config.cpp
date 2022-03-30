@@ -52,7 +52,7 @@ void Config::dispatch(server::Config::Handler &handler) const {
     handler(iter.second);
   for (auto &user : users)
     handler(user);
-  server::Settings settings{
+  GatewaySettings gateway_settings{
       .supports{
           SupportType::REFERENCE_DATA,
           SupportType::MARKET_STATUS,
@@ -63,7 +63,8 @@ void Config::dispatch(server::Config::Handler &handler) const {
           SupportType::CREATE_ORDER,
           SupportType::CANCEL_ORDER,
           SupportType::ORDER_ACK,
-          SupportType::FUNDS},
+          SupportType::FUNDS,
+      },
       .mbp_max_depth = {},
       .mbp_tick_size_multiplier = NaN,
       .mbp_min_trade_vol_multiplier = NaN,
@@ -73,7 +74,7 @@ void Config::dispatch(server::Config::Handler &handler) const {
       .oms_download_has_routing_id = {},
       .oms_request_id_type = RequestIdType::BASE32,
   };
-  handler(settings);
+  handler(gateway_settings);
   for (auto &iter : rate_limits)
     handler(iter.second);
 }

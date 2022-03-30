@@ -32,7 +32,7 @@ namespace okx {
 
 namespace {
 const auto NAME = "ex"sv;
-const auto SUPPORTS = Mask{
+const Mask<SupportType> SUPPORTS{
     SupportType::CREATE_ORDER,
     SupportType::MODIFY_ORDER,
     SupportType::CANCEL_ORDER,
@@ -144,20 +144,15 @@ void OrderEntry::operator()(metrics::Writer &writer) {
 
 namespace {
 std::pair<json::OrderType, bool> compute_order_attributes(
-    const auto &order_type, const auto &time_in_force, const auto &execution_instruction) {
+    const auto &order_type, const auto &time_in_force, const auto &execution_instructions) {
   bool reduce_only = false;
   json::OrderType order_type_ = {};
-  switch (execution_instruction) {
-    case ExecutionInstruction::UNDEFINED:
-      break;
-    case ExecutionInstruction::PARTICIPATE_DO_NOT_INITIATE:
+  if (!std::empty(execution_instructions)) {
+    if (execution_instructions.has(ExecutionInstruction::PARTICIPATE_DO_NOT_INITIATE))
       order_type_ = json::OrderType::POST_ONLY;
-      break;
-    case ExecutionInstruction::DO_NOT_INCREASE:
+    if (execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE))
       reduce_only = true;
-      break;
-    default:
-      throw oms::NotSupported("not supported"sv);
+    // throw oms::NotSupported("not supported"sv);
   }
   switch (time_in_force) {
     case TimeInForce::GTC:
@@ -195,7 +190,7 @@ uint16_t OrderEntry::operator()(
   json::PositionSide position_side = json::PositionSide::NET;  // XXX should be configurable
   auto side = json::map(create_order.side);
   auto [order_type, reduce_only] = compute_order_attributes(
-      create_order.order_type, create_order.time_in_force, create_order.execution_instruction);
+      create_order.order_type, create_order.time_in_force, create_order.execution_instructions);
   switch (order_type) {
     case json::OrderType::MARKET: {
       auto message = fmt::format(
@@ -385,7 +380,7 @@ void OrderEntry::operator()(ConnectionStatus status) {
     StreamStatus stream_status{
         .stream_id = stream_id_,
         .account = security_.get_account(),
-        .supports = SUPPORTS.get(),
+        .supports = SUPPORTS,
         .status = status_,
         .type = StreamType::WEB_SOCKET,
         .priority = Priority::PRIMARY,
@@ -648,7 +643,7 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
           .max_show_quantity = NaN,
           .order_type = {},
           .time_in_force = {},
-          .execution_instruction = {},
+          .execution_instructions = {},
           .order_template = {},
           .create_time_utc = {},
           .update_time_utc = utils::safe_cast(item.u_time),
