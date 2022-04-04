@@ -26,7 +26,7 @@ namespace okx {
 
 namespace {
 const auto NAME = "md"sv;
-const Mask<SupportType> SUPPORTS{
+const Mask SUPPORTS{
     SupportType::REFERENCE_DATA,
     SupportType::MARKET_STATUS,
     SupportType::TOP_OF_BOOK,
