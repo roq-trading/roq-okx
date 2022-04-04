@@ -28,7 +28,7 @@ namespace okx {
 namespace {
 const auto NAME = "dc"sv;
 
-const Mask SUPPORTS;
+const Mask<SupportType> SUPPORTS;
 
 struct create_metrics final : public core::metrics::Factory {
   explicit create_metrics(const std::string_view &group, const std::string_view &function)
