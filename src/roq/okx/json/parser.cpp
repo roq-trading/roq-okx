@@ -25,85 +25,88 @@ bool Parser::dispatch(
     TraceInfo const &trace_info) {
   auto frame = core::json::Parser::create<Frame>(message, buffer);
   switch (frame.op) {
-    case Operation::UNDEFINED:
+    using enum Operation::type_t;
+    case UNDEFINED:
       switch (frame.event) {
-        case EventType::UNDEFINED:
+        using enum EventType::type_t;
+        case UNDEFINED:
           switch (frame.arg.channel) {
-            case Channel::UNDEFINED:
+            using enum Channel::type_t;
+            case UNDEFINED:
               break;
-            case Channel::UNKNOWN:
+            case UNKNOWN:
               assert(false);
               break;
-            case Channel::STATUS:
+            case STATUS:
               dispatch_event<Status>(handler, message, buffer, trace_info);
               return true;
-            case Channel::INSTRUMENTS:
+            case INSTRUMENTS:
               dispatch_event_array<Instruments>(handler, message, buffer, trace_info);
               return true;
-            case Channel::ESTIMATED_PRICE:
+            case ESTIMATED_PRICE:
               dispatch_event<EstimatedPrice>(handler, message, buffer, trace_info);
               return true;
-            case Channel::PRICE_LIMIT:
+            case PRICE_LIMIT:
               dispatch_event<PriceLimit>(handler, message, buffer, trace_info);
               return true;
-            case Channel::MARK_PRICE:
+            case MARK_PRICE:
               dispatch_event<MarkPrice>(handler, message, buffer, trace_info);
               return true;
-            case Channel::TICKERS:
+            case TICKERS:
               dispatch_event_array<Tickers>(handler, message, buffer, trace_info);
               return true;
-            case Channel::TRADES:
+            case TRADES:
               dispatch_event_array<Trades>(handler, message, buffer, trace_info);
               return true;
-            case Channel::BOOKS_L2_TBT:
+            case BOOKS_L2_TBT:
               dispatch_event<BooksL2Tbt>(
                   handler, message, buffer, trace_info, frame.arg.inst_id, frame.action);
               return true;
-            case Channel::INDEX_TICKERS:
+            case INDEX_TICKERS:
               dispatch_event_array<IndexTickers>(handler, message, buffer, trace_info);
               return true;
-            case Channel::FUNDING_RATE:
+            case FUNDING_RATE:
               dispatch_event_array<FundingRate>(handler, message, buffer, trace_info);
               return true;
-            case Channel::ACCOUNT:
+            case ACCOUNT:
               dispatch_event<Account>(handler, message, buffer, trace_info);
               return true;
-            case Channel::BALANCE_AND_POSITION:
+            case BALANCE_AND_POSITION:
               dispatch_event<BalanceAndPosition>(handler, message, buffer, trace_info);
               return true;
-            case Channel::POSITIONS:
+            case POSITIONS:
               dispatch_event_array<Positions>(handler, message, buffer, trace_info);
               return true;
-            case Channel::ORDERS:
+            case ORDERS:
               dispatch_event_frame<Orders>(handler, message, buffer, trace_info);
               return true;
           }
           break;
-        case EventType::UNKNOWN:
+        case UNKNOWN:
           assert(false);
           break;
-        case EventType::ERROR: {
+        case ERROR: {
           Error error;
           error.code = frame.code;
           error.msg = frame.msg;
           create_trace_and_dispatch(handler, trace_info, error);
           return true;
         }
-        case EventType::LOGIN: {
+        case LOGIN: {
           Login login;
           login.code = frame.code;
           login.msg = frame.msg;
           create_trace_and_dispatch(handler, trace_info, login);
           return true;
         }
-        case EventType::SUBSCRIBE: {
+        case SUBSCRIBE: {
           Subscribe subscribe;
           subscribe.channel = frame.arg.channel;
           subscribe.inst_id = frame.arg.inst_id;
           create_trace_and_dispatch(handler, trace_info, subscribe);
           return true;
         }
-        case EventType::UNSUBSCRIBE: {
+        case UNSUBSCRIBE: {
           Unsubscribe unsubscribe;
           unsubscribe.channel = frame.arg.channel;
           unsubscribe.inst_id = frame.arg.inst_id;
@@ -112,19 +115,19 @@ bool Parser::dispatch(
         }
       }
       break;
-    case Operation::UNKNOWN:
+    case UNKNOWN:
       assert(false);
       break;
-    case Operation::ORDER:
-    case Operation::BATCH_ORDERS:
+    case ORDER:
+    case BATCH_ORDERS:
       dispatch_event_frame<OrderAck>(handler, message, buffer, trace_info);
       return true;
-    case Operation::AMEND_ORDER:
-    case Operation::BATCH_AMEND_ORDERS:
+    case AMEND_ORDER:
+    case BATCH_AMEND_ORDERS:
       dispatch_event_frame<AmendOrderAck>(handler, message, buffer, trace_info);
       return true;
-    case Operation::CANCEL_ORDER:
-    case Operation::BATCH_CANCEL_ORDERS:
+    case CANCEL_ORDER:
+    case BATCH_CANCEL_ORDERS:
       dispatch_event_frame<CancelOrderAck>(handler, message, buffer, trace_info);
       return true;
   }

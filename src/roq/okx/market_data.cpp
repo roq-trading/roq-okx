@@ -394,17 +394,18 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
       // trying to reduce the number of symbols where we next extra subscriptions
       // but still avoid not reducing too much
       switch (item.inst_type) {
-        case json::InstrumentType::UNDEFINED:
-        case json::InstrumentType::UNKNOWN:
-        case json::InstrumentType::SPOT:
-        case json::InstrumentType::MARGIN:
+        using enum json::InstrumentType::type_t;
+        case UNDEFINED:
+        case UNKNOWN:
+        case SPOT:
+        case MARGIN:
           break;
-        case json::InstrumentType::SWAP:
-        case json::InstrumentType::FUTURES:
+        case SWAP:
+        case FUTURES:
           if (shared_.extended_symbols.emplace(symbol).second)
             log::info<2>(R"(DEBUG: symbol="{}")"sv, symbol);
           break;
-        case json::InstrumentType::OPTION:
+        case OPTION:
           break;
       }
     }

@@ -176,22 +176,22 @@ void Rest::get_orders_ack(const Trace<core::web::Response> &event) {
       auto [status, category, body] = response.result();
       // log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
       switch (category) {
-        // using enum core::http::Category;  // XXX clang13
-        case core::http::Category::UNKNOWN:
+        using enum core::http::Category;
+        case UNKNOWN:
           log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
           break;
-        case core::http::Category::INFORMATIONAL_RESPONSE:
+        case INFORMATIONAL_RESPONSE:
           log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
           break;
-        case core::http::Category::SUCCESS:
+        case SUCCESS:
           break;
-        case core::http::Category::REDIRECTION:
+        case REDIRECTION:
           log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
           break;
-        case core::http::Category::CLIENT_ERROR:
+        case CLIENT_ERROR:
           log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
           break;
-        case core::http::Category::SERVER_ERROR:
+        case SERVER_ERROR:
           log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
           break;
       }

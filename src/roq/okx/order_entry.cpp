@@ -155,13 +155,14 @@ std::pair<json::OrderType, bool> compute_order_attributes(
     // throw oms::NotSupported("not supported"sv);
   }
   switch (time_in_force) {
-    case TimeInForce::GTC:
+    using enum TimeInForce;
+    case GTC:
       break;
-    case TimeInForce::FOK:
+    case FOK:
       if (order_type_ != json::OrderType{})
         order_type_ = json::OrderType::FOK;
       break;
-    case TimeInForce::IOC:
+    case IOC:
       if (order_type_ != json::OrderType{})
         order_type_ = json::OrderType::IOC;
       break;
@@ -170,10 +171,11 @@ std::pair<json::OrderType, bool> compute_order_attributes(
   }
   if (order_type_ == json::OrderType{}) {
     switch (order_type) {
-      case OrderType::MARKET:
+      using enum OrderType;
+      case MARKET:
         order_type_ = json::OrderType::MARKET;
         break;
-      case OrderType::LIMIT:
+      case LIMIT:
         order_type_ = json::OrderType::LIMIT;
         break;
       default:
@@ -192,7 +194,8 @@ uint16_t OrderEntry::operator()(
   auto [order_type, reduce_only] = compute_order_attributes(
       create_order.order_type, create_order.time_in_force, create_order.execution_instructions);
   switch (order_type) {
-    case json::OrderType::MARKET: {
+    using enum json::OrderType::type_t;
+    case MARKET: {
       auto message = fmt::format(
           R"({{)"
           R"("id":"{}",)"
@@ -392,19 +395,20 @@ void OrderEntry::operator()(ConnectionStatus status) {
 
 uint32_t OrderEntry::download(OrderEntryState state) {
   switch (state) {
-    case OrderEntryState::UNDEFINED:
+    using enum OrderEntryState;
+    case UNDEFINED:
       assert(false);
       break;
-    case OrderEntryState::LOGIN:
+    case LOGIN:
       login();
       return 1;
-    case OrderEntryState::SUBSCRIBE:
+    case SUBSCRIBE:
       subscribe();
       return 1;
-    case OrderEntryState::ORDERS:
+    case ORDERS:
       request_orders();
       return 1;
-    case OrderEntryState::DONE:
+    case DONE:
       (*this)(ConnectionStatus::READY);
       return {};
   }

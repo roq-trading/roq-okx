@@ -72,13 +72,14 @@ inline std::string_view strip_symbol_from_topic(const std::string_view &topic) {
 
 inline roq::Side map(json::Side value) {
   switch (value) {
-    case json::Side::UNDEFINED:
+    using enum json::Side::type_t;
+    case UNDEFINED:
       break;
-    case json::Side::UNKNOWN:
+    case UNKNOWN:
       break;
-    case json::Side::BUY:
+    case BUY:
       return roq::Side::BUY;
-    case json::Side::SELL:
+    case SELL:
       return roq::Side::SELL;
   }
   return {};
@@ -86,11 +87,12 @@ inline roq::Side map(json::Side value) {
 
 inline json::Side map(roq::Side value) {
   switch (value) {
-    case roq::Side::UNDEFINED:
+    using enum roq::Side;
+    case UNDEFINED:
       break;
-    case roq::Side::BUY:
+    case BUY:
       return json::Side::BUY;
-    case roq::Side::SELL:
+    case SELL:
       return json::Side::SELL;
   }
   return {};
@@ -100,19 +102,20 @@ inline json::Side map(roq::Side value) {
 
 inline roq::SecurityType map(json::InstrumentType value) {
   switch (value) {
-    case json::InstrumentType::UNDEFINED:
+    using enum json::InstrumentType::type_t;
+    case UNDEFINED:
       break;
-    case json::InstrumentType::UNKNOWN:
+    case UNKNOWN:
       break;
-    case json::InstrumentType::SPOT:
+    case SPOT:
       return roq::SecurityType::SPOT;
-    case json::InstrumentType::MARGIN:
+    case MARGIN:
       return roq::SecurityType::SPOT;
-    case json::InstrumentType::SWAP:
+    case SWAP:
       return roq::SecurityType::SWAP;
-    case json::InstrumentType::FUTURES:
+    case FUTURES:
       return roq::SecurityType::FUTURES;
-    case json::InstrumentType::OPTION:
+    case OPTION:
       return roq::SecurityType::OPTION;
   }
   return {};
@@ -122,13 +125,14 @@ inline roq::SecurityType map(json::InstrumentType value) {
 
 inline roq::OptionType map(json::OptionType value) {
   switch (value) {
-    case json::OptionType::UNDEFINED:
+    using enum json::OptionType::type_t;
+    case UNDEFINED:
       break;
-    case json::OptionType::UNKNOWN:
+    case UNKNOWN:
       break;
-    case json::OptionType::CALL:
+    case CALL:
       return roq::OptionType::CALL;
-    case json::OptionType::PUT:
+    case PUT:
       return roq::OptionType::PUT;
   }
   return {};
@@ -138,17 +142,18 @@ inline roq::OptionType map(json::OptionType value) {
 
 inline roq::TradingStatus map(json::State value) {
   switch (value) {
-    case json::State::UNDEFINED:
+    using enum json::State::type_t;
+    case UNDEFINED:
       break;
-    case json::State::UNKNOWN:
+    case UNKNOWN:
       break;
-    case json::State::LIVE:
+    case LIVE:
       return roq::TradingStatus::OPEN;
-    case json::State::SUSPENDED:
+    case SUSPENDED:
       return roq::TradingStatus::HALT;
-    case json::State::PREOPEN:
+    case PREOPEN:
       return roq::TradingStatus::PRE_OPEN;
-    case json::State::SETTLEMENT:
+    case SETTLEMENT:
       break;
   }
   return {};
@@ -158,17 +163,18 @@ inline roq::TradingStatus map(json::State value) {
 
 inline roq::OrderStatus map(json::OrderState value) {
   switch (value) {
-    case json::OrderState::UNDEFINED:
+    using enum json::OrderState::type_t;
+    case UNDEFINED:
       break;
-    case json::OrderState::UNKNOWN:
+    case UNKNOWN:
       break;
-    case json::OrderState::CANCELED:
+    case CANCELED:
       return roq::OrderStatus::CANCELED;
-    case json::OrderState::LIVE:
+    case LIVE:
       return roq::OrderStatus::WORKING;
-    case json::OrderState::PARTIALLY_FILLED:
+    case PARTIALLY_FILLED:
       return roq::OrderStatus::WORKING;
-    case json::OrderState::FILLED:
+    case FILLED:
       return roq::OrderStatus::COMPLETED;
   }
   return {};
@@ -179,13 +185,14 @@ inline roq::OrderStatus map(json::OrderState value) {
 
 inline roq::OrderType map(json::OrdType value) {
   switch (value) {
-    case json::OrdType::UNDEFINED:
+    using enum json::OrdType::type_t;
+    case UNDEFINED:
       break;
-    case json::OrdType::UNKNOWN:
+    case UNKNOWN:
       break;
-    case json::OrdType::MARKET:
+    case MARKET:
       return roq::OrderType::MARKET;
-    case json::OrdType::LIMIT:
+    case LIMIT:
       return roq::OrderType::LIMIT;
   }
   return {};
