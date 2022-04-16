@@ -14,8 +14,6 @@
 
 #include "roq/core/binascii/base64.hpp"
 
-#include "roq/core/crypto/sha.hpp"
-
 using namespace std::literals;
 
 namespace roq {
