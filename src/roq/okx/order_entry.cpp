@@ -633,9 +633,10 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
     log::info<1>("event={{trace_info={}, orders={}}}"sv, trace_info, orders);
     log::debug("orders={}"sv, orders);
     for (auto &item : orders.data) {
-      log::warn<1>::when(item.amend_result < 0, "*** AMEND HAS FAILED ***"sv);
-      log::warn<1>::when(
-          item.code != 0, R"(*** ERROR CODE={}, MSG="{}" ***)"sv, item.code, item.msg);
+      if (item.amend_result < 0)
+        log::warn<1>("*** AMEND HAS FAILED ***"sv);
+      if (item.code != 0)
+        log::warn<1>(R"(*** ERROR CODE={}, MSG="{}" ***)"sv, item.code, item.msg);
       auto side = json::map(item.side);
       auto order_status = json::map(item.state);
       oms::OrderUpdate order_update{
