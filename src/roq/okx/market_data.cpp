@@ -171,7 +171,7 @@ void MarketData::operator()(const core::web::ClientSocket::Close &) {
 
 void MarketData::operator()(const core::web::ClientSocket::Latency &latency) {
   auto trace_info = server::create_trace_info();
-  ExternalLatency external_latency{
+  const ExternalLatency external_latency{
       .stream_id = stream_id_,
       .account = {},
       .latency = latency.sample,
@@ -191,7 +191,7 @@ void MarketData::operator()(const core::web::ClientSocket::Binary &) {
 void MarketData::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
     auto trace_info = server::create_trace_info();
-    StreamStatus stream_status{
+    const StreamStatus stream_status{
         .stream_id = stream_id_,
         .account = {},
         .supports = SUPPORTS,
@@ -311,14 +311,14 @@ void MarketData::parse(const std::string_view &message) {
   });
 }
 
-void MarketData::operator()(Trace<json::Error> const &event) {
+void MarketData::operator()(Trace<json::Error const> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
     log::warn<1>("event={{trace_info={}, error={}}}"sv, trace_info, error);
   });
 }
 
-void MarketData::operator()(Trace<json::Subscribe> const &event) {
+void MarketData::operator()(Trace<json::Subscribe const> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
     log::info<1>("event={{trace_info={}, subscribe={}}}"sv, trace_info, subscribe);
@@ -326,7 +326,7 @@ void MarketData::operator()(Trace<json::Subscribe> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Unsubscribe> const &event) {
+void MarketData::operator()(Trace<json::Unsubscribe const> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("event={{trace_info={}, unsubscribe={}}}"sv, trace_info, unsubscribe);
@@ -334,7 +334,7 @@ void MarketData::operator()(Trace<json::Unsubscribe> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Status> const &event) {
+void MarketData::operator()(Trace<json::Status const> const &event) {
   profile_.status([&]() {
     auto &[trace_info, status] = event;
     log::info<3>("event={{trace_info={}, status={}}}"sv, trace_info, status);
@@ -342,7 +342,7 @@ void MarketData::operator()(Trace<json::Status> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Instruments> const &event) {
+void MarketData::operator()(Trace<json::Instruments const> const &event) {
   profile_.instruments([&]() {
     auto &[trace_info, instruments] = event;
     log::info<1>("event={{trace_info={}, instruments={}}}"sv, trace_info, instruments);
@@ -359,7 +359,7 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
       ++counter;
       auto security_type = json::map(item.inst_type);
       auto option_type = json::map(item.opt_type);
-      ReferenceData reference_data{
+      const ReferenceData reference_data{
           .stream_id = stream_id_,
           .exchange = Flags::exchange(),
           .symbol = symbol,
@@ -386,7 +386,7 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
       };
       create_trace_and_dispatch(handler_, trace_info, reference_data, true);
       auto trading_status = json::map(item.state);
-      MarketStatus market_status{
+      const MarketStatus market_status{
           .stream_id = stream_id_,
           .exchange = Flags::exchange(),
           .symbol = item.inst_id,
@@ -421,7 +421,7 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::EstimatedPrice> const &event) {
+void MarketData::operator()(Trace<json::EstimatedPrice const> const &event) {
   profile_.estimated_price([&]() {
     auto &[trace_info, estimated_price] = event;
     log::info<3>("event={{trace_info={}, estimated_price={}}}"sv, trace_info, estimated_price);
@@ -430,7 +430,7 @@ void MarketData::operator()(Trace<json::EstimatedPrice> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::PriceLimit> const &event) {
+void MarketData::operator()(Trace<json::PriceLimit const> const &event) {
   profile_.price_limit([&]() {
     auto &[trace_info, price_limit] = event;
     log::info<3>("event={{trace_info={}, price_limit={}}}"sv, trace_info, price_limit);
@@ -439,7 +439,7 @@ void MarketData::operator()(Trace<json::PriceLimit> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::MarkPrice> const &event) {
+void MarketData::operator()(Trace<json::MarkPrice const> const &event) {
   profile_.mark_price([&]() {
     auto &[trace_info, mark_price] = event;
     log::info<3>("event={{trace_info={}, mark_price={}}}"sv, trace_info, mark_price);
@@ -448,7 +448,7 @@ void MarketData::operator()(Trace<json::MarkPrice> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Tickers> const &event) {
+void MarketData::operator()(Trace<json::Tickers const> const &event) {
   profile_.tickers([&]() {
     auto &[trace_info, tickers] = event;
     log::info<3>("event={{trace_info={}, tickers={}}}"sv, trace_info, tickers);
@@ -507,7 +507,7 @@ void MarketData::operator()(Trace<json::Tickers> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Trades> const &event) {
+void MarketData::operator()(Trace<json::Trades const> const &event) {
   profile_.trades([&]() {
     auto &[trace_info, trades] = event;
     log::info<3>("event={{trace_info={}, trades={}}}"sv, trace_info, trades);
@@ -546,7 +546,9 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
 }
 
 void MarketData::operator()(
-    Trace<json::BooksL2Tbt> const &event, const std::string_view &inst_id, json::Action action) {
+    Trace<json::BooksL2Tbt const> const &event,
+    const std::string_view &inst_id,
+    json::Action action) {
   profile_.books_l2_tbt([&]() {
     auto &[trace_info, books_l2_tbt] = event;
     log::info<3>(
@@ -581,7 +583,7 @@ void MarketData::operator()(
   });
 }
 
-void MarketData::operator()(Trace<json::IndexTickers> const &event) {
+void MarketData::operator()(Trace<json::IndexTickers const> const &event) {
   profile_.index_tickers([&]() {
     auto &[trace_info, index_tickers] = event;
     log::info<3>("event={{trace_info={}, index_tickers={}}}"sv, trace_info, index_tickers);
@@ -607,7 +609,7 @@ void MarketData::operator()(Trace<json::IndexTickers> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::FundingRate> const &event) {
+void MarketData::operator()(Trace<json::FundingRate const> const &event) {
   profile_.funding_rate([&]() {
     auto &[trace_info, funding_rate] = event;
     log::info<3>("event={{trace_info={}, funding_rate={}}}"sv, trace_info, funding_rate);
@@ -639,35 +641,35 @@ void MarketData::operator()(Trace<json::FundingRate> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Login> const &) {
+void MarketData::operator()(Trace<json::Login const> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::Account> const &) {
+void MarketData::operator()(Trace<json::Account const> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::BalanceAndPosition> const &) {
+void MarketData::operator()(Trace<json::BalanceAndPosition const> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::Positions> const &) {
+void MarketData::operator()(Trace<json::Positions const> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::Orders> const &) {
+void MarketData::operator()(Trace<json::Orders const> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::OrderAck> const &) {
+void MarketData::operator()(Trace<json::OrderAck const> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::AmendOrderAck> const &) {
+void MarketData::operator()(Trace<json::AmendOrderAck const> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::CancelOrderAck> const &) {
+void MarketData::operator()(Trace<json::CancelOrderAck const> const &) {
   log::fatal("Unexpected"sv);
 }
 

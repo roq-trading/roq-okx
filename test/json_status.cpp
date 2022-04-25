@@ -46,10 +46,10 @@ TEST_CASE("json_status_parser", "[json_status]") {
     auto get_count() const { return count_; }
 
    protected:
-    void operator()(Trace<json::Error> const &) override { FAIL(); }
-    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Status> const &event) override {
+    void operator()(Trace<json::Error const> const &) override { FAIL(); }
+    void operator()(Trace<json::Subscribe const> const &) override { FAIL(); }
+    void operator()(Trace<json::Unsubscribe const> const &) override { FAIL(); }
+    void operator()(Trace<json::Status const> const &event) override {
       ++count_;
       auto &[trace_info, status] = event;
       CHECK(status.begin == 1639645200000ms);
@@ -62,28 +62,28 @@ TEST_CASE("json_status_parser", "[json_status]") {
       CHECK(status.title == "Unified Account WebSocket system upgrade"sv);
       CHECK(status.ts == 1639647646363ms);
     }
-    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
-    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
-    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::Tickers> const &) override { FAIL(); }
-    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::Instruments const> const &) override { FAIL(); }
+    void operator()(Trace<json::EstimatedPrice const> const &) override { FAIL(); }
+    void operator()(Trace<json::PriceLimit const> const &) override { FAIL(); }
+    void operator()(Trace<json::MarkPrice const> const &) override { FAIL(); }
+    void operator()(Trace<json::Tickers const> const &) override { FAIL(); }
+    void operator()(Trace<json::Trades const> const &) override { FAIL(); }
     void operator()(
-        Trace<json::BooksL2Tbt> const &,
+        Trace<json::BooksL2Tbt const> const &,
         [[maybe_unused]] const std::string_view &inst_id,
         json::Action) override {
       FAIL();
     }
-    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
-    void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
-    void operator()(Trace<json::Login> const &) override { FAIL(); }
-    void operator()(Trace<json::Account> const &) override { FAIL(); }
-    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
-    void operator()(Trace<json::Positions> const &) override { FAIL(); }
-    void operator()(Trace<json::Orders> const &) override { FAIL(); }
-    void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::IndexTickers const> const &) override { FAIL(); }
+    void operator()(Trace<json::FundingRate const> const &) override { FAIL(); }
+    void operator()(Trace<json::Login const> const &) override { FAIL(); }
+    void operator()(Trace<json::Account const> const &) override { FAIL(); }
+    void operator()(Trace<json::BalanceAndPosition const> const &) override { FAIL(); }
+    void operator()(Trace<json::Positions const> const &) override { FAIL(); }
+    void operator()(Trace<json::Orders const> const &) override { FAIL(); }
+    void operator()(Trace<json::OrderAck const> const &) override { FAIL(); }
+    void operator()(Trace<json::AmendOrderAck const> const &) override { FAIL(); }
+    void operator()(Trace<json::CancelOrderAck const> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};

@@ -89,28 +89,28 @@ bool Parser::dispatch(
           Error error;
           error.code = frame.code;
           error.msg = frame.msg;
-          create_trace_and_dispatch(handler, trace_info, error);
+          create_trace_and_dispatch(handler, trace_info, std::as_const(error));
           return true;
         }
         case LOGIN: {
           Login login;
           login.code = frame.code;
           login.msg = frame.msg;
-          create_trace_and_dispatch(handler, trace_info, login);
+          create_trace_and_dispatch(handler, trace_info, std::as_const(login));
           return true;
         }
         case SUBSCRIBE: {
           Subscribe subscribe;
           subscribe.channel = frame.arg.channel;
           subscribe.inst_id = frame.arg.inst_id;
-          create_trace_and_dispatch(handler, trace_info, subscribe);
+          create_trace_and_dispatch(handler, trace_info, std::as_const(subscribe));
           return true;
         }
         case UNSUBSCRIBE: {
           Unsubscribe unsubscribe;
           unsubscribe.channel = frame.arg.channel;
           unsubscribe.inst_id = frame.arg.inst_id;
-          create_trace_and_dispatch(handler, trace_info, unsubscribe);
+          create_trace_and_dispatch(handler, trace_info, std::as_const(unsubscribe));
           return true;
         }
       }
@@ -148,7 +148,7 @@ void Parser::dispatch_event(
     if (key.compare("data"sv) != 0)
       continue;
     for (auto item : std::get<core::json::array_t>(value)) {
-      T obj{item, buffer};
+      const T obj{item, buffer};
       create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
     }
     break;
@@ -168,7 +168,7 @@ void Parser::dispatch_event_array(
   for (auto [key, value] : std::get<core::json::object_t>(root)) {
     if (key.compare("data"sv) != 0)
       continue;
-    T obj{value, buffer};
+    const T obj{value, buffer};
     create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
     break;
   }
@@ -182,7 +182,7 @@ void Parser::dispatch_event_frame(
     core::json::Buffer &buffer,
     TraceInfo const &trace_info,
     Args &&...args) {
-  auto obj = core::json::Parser::create<T>(message, buffer);
+  const auto obj = core::json::Parser::create<T>(message, buffer);
   create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
 }
 

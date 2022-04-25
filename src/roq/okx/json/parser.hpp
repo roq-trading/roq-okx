@@ -45,37 +45,37 @@ namespace json {
 struct Parser final {
   struct Handler {
     // events
-    virtual void operator()(Trace<json::Error> const &) = 0;
-    virtual void operator()(Trace<json::Subscribe> const &) = 0;
-    virtual void operator()(Trace<json::Unsubscribe> const &) = 0;
+    virtual void operator()(Trace<json::Error const> const &) = 0;
+    virtual void operator()(Trace<json::Subscribe const> const &) = 0;
+    virtual void operator()(Trace<json::Unsubscribe const> const &) = 0;
     // push
     // - public
-    virtual void operator()(Trace<json::Status> const &) = 0;
-    virtual void operator()(Trace<json::Instruments> const &) = 0;
-    virtual void operator()(Trace<json::EstimatedPrice> const &) = 0;
-    virtual void operator()(Trace<json::PriceLimit> const &) = 0;
-    virtual void operator()(Trace<json::MarkPrice> const &) = 0;
-    virtual void operator()(Trace<json::Tickers> const &) = 0;
-    virtual void operator()(Trace<json::Trades> const &) = 0;
+    virtual void operator()(Trace<json::Status const> const &) = 0;
+    virtual void operator()(Trace<json::Instruments const> const &) = 0;
+    virtual void operator()(Trace<json::EstimatedPrice const> const &) = 0;
+    virtual void operator()(Trace<json::PriceLimit const> const &) = 0;
+    virtual void operator()(Trace<json::MarkPrice const> const &) = 0;
+    virtual void operator()(Trace<json::Tickers const> const &) = 0;
+    virtual void operator()(Trace<json::Trades const> const &) = 0;
     virtual void operator()(
-        Trace<json::BooksL2Tbt> const &, const std::string_view &inst_id, Action) = 0;
-    virtual void operator()(Trace<json::IndexTickers> const &) = 0;
-    virtual void operator()(Trace<json::FundingRate> const &) = 0;
+        Trace<json::BooksL2Tbt const> const &, const std::string_view &inst_id, Action) = 0;
+    virtual void operator()(Trace<json::IndexTickers const> const &) = 0;
+    virtual void operator()(Trace<json::FundingRate const> const &) = 0;
     // - private
     // -- event
-    virtual void operator()(Trace<json::Login> const &) = 0;
-    virtual void operator()(Trace<json::Account> const &) = 0;
-    virtual void operator()(Trace<json::BalanceAndPosition> const &) = 0;
-    virtual void operator()(Trace<json::Positions> const &) = 0;
-    virtual void operator()(Trace<json::Orders> const &) = 0;
+    virtual void operator()(Trace<json::Login const> const &) = 0;
+    virtual void operator()(Trace<json::Account const> const &) = 0;
+    virtual void operator()(Trace<json::BalanceAndPosition const> const &) = 0;
+    virtual void operator()(Trace<json::Positions const> const &) = 0;
+    virtual void operator()(Trace<json::Orders const> const &) = 0;
     // -- ack
-    virtual void operator()(Trace<json::OrderAck> const &) = 0;
-    virtual void operator()(Trace<json::AmendOrderAck> const &) = 0;
-    virtual void operator()(Trace<json::CancelOrderAck> const &) = 0;
+    virtual void operator()(Trace<json::OrderAck const> const &) = 0;
+    virtual void operator()(Trace<json::AmendOrderAck const> const &) = 0;
+    virtual void operator()(Trace<json::CancelOrderAck const> const &) = 0;
   };
 
   static bool dispatch(
-      Handler &handler, std::string_view const &message, core::json::Buffer &, TraceInfo const &);
+      Handler &, std::string_view const &message, core::json::Buffer &, TraceInfo const &);
 
  private:
   template <typename T, typename... Args>

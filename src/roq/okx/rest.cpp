@@ -110,7 +110,7 @@ void Rest::operator()(metrics::Writer &writer) {
 void Rest::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
     auto trace_info = server::create_trace_info();
-    StreamStatus stream_status{
+    const StreamStatus stream_status{
         .stream_id = stream_id_,
         .account = {},
         .supports = SUPPORTS,
@@ -137,7 +137,7 @@ void Rest::operator()(const core::web::Client::Disconnected &) {
 
 void Rest::operator()(const core::web::Client::Latency &latency) {
   auto trace_info = server::create_trace_info();
-  ExternalLatency external_latency{
+  const ExternalLatency external_latency{
       .stream_id = stream_id_,
       .account = {},
       .latency = latency.sample,
@@ -171,7 +171,7 @@ void Rest::get_orders() {
   });
 }
 
-void Rest::get_orders_ack(const Trace<core::web::Response> &event) {
+void Rest::get_orders_ack(const Trace<core::web::Response const> &event) {
   profile_.orders_ack([&]() {
     auto &[trace_info, response] = event;
     try {
@@ -199,7 +199,7 @@ void Rest::get_orders_ack(const Trace<core::web::Response> &event) {
       }
       // log::debug(R"(body="{}")"sv, body);
       core::json::Buffer buffer(decode_buffer_);
-      auto orders = core::json::Parser::create<json::Orders>(body, buffer);
+      const auto orders = core::json::Parser::create<json::Orders>(body, buffer);
       Trace event(trace_info, orders);
       (*this)(event);
       download_orders_ = false;
@@ -210,7 +210,7 @@ void Rest::get_orders_ack(const Trace<core::web::Response> &event) {
   });
 }
 
-void Rest::operator()(const Trace<json::Orders> &event) {
+void Rest::operator()(const Trace<json::Orders const> &event) {
   auto &[trace_info, orders] = event;
   log::info<4>("orders={}"sv, orders);
   for (auto &item : orders.data) {
