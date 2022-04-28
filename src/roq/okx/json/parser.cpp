@@ -144,10 +144,10 @@ void Parser::dispatch_event(
     Args &&...args) {
   core::json::Parser parser(message);
   auto root = parser.root();
-  for (auto [key, value] : std::get<core::json::object_t>(root)) {
+  for (auto [key, value] : std::get<core::json::Object>(root)) {
     if (key.compare("data"sv) != 0)
       continue;
-    for (auto item : std::get<core::json::array_t>(value)) {
+    for (auto item : std::get<core::json::Array>(value)) {
       const T obj{item, buffer};
       create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
     }
@@ -165,7 +165,7 @@ void Parser::dispatch_event_array(
     Args &&...args) {
   core::json::Parser parser(message);
   auto root = parser.root();
-  for (auto [key, value] : std::get<core::json::object_t>(root)) {
+  for (auto [key, value] : std::get<core::json::Object>(root)) {
     if (key.compare("data"sv) != 0)
       continue;
     const T obj{value, buffer};
