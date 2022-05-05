@@ -58,7 +58,11 @@ bool Parser::dispatch(
             case TRADES:
               dispatch_event_array<Trades>(handler, message, buffer, trace_info);
               return true;
+            case BOOKS:
+            case BOOKS5:
+            case BBO_TBT:
             case BOOKS_L2_TBT:
+            case BOOKS50_L2_TBT:
               dispatch_event<BooksL2Tbt>(
                   handler, message, buffer, trace_info, frame.arg.inst_id, frame.action);
               return true;

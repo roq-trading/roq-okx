@@ -85,6 +85,30 @@
     {
       "name": "uly",
       "type": "std::string_view"
+    },
+    {
+      "name": "maxIcebergSz",
+      "type": "double"
+    },
+    {
+      "name": "maxLmtSz",
+      "type": "double"
+    },
+    {
+      "name": "maxMktSz",
+      "type": "double"
+    },
+    {
+      "name": "maxStopSz",
+      "type": "double"
+    },
+    {
+      "name": "maxTriggerSz",
+      "type": "double"
+    },
+    {
+      "name": "maxTwapSz",
+      "type": "double"
     }
   ]
 }

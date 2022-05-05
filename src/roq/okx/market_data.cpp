@@ -225,7 +225,8 @@ void MarketData::subscribe(const std::span<Symbol const> &symbols) {
   // subscribe("mark-price"sv, "instType"sv, symbols);
   subscribe("tickers"sv, "instId"sv, symbols);
   subscribe("trades"sv, "instId"sv, symbols);
-  subscribe("books-l2-tbt"sv, "instId"sv, symbols);
+  subscribe("bbo-tbt"sv, "instId"sv, symbols);
+  // subscribe("books5"sv, "instId"sv, symbols);
   for (auto &symbol : symbols) {
     if (flags::Flags::include_bad_subscriptions() ||
         shared_.extended_symbols.find(symbol) != shared_.extended_symbols.end()) {
@@ -553,7 +554,8 @@ void MarketData::operator()(
     auto &[trace_info, books_l2_tbt] = event;
     log::info<3>(
         "event={{trace_info={}, books_l2_tbt={}, action={}}}"sv, trace_info, books_l2_tbt, action);
-    auto snapshot = action == json::Action::SNAPSHOT;
+    // auto snapshot = action == json::Action::SNAPSHOT;
+    auto snapshot = true;
     core::back_emplacer bids(shared_.bids), asks(shared_.asks);
     for (auto &item : books_l2_tbt.bids)
       bids.emplace_back([&item](auto &result) { emplace(result, item); });

@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* Order book subscription now depends on client tiering (#212)
+
 ## 0.8.3 &ndash; 2022-03-22
 
 ## 0.8.2 &ndash; 2022-02-18

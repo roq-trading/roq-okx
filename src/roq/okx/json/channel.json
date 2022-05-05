@@ -24,7 +24,19 @@
       "name": "trades"
     },
     {
+      "name": "books"
+    },
+    {
+      "name": "books5"
+    },
+    {
+      "name": "bbo-tbt"
+    },
+    {
       "name": "books-l2-tbt"
+    },
+    {
+      "name": "books50-l2-tbt"
     },
     {
       "name": "index-tickers"
