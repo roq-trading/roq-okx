@@ -14,7 +14,7 @@ set(AUTOGEN_SCHEMAS
     balance_and_position_balance_item.json
     balance_and_position.json
     balance_and_position_position_item.json
-    books_l2_tbt_item.json
+    books_l2_item.json
     books_l2_tbt.json
     cancel_order_ack_item.json
     cancel_order_ack.json

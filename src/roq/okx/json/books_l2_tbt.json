@@ -4,11 +4,11 @@
   "values": [
     {
       "name": "bids",
-      "type": "std::span<BooksL2TbtItem>"
+      "type": "std::span<BooksL2Item>"
     },
     {
       "name": "asks",
-      "type": "std::span<BooksL2TbtItem>"
+      "type": "std::span<BooksL2Item>"
     },
     {
       "name": "instId",

@@ -1,6 +1,6 @@
-#symbols = [ ".*" ]
+symbols = [ ".*" ]
 #symbols = ["BTC-USDT", "BTC-USD-SWAP"]
-symbols = ["BTC-USDT"]
+#symbols = ["BTC-USDT"]
 
 #[accounts]
 #

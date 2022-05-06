@@ -84,6 +84,19 @@
       "description": "max symbols per connection (count)"
     },
     {
+      "name": "ws_books_depth",
+      "type": "uint32_t",
+      "validator": "roq::core::flags::NonZero<uint32_t>",
+      "default": 400,
+      "description": "depth and auth defines the channel for market by price"
+    },
+    {
+      "name": "ws_books_auth",
+      "type": "bool",
+      "default": false,
+      "description": "depth and auth defines the channel for market by price"
+    },
+    {
       "name": "request_limit",
       "type": "uint32_t",
       "default": "80",

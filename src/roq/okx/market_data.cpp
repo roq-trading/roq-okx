@@ -53,6 +53,30 @@ auto create_connection(auto &handler, auto &context) {
   return core::web::ClientSocket{handler, context, config, []() { return std::string(); }};
 }
 
+std::string_view get_books_channel() {
+  std::string_view result;
+  switch (flags::Flags::ws_books_depth()) {
+    case 1:
+      result = "bbo-tbt"sv;
+      break;
+    case 5:
+      result = "books5"sv;
+      break;
+    case 50:
+      result = "books50-l2-tbt"sv;
+      if (!flags::Flags::ws_books_auth())
+        log::fatal(
+            R"(Channel "{}" requires authentication (only available to VIP members))"sv, result);
+      break;
+    case 400:
+      result = flags::Flags::ws_books_auth() ? "books-l2-tbt"sv : "books"sv;
+      break;
+    default:
+      log::fatal("Unsupported --ws_books_depth={}"sv, flags::Flags::ws_books_depth());
+  }
+  return result;
+}
+
 template <typename T>
 void emplace(Trade &result, const T &value) {
   new (&result) Trade{
@@ -225,8 +249,7 @@ void MarketData::subscribe(const std::span<Symbol const> &symbols) {
   // subscribe("mark-price"sv, "instType"sv, symbols);
   subscribe("tickers"sv, "instId"sv, symbols);
   subscribe("trades"sv, "instId"sv, symbols);
-  subscribe("bbo-tbt"sv, "instId"sv, symbols);
-  // subscribe("books5"sv, "instId"sv, symbols);
+  subscribe(get_books_channel(), "instId"sv, symbols);
   for (auto &symbol : symbols) {
     if (flags::Flags::include_bad_subscriptions() ||
         shared_.extended_symbols.find(symbol) != shared_.extended_symbols.end()) {
@@ -554,8 +577,7 @@ void MarketData::operator()(
     auto &[trace_info, books_l2_tbt] = event;
     log::info<3>(
         "event={{trace_info={}, books_l2_tbt={}, action={}}}"sv, trace_info, books_l2_tbt, action);
-    // auto snapshot = action == json::Action::SNAPSHOT;
-    auto snapshot = true;
+    auto snapshot = action == json::Action::SNAPSHOT;
     core::back_emplacer bids(shared_.bids), asks(shared_.asks);
     for (auto &item : books_l2_tbt.bids)
       bids.emplace_back([&item](auto &result) { emplace(result, item); });
