@@ -20,6 +20,8 @@
 
 #include "roq/server.hpp"
 
+#include "roq/okx/market_data_state.hpp"
+#include "roq/okx/security.hpp"
 #include "roq/okx/shared.hpp"
 
 #include "roq/okx/json/parser.hpp"
@@ -47,7 +49,8 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
     virtual void operator()(SymbolsUpdate &) = 0;
   };
 
-  MarketData(Handler &, core::io::Context &, uint32_t stream_id, Shared &, size_t index);
+  MarketData(
+      Handler &, core::io::Context &, uint32_t stream_id, Security &, Shared &, size_t index);
 
   MarketData(MarketData &&) = delete;
   MarketData(const MarketData &) = delete;
@@ -75,6 +78,10 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
 
  private:
   void operator()(ConnectionStatus);
+
+  uint32_t download(MarketDataState);
+
+  void login();
 
   void subscribe_static();
 
@@ -138,18 +145,21 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
     core::metrics::Counter disconnect;
   } counter_;
   struct {
-    core::metrics::Profile parse, error, subscribe, unsubscribe, status, instruments,
+    core::metrics::Profile parse, error, subscribe, unsubscribe, login, status, instruments,
         estimated_price, price_limit, mark_price, tickers, trades, books_l2_tbt, index_tickers,
         funding_rate;
   } profile_;
   struct {
     core::metrics::Latency ping, heartbeat;
   } latency_;
+  // security
+  Security &security_;
   // cache
   Shared &shared_;
   absl::flat_hash_set<Symbol> all_symbols_;  // only master (index 0)
   // state
   ConnectionStatus status_ = {};
+  core::Download<MarketDataState> download_;
   // queue
   core::TimerQueue subscribe_queue_;
 };

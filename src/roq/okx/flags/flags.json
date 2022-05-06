@@ -88,13 +88,13 @@
       "type": "uint32_t",
       "validator": "roq::core::flags::NonZero<uint32_t>",
       "default": 400,
-      "description": "depth and auth defines the channel for market by price"
+      "description": "defines what 'books' channel to subscribe to (some require authentication)"
     },
     {
-      "name": "ws_books_auth",
+      "name": "ws_books_use_public",
       "type": "bool",
       "default": false,
-      "description": "depth and auth defines the channel for market by price"
+      "description": "opt-out from the real-time feeds requiring VIP membership"
     },
     {
       "name": "request_limit",

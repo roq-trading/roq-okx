@@ -19,7 +19,7 @@ WS_URI="wss://ws.$URI:8443/ws/v5"
 $PREFIX ./roq-okx \
 	--name "okx" \
 	--config_file "$CONFIG_FILE" \
-	--client_listen_address $CWD/$NAME.sock \
+	--client_listen_address $HOME/run/$NAME.sock \
 	--metrics_listen_address 2345 \
 	--ws_public_uri "$WS_URI/public" \
 	--ws_private_uri "$WS_URI/private" \

@@ -26,6 +26,9 @@ auto create_hmac(const std::string_view &secret) {
 }
 }  // namespace
 
+Hasher::Hasher() : hmac_(create_hmac(""sv)) {
+}
+
 Hasher::Hasher(
     const std::string_view &key, const std::string_view &secret, const std::string_view &passphrase)
     : key_(key), hmac_(create_hmac(secret)), passphrase_(passphrase), secret_(secret) {

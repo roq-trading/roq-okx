@@ -16,6 +16,7 @@ namespace tools {
 
 class Hasher final {
  public:
+  Hasher();
   Hasher(
       const std::string_view &key,
       const std::string_view &secret,

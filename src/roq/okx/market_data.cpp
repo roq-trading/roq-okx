@@ -53,8 +53,9 @@ auto create_connection(auto &handler, auto &context) {
   return core::web::ClientSocket{handler, context, config, []() { return std::string(); }};
 }
 
-std::string_view get_books_channel() {
+std::string_view get_books_channel(auto security) {
   std::string_view result;
+  auto vip = security && !flags::Flags::ws_books_use_public();
   switch (flags::Flags::ws_books_depth()) {
     case 1:
       result = "bbo-tbt"sv;
@@ -64,16 +65,17 @@ std::string_view get_books_channel() {
       break;
     case 50:
       result = "books50-l2-tbt"sv;
-      if (!flags::Flags::ws_books_auth())
+      if (!vip)
         log::fatal(
             R"(Channel "{}" requires authentication (only available to VIP members))"sv, result);
       break;
     case 400:
-      result = flags::Flags::ws_books_auth() ? "books-l2-tbt"sv : "books"sv;
+      result = vip ? "books-l2-tbt"sv : "books"sv;
       break;
     default:
       log::fatal("Unsupported --ws_books_depth={}"sv, flags::Flags::ws_books_depth());
   }
+  log::info(R"(DEBUG: using channel="{}")"sv, result);
   return result;
 }
 
@@ -100,7 +102,12 @@ void emplace(MBPUpdate &result, const T &item) {
 }  // namespace
 
 MarketData::MarketData(
-    Handler &handler, core::io::Context &context, uint32_t stream_id, Shared &shared, size_t index)
+    Handler &handler,
+    core::io::Context &context,
+    uint32_t stream_id,
+    Security &security,
+    Shared &shared,
+    size_t index)
     : handler_(handler), stream_id_(stream_id), name_(fmt::format("{}:{}"sv, stream_id_, NAME)),
       index_(index), connection_(create_connection(*this, context)),
       decode_buffer_(Flags::decode_buffer_size()),
@@ -113,6 +120,7 @@ MarketData::MarketData(
           .error = create_metrics(name_, "error"sv),
           .subscribe = create_metrics(name_, "subscribe"sv),
           .unsubscribe = create_metrics(name_, "unsubscribe"sv),
+          .login = create_metrics(name_, "login"sv),
           .status = create_metrics(name_, "status"sv),
           .instruments = create_metrics(name_, "instruments"sv),
           .estimated_price = create_metrics(name_, "estimated_price"sv),
@@ -128,7 +136,8 @@ MarketData::MarketData(
           .ping = create_metrics(name_, "ping"sv),
           .heartbeat = create_metrics(name_, "heartbeat"sv),
       },
-      shared_(shared) {
+      security_(security), shared_(shared),
+      download_({}, [this](auto state) { return download(state); }) {
 }
 
 void MarketData::operator()(const Event<Start> &) {
@@ -155,6 +164,7 @@ void MarketData::operator()(metrics::Writer &writer) {
       .write(profile_.error, metrics::PROFILE)
       .write(profile_.subscribe, metrics::PROFILE)
       .write(profile_.unsubscribe, metrics::PROFILE)
+      .write(profile_.login, metrics::PROFILE)
       .write(profile_.status, metrics::PROFILE)
       .write(profile_.instruments, metrics::PROFILE)
       .write(profile_.estimated_price, metrics::PROFILE)
@@ -181,13 +191,13 @@ void MarketData::operator()(const core::web::ClientSocket::Connected &) {
 void MarketData::operator()(const core::web::ClientSocket::Disconnected &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
+  download_.reset();
   subscribe_queue_.clear();
 }
 
 void MarketData::operator()(const core::web::ClientSocket::Ready &) {
-  (*this)(ConnectionStatus::READY);
-  subscribe_static();
-  subscribe();
+  (*this)(ConnectionStatus::DOWNLOADING);
+  download_.begin();
 }
 
 void MarketData::operator()(const core::web::ClientSocket::Close &) {
@@ -230,6 +240,56 @@ void MarketData::operator()(ConnectionStatus status) {
   }
 }
 
+uint32_t MarketData::download(MarketDataState state) {
+  switch (state) {
+    using enum MarketDataState;
+    case UNDEFINED:
+      assert(false);
+      break;
+    case LOGIN:
+      if (std::empty(security_)) {
+        log::info("Using public channels (no authentication)"sv);
+        return 0;
+      } else {
+        login();
+        return 1;
+      }
+    case SUBSCRIBE:
+      subscribe_static();
+      subscribe();
+      return 0;
+    case DONE:
+      (*this)(ConnectionStatus::READY);
+      return {};
+  }
+  assert(false);
+  return {};
+}
+
+void MarketData::login() {
+  auto now = core::clock::GetRealTime<std::chrono::seconds>();
+  auto timestamp = fmt::format("{}"sv, now.count());
+  auto sign = security_.create_sign(timestamp);
+  auto message = fmt::format(
+      R"({{)"
+      R"("op":"login",)"
+      R"("args":[{{)"
+      R"("apiKey":"{}",)"
+      R"("passphrase":"{}",)"
+      R"("timestamp":"{}",)"
+      R"("sign":"{}")"
+      R"(}})"
+      R"(])"
+      R"(}})"sv,
+      security_.get_key(),
+      security_.get_passphrase(),
+      timestamp,
+      sign);
+  log::debug("message={}"sv, message);
+  connection_.send_text(message);
+  (*this)(ConnectionStatus::LOGIN_SENT);
+}
+
 void MarketData::subscribe_static() {
   if (index_ != 0)
     return;
@@ -249,7 +309,7 @@ void MarketData::subscribe(const std::span<Symbol const> &symbols) {
   // subscribe("mark-price"sv, "instType"sv, symbols);
   subscribe("tickers"sv, "instId"sv, symbols);
   subscribe("trades"sv, "instId"sv, symbols);
-  subscribe(get_books_channel(), "instId"sv, symbols);
+  subscribe(get_books_channel(!std::empty(security_)), "instId"sv, symbols);
   for (auto &symbol : symbols) {
     if (flags::Flags::include_bad_subscriptions() ||
         shared_.extended_symbols.find(symbol) != shared_.extended_symbols.end()) {
@@ -338,7 +398,7 @@ void MarketData::parse(const std::string_view &message) {
 void MarketData::operator()(Trace<json::Error const> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
-    log::warn<1>("event={{trace_info={}, error={}}}"sv, trace_info, error);
+    log::warn("event={{trace_info={}, error={}}}"sv, trace_info, error);
   });
 }
 
@@ -665,8 +725,14 @@ void MarketData::operator()(Trace<json::FundingRate const> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Login const> const &) {
-  log::fatal("Unexpected"sv);
+void MarketData::operator()(Trace<json::Login const> const &event) {
+  profile_.login([&]() {
+    auto &[trace_info, login] = event;
+    log::info<1>("event={{trace_info={}, login={}}}"sv, trace_info, login);
+    log::debug("login={}"sv, login);
+    auto state = MarketDataState::LOGIN;
+    download_.check_relaxed(state);
+  });
 }
 
 void MarketData::operator()(Trace<json::Account const> const &) {

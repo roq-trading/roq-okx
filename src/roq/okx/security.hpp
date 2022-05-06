@@ -16,10 +16,13 @@ namespace okx {
 
 class Security final {
  public:
+  Security() {}
   Security(const Config &, const std::string_view &account);
 
   Security(Security &&) = delete;
   Security(const Security &) = delete;
+
+  bool empty() const { return std::empty(account_); }
 
   std::string_view get_account() const { return account_; }
 

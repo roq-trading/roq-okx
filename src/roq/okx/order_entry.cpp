@@ -439,6 +439,7 @@ void OrderEntry::login() {
       sign);
   log::debug("message={}"sv, message);
   connection_.send_text(message);
+  (*this)(ConnectionStatus::LOGIN_SENT);
 }
 
 void OrderEntry::subscribe() {

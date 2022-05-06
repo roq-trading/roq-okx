@@ -22,12 +22,24 @@ namespace roq {
 namespace okx {
 
 namespace {
+Security NO_SECURITY;
+
 template <typename R>
 auto create_security(const Config &config) {
   R result;
   for (auto &[_, iter] : config.accounts)
     result.try_emplace(iter.name, std::make_unique<Security>(config, iter.name));
   return result;
+}
+
+auto &get_security(auto &security_by_account, const auto &master_account) {
+  if (std::empty(security_by_account) && std::empty(master_account))
+    return NO_SECURITY;
+  assert(!std::empty(master_account));
+  auto iter = security_by_account.find(master_account);
+  if (iter == std::end(security_by_account))
+    log::fatal("Unexpected"sv);
+  return *(*iter).second;
 }
 
 template <typename R>
@@ -75,12 +87,23 @@ auto create_order_entry(
 
 template <typename R>
 auto create_market_data(
-    Gateway &gateway, core::io::Context &context, uint16_t &stream_id, Shared &shared) {
+    Gateway &gateway,
+    core::io::Context &context,
+    uint16_t &stream_id,
+    auto &security_by_account,
+    auto &master_account,
+    Shared &shared) {
   R result;
   ++stream_id;
   auto index = std::size(result);
   log::debug("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
-  auto market_data = std::make_unique<MarketData>(gateway, context, stream_id, shared, index);
+  auto market_data = std::make_unique<MarketData>(
+      gateway,
+      context,
+      stream_id,
+      get_security(security_by_account, master_account),
+      shared,
+      index);
   result.emplace_back(std::move(market_data));
   return result;
 }
@@ -94,8 +117,8 @@ Gateway::Gateway(server::Dispatcher &dispatcher, const Config &config)
           *this, context_, ++stream_id_, security_, shared_, request_)),
       order_entry_(create_order_entry<decltype(order_entry_)>(
           *this, context_, stream_id_, security_, shared_, request_)),
-      market_data_(
-          create_market_data<decltype(market_data_)>(*this, context_, stream_id_, shared_)) {
+      market_data_(create_market_data<decltype(market_data_)>(
+          *this, context_, stream_id_, security_, master_account_, shared_)) {
 }
 
 void Gateway::operator()(const Event<Start> &event) {
@@ -225,7 +248,8 @@ void Gateway::ensure_symbol_slices(size_t size) {
     auto stream_id = ++stream_id_;
     auto index = std::size(market_data_);
     log::debug("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
-    auto market_data = std::make_unique<MarketData>(*this, context_, stream_id, shared_, index);
+    auto market_data = std::make_unique<MarketData>(
+        *this, context_, stream_id, get_security(security_, master_account_), shared_, index);
     MessageInfo message_info;
     Start start;
     create_event_and_dispatch(*market_data, message_info, start);
