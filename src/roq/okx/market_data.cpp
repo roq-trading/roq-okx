@@ -151,8 +151,10 @@ void MarketData::operator()(const Event<Stop> &) {
 void MarketData::operator()(const Event<Timer> &event) {
   auto now = event.value.now;
   connection_.refresh(now);
-  if (connection_.ready())
+  if (connection_.ready()) {
     check_subscribe_queue(now);
+    check_slow(now);
+  }
 }
 
 void MarketData::operator()(metrics::Writer &writer) {
@@ -193,11 +195,13 @@ void MarketData::operator()(const core::web::ClientSocket::Disconnected &) {
   (*this)(ConnectionStatus::DISCONNECTED);
   download_.reset();
   subscribe_queue_.clear();
+  last_update_ = {};
 }
 
 void MarketData::operator()(const core::web::ClientSocket::Ready &) {
   (*this)(ConnectionStatus::DOWNLOADING);
   download_.begin();
+  last_update_ = core::clock::GetSystem();
 }
 
 void MarketData::operator()(const core::web::ClientSocket::Close &) {
@@ -398,38 +402,39 @@ void MarketData::parse(const std::string_view &message) {
 void MarketData::operator()(Trace<json::Error const> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
-    log::warn("event={{trace_info={}, error={}}}"sv, trace_info, error);
+    log::warn("event={{error={}, trace_info={}}}"sv, error, trace_info);
   });
 }
 
 void MarketData::operator()(Trace<json::Subscribe const> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
-    log::info<1>("event={{trace_info={}, subscribe={}}}"sv, trace_info, subscribe);
-    log::debug("event={{trace_info={}, subscribe={}}}"sv, trace_info, subscribe);
+    log::info<1>("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
+    log::debug("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
   });
 }
 
 void MarketData::operator()(Trace<json::Unsubscribe const> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
-    log::info<1>("event={{trace_info={}, unsubscribe={}}}"sv, trace_info, unsubscribe);
-    log::debug("event={{trace_info={}, unsubscribe={}}}"sv, trace_info, unsubscribe);
+    log::info<1>("event={{unsubscribe={}, trace_info={}}}"sv, unsubscribe, trace_info);
+    log::debug("event={{unsubscribe={}, trace_info={}}}"sv, unsubscribe, trace_info);
   });
 }
 
 void MarketData::operator()(Trace<json::Status const> const &event) {
   profile_.status([&]() {
     auto &[trace_info, status] = event;
-    log::info<3>("event={{trace_info={}, status={}}}"sv, trace_info, status);
-    log::debug("event={{trace_info={}, status={}}}"sv, trace_info, status);
+    log::info<3>("event={{status={}, trace_info={}}}"sv, status, trace_info);
+    log::debug("event={{status={}, trace_info={}}}"sv, status, trace_info);
   });
 }
 
 void MarketData::operator()(Trace<json::Instruments const> const &event) {
   profile_.instruments([&]() {
     auto &[trace_info, instruments] = event;
-    log::info<1>("event={{trace_info={}, instruments={}}}"sv, trace_info, instruments);
+    log::info<1>("event={{instruments={}, trace_info={}}}"sv, instruments, trace_info);
+    last_update(trace_info);
     std::vector<Symbol> symbols;
     symbols.reserve(std::size(instruments.data));
     size_t counter = {};
@@ -508,8 +513,9 @@ void MarketData::operator()(Trace<json::Instruments const> const &event) {
 void MarketData::operator()(Trace<json::EstimatedPrice const> const &event) {
   profile_.estimated_price([&]() {
     auto &[trace_info, estimated_price] = event;
-    log::info<3>("event={{trace_info={}, estimated_price={}}}"sv, trace_info, estimated_price);
-    log::debug("event={{trace_info={}, estimated_price={}}}"sv, trace_info, estimated_price);
+    log::info<3>("event={{estimated_price={}, trace_info={}}}"sv, estimated_price, trace_info);
+    log::debug("event={{estimated_price={}, trace_info={}}}"sv, estimated_price, trace_info);
+    last_update(trace_info);
     log::fatal("here"sv);
   });
 }
@@ -517,8 +523,9 @@ void MarketData::operator()(Trace<json::EstimatedPrice const> const &event) {
 void MarketData::operator()(Trace<json::PriceLimit const> const &event) {
   profile_.price_limit([&]() {
     auto &[trace_info, price_limit] = event;
-    log::info<3>("event={{trace_info={}, price_limit={}}}"sv, trace_info, price_limit);
-    log::debug("event={{trace_info={}, price_limit={}}}"sv, trace_info, price_limit);
+    log::info<3>("event={{price_limit={}, trace_info={}}}"sv, price_limit, trace_info);
+    log::debug("event={{price_limit={}, trace_info={}}}"sv, price_limit, trace_info);
+    last_update(trace_info);
     log::fatal("here"sv);
   });
 }
@@ -526,8 +533,9 @@ void MarketData::operator()(Trace<json::PriceLimit const> const &event) {
 void MarketData::operator()(Trace<json::MarkPrice const> const &event) {
   profile_.mark_price([&]() {
     auto &[trace_info, mark_price] = event;
-    log::info<3>("event={{trace_info={}, mark_price={}}}"sv, trace_info, mark_price);
-    log::debug("event={{trace_info={}, mark_price={}}}"sv, trace_info, mark_price);
+    log::info<3>("event={{mark_price={}, trace_info={}}}"sv, mark_price, trace_info);
+    log::debug("event={{mark_price={}, trace_info={}}}"sv, mark_price, trace_info);
+    last_update(trace_info);
     log::fatal("here"sv);
   });
 }
@@ -535,7 +543,8 @@ void MarketData::operator()(Trace<json::MarkPrice const> const &event) {
 void MarketData::operator()(Trace<json::Tickers const> const &event) {
   profile_.tickers([&]() {
     auto &[trace_info, tickers] = event;
-    log::info<3>("event={{trace_info={}, tickers={}}}"sv, trace_info, tickers);
+    log::info<3>("event={{tickers={}, trace_info={}}}"sv, tickers, trace_info);
+    last_update(trace_info);
     for (auto &item : tickers.data) {
       const TopOfBook top_of_book{
           .stream_id = stream_id_,
@@ -594,7 +603,8 @@ void MarketData::operator()(Trace<json::Tickers const> const &event) {
 void MarketData::operator()(Trace<json::Trades const> const &event) {
   profile_.trades([&]() {
     auto &[trace_info, trades] = event;
-    log::info<3>("event={{trace_info={}, trades={}}}"sv, trace_info, trades);
+    log::info<3>("event={{trades={}, trace_info={}}}"sv, trades, trace_info);
+    last_update(trace_info);
     core::back_emplacer trades_(shared_.trades);
     std::string_view symbol;
     std::chrono::nanoseconds exchange_time_utc = {};
@@ -636,7 +646,8 @@ void MarketData::operator()(
   profile_.books_l2_tbt([&]() {
     auto &[trace_info, books_l2_tbt] = event;
     log::info<3>(
-        "event={{trace_info={}, books_l2_tbt={}, action={}}}"sv, trace_info, books_l2_tbt, action);
+        "event={{books_l2_tbt={}, action={}, trace_info={}}}"sv, books_l2_tbt, action, trace_info);
+    last_update(trace_info);
     auto snapshot = action == json::Action::SNAPSHOT;
     core::back_emplacer bids(shared_.bids), asks(shared_.asks);
     for (auto &item : books_l2_tbt.bids)
@@ -670,7 +681,8 @@ void MarketData::operator()(
 void MarketData::operator()(Trace<json::IndexTickers const> const &event) {
   profile_.index_tickers([&]() {
     auto &[trace_info, index_tickers] = event;
-    log::info<3>("event={{trace_info={}, index_tickers={}}}"sv, trace_info, index_tickers);
+    log::info<3>("event={{index_tickers={}, trace_info={}}}"sv, index_tickers, trace_info);
+    last_update(trace_info);
     for (auto &item : index_tickers.data) {
       Statistics statistics[] = {
           {
@@ -696,7 +708,8 @@ void MarketData::operator()(Trace<json::IndexTickers const> const &event) {
 void MarketData::operator()(Trace<json::FundingRate const> const &event) {
   profile_.funding_rate([&]() {
     auto &[trace_info, funding_rate] = event;
-    log::info<3>("event={{trace_info={}, funding_rate={}}}"sv, trace_info, funding_rate);
+    log::info<3>("event={{funding_rate={}, trace_info={}}}"sv, funding_rate, trace_info);
+    last_update(trace_info);
     for (auto &item : funding_rate.data) {
       Statistics statistics[] = {
           {
@@ -728,8 +741,9 @@ void MarketData::operator()(Trace<json::FundingRate const> const &event) {
 void MarketData::operator()(Trace<json::Login const> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
-    log::info<1>("event={{trace_info={}, login={}}}"sv, trace_info, login);
+    log::info<1>("event={{login={}, trace_info={}}}"sv, login, trace_info);
     log::debug("login={}"sv, login);
+    last_update(trace_info);
     auto state = MarketDataState::LOGIN;
     download_.check_relaxed(state);
   });
@@ -771,6 +785,18 @@ void MarketData::check_subscribe_queue(std::chrono::nanoseconds now) {
         connection_.send_text(message);
       },
       now);
+}
+
+void MarketData::last_update(const TraceInfo &trace_info) {
+  last_update_ = trace_info.source_receive_time;
+}
+
+void MarketData::check_slow(std::chrono::nanoseconds now) {
+  if (last_update_.count() && last_update_ < now &&
+      (now - last_update_) > flags::Flags::ws_disconnect_timeout()) {
+    log::warn("Disconnecting due to timeout: stream_id={}"sv, stream_id_);
+    connection_.close();
+  }
 }
 
 }  // namespace okx

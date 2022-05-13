@@ -503,15 +503,15 @@ void OrderEntry::parse(const std::string_view &message) {
 void OrderEntry::operator()(Trace<json::Error const> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
-    log::fatal("event={{trace_info={}, error={}}}"sv, trace_info, error);
+    log::fatal("event={{error={}, trace_info={}}}"sv, error, trace_info);
   });
 }
 
 void OrderEntry::operator()(Trace<json::Subscribe const> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
-    log::info<1>("event={{trace_info={}, subscribe={}}}"sv, trace_info, subscribe);
-    log::debug("event={{trace_info={}, subscribe={}}}"sv, trace_info, subscribe);
+    log::info<1>("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
+    log::debug("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
     if (subscribe.channel == json::Channel::ORDERS)
       download_.check(OrderEntryState::SUBSCRIBE);
   });
@@ -520,8 +520,8 @@ void OrderEntry::operator()(Trace<json::Subscribe const> const &event) {
 void OrderEntry::operator()(Trace<json::Unsubscribe const> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
-    log::info<1>("event={{trace_info={}, unsubscribe={}}}"sv, trace_info, unsubscribe);
-    log::debug("event={{trace_info={}, unsubscribe={}}}"sv, trace_info, unsubscribe);
+    log::info<1>("event={{unsubscribe={}, trace_info={}}}"sv, unsubscribe, trace_info);
+    log::debug("event={{unsubscribe={}, trace_info={}}}"sv, unsubscribe, trace_info);
   });
 }
 
@@ -571,7 +571,7 @@ void OrderEntry::operator()(
 void OrderEntry::operator()(Trace<json::Login const> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
-    log::info<1>("event={{trace_info={}, login={}}}"sv, trace_info, login);
+    log::info<1>("event={{login={}, trace_info={}}}"sv, login, trace_info);
     log::debug("login={}"sv, login);
     auto state = OrderEntryState::LOGIN;
     download_.check_relaxed(state);
@@ -581,7 +581,7 @@ void OrderEntry::operator()(Trace<json::Login const> const &event) {
 void OrderEntry::operator()(Trace<json::Account const> const &event) {
   profile_.account([&]() {
     auto &[trace_info, account] = event;
-    log::info<1>("event={{trace_info={}, account={}}}"sv, trace_info, account);
+    log::info<1>("event={{account={}, trace_info={}}}"sv, account, trace_info);
     // log::debug("account={}"sv, account);
     for (auto &item : account.details) {
       const FundsUpdate funds_update{
@@ -601,7 +601,7 @@ void OrderEntry::operator()(Trace<json::BalanceAndPosition const> const &event) 
   profile_.balance_and_position([&]() {
     auto &[trace_info, balance_and_position] = event;
     log::info<1>(
-        "event={{trace_info={}, balance_and_position={}}}"sv, trace_info, balance_and_position);
+        "event={{balance_and_position={}, trace_info={}}}"sv, balance_and_position, trace_info);
     // log::debug("balance_and_position={}"sv, balance_and_position);
   });
 }
@@ -609,7 +609,7 @@ void OrderEntry::operator()(Trace<json::BalanceAndPosition const> const &event) 
 void OrderEntry::operator()(Trace<json::Positions const> const &event) {
   profile_.positions([&]() {
     auto &[trace_info, positions] = event;
-    log::info<1>("event={{trace_info={}, positions={}}}"sv, trace_info, positions);
+    log::info<1>("event={{positions={}, trace_info={}}}"sv, positions, trace_info);
     // log::debug("positions={}"sv, positions);
     for (auto &item : positions.data) {
       auto long_quantity = std::max(0.0, item.pos);
@@ -633,7 +633,7 @@ void OrderEntry::operator()(Trace<json::Positions const> const &event) {
 void OrderEntry::operator()(Trace<json::Orders const> const &event) {
   profile_.orders([&]() {
     auto &[trace_info, orders] = event;
-    log::info<1>("event={{trace_info={}, orders={}}}"sv, trace_info, orders);
+    log::info<1>("event={{orders={}, trace_info={}}}"sv, orders, trace_info);
     log::debug("orders={}"sv, orders);
     for (auto &item : orders.data) {
       if (item.amend_result < 0)
@@ -686,7 +686,7 @@ void OrderEntry::operator()(Trace<json::Orders const> const &event) {
 void OrderEntry::operator()(Trace<json::OrderAck const> const &event) {
   profile_.order_ack([&]() {
     auto &[trace_info, order_ack] = event;
-    log::info<1>("event={{trace_info={}, order_ack={}}}"sv, trace_info, order_ack);
+    log::info<1>("event={{order_ack={}, trace_info={}}}"sv, order_ack, trace_info);
     log::debug("order_ack={}"sv, order_ack);
     auto order_status = order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : order_ack.data) {
@@ -715,7 +715,7 @@ void OrderEntry::operator()(Trace<json::OrderAck const> const &event) {
 void OrderEntry::operator()(Trace<json::AmendOrderAck const> const &event) {
   profile_.amend_order_ack([&]() {
     auto &[trace_info, amend_order_ack] = event;
-    log::info<1>("event={{trace_info={}, amend_order_ack={}}}"sv, trace_info, amend_order_ack);
+    log::info<1>("event={{amend_order_ack={}, trace_info={}}}"sv, amend_order_ack, trace_info);
     log::debug("amend_order_ack={}"sv, amend_order_ack);
     auto order_status = amend_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : amend_order_ack.data) {
@@ -744,7 +744,7 @@ void OrderEntry::operator()(Trace<json::AmendOrderAck const> const &event) {
 void OrderEntry::operator()(Trace<json::CancelOrderAck const> const &event) {
   profile_.cancel_order_ack([&]() {
     auto &[trace_info, cancel_order_ack] = event;
-    log::info<1>("event={{trace_info={}, cancel_order_ack={}}}"sv, trace_info, cancel_order_ack);
+    log::info<1>("event={{cancel_order_ack={}, trace_info={}}}"sv, cancel_order_ack, trace_info);
     log::debug("cancel_order_ack={}"sv, cancel_order_ack);
     auto order_status = cancel_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : cancel_order_ack.data) {

@@ -97,6 +97,13 @@
       "description": "opt-out from the real-time feeds requiring VIP membership"
     },
     {
+      "name": "ws_disconnect_timeout",
+      "type": "std::chrono::nanoseconds",
+      "validator": "roq::core::flags::TimePeriod",
+      "default": "10s",
+      "description": "disconnect timeout"
+    },
+    {
       "name": "request_limit",
       "type": "uint32_t",
       "default": "80",

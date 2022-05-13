@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Added
+
+* New flag `--ws_disconnect_timeout` (#218)
+
 ### Fixed
 
 * Order book subscription now depends on client tiering (#212)
