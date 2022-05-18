@@ -17,10 +17,10 @@ namespace okx {
 class Security final {
  public:
   Security() {}
-  Security(const Config &, const std::string_view &account);
+  Security(Config const &, std::string_view const &account);
 
   Security(Security &&) = delete;
-  Security(const Security &) = delete;
+  Security(Security const &) = delete;
 
   bool empty() const { return std::empty(account_); }
 
@@ -29,12 +29,9 @@ class Security final {
   std::string_view get_key() const { return hasher_.get_key(); }
   std::string_view get_passphrase() const { return hasher_.get_passphrase(); }
 
-  std::string create_sign(const std::string_view &timestamp) {
-    return hasher_.create_sign(timestamp);
-  }
+  std::string create_sign(std::string_view const &timestamp) { return hasher_.create_sign(timestamp); }
 
-  std::string create_headers(
-      core::http::Method, const std::string_view &path, const std::string_view &body);
+  std::string create_headers(core::http::Method, std::string_view const &path, std::string_view const &body);
 
  private:
   const std::string account_;

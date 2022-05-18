@@ -55,7 +55,7 @@ TEST_CASE("json_order_ack_parser_success", "[json_order_ack]") {
     void operator()(Trace<json::Trades const> const &) override { FAIL(); }
     void operator()(
         Trace<json::BooksL2Tbt const> const &,
-        [[maybe_unused]] const std::string_view &inst_id,
+        [[maybe_unused]] std::string_view const &inst_id,
         json::Action) override {
       FAIL();
     }
@@ -127,7 +127,7 @@ TEST_CASE("json_order_ack_parser_failure", "[json_order_ack]") {
     void operator()(Trace<json::Trades const> const &) override { FAIL(); }
     void operator()(
         Trace<json::BooksL2Tbt const> const &,
-        [[maybe_unused]] const std::string_view &inst_id,
+        [[maybe_unused]] std::string_view const &inst_id,
         json::Action) override {
       FAIL();
     }

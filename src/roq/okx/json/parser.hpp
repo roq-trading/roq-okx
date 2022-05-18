@@ -57,8 +57,7 @@ struct Parser final {
     virtual void operator()(Trace<json::MarkPrice const> const &) = 0;
     virtual void operator()(Trace<json::Tickers const> const &) = 0;
     virtual void operator()(Trace<json::Trades const> const &) = 0;
-    virtual void operator()(
-        Trace<json::BooksL2Tbt const> const &, const std::string_view &inst_id, Action) = 0;
+    virtual void operator()(Trace<json::BooksL2Tbt const> const &, std::string_view const &inst_id, Action) = 0;
     virtual void operator()(Trace<json::IndexTickers const> const &) = 0;
     virtual void operator()(Trace<json::FundingRate const> const &) = 0;
     // - private
@@ -74,33 +73,20 @@ struct Parser final {
     virtual void operator()(Trace<json::CancelOrderAck const> const &) = 0;
   };
 
-  static bool dispatch(
-      Handler &, std::string_view const &message, core::json::Buffer &, TraceInfo const &);
+  static bool dispatch(Handler &, std::string_view const &message, core::json::Buffer &, TraceInfo const &);
 
  private:
   template <typename T, typename... Args>
   static void dispatch_event(
-      Handler &,
-      std::string_view const &message,
-      core::json::Buffer &,
-      TraceInfo const &,
-      Args &&...);
+      Handler &, std::string_view const &message, core::json::Buffer &, TraceInfo const &, Args &&...);
 
   template <typename T, typename... Args>
   static void dispatch_event_array(
-      Handler &,
-      std::string_view const &message,
-      core::json::Buffer &,
-      TraceInfo const &,
-      Args &&...args);
+      Handler &, std::string_view const &message, core::json::Buffer &, TraceInfo const &, Args &&...args);
 
   template <typename T, typename... Args>
   static void dispatch_event_frame(
-      Handler &,
-      std::string_view const &message,
-      core::json::Buffer &,
-      TraceInfo const &,
-      Args &&...args);
+      Handler &, std::string_view const &message, core::json::Buffer &, TraceInfo const &, Args &&...args);
 };
 
 }  // namespace json

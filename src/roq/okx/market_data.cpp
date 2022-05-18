@@ -25,7 +25,7 @@ namespace roq {
 namespace okx {
 
 namespace {
-const auto NAME = "md"sv;
+auto const NAME = "md"sv;
 const Mask SUPPORTS{
     SupportType::REFERENCE_DATA,
     SupportType::MARKET_STATUS,
@@ -36,7 +36,7 @@ const Mask SUPPORTS{
 };
 
 struct create_metrics final : public core::metrics::Factory {
-  explicit create_metrics(const std::string_view &group, const std::string_view &function)
+  explicit create_metrics(std::string_view const &group, std::string_view const &function)
       : core::metrics::Factory(server::Flags::name(), group, function) {}
 };
 
@@ -66,8 +66,7 @@ std::string_view get_books_channel(auto security) {
     case 50:
       result = "books50-l2-tbt"sv;
       if (!vip)
-        log::fatal(
-            R"(Channel "{}" requires authentication (only available to VIP members))"sv, result);
+        log::fatal(R"(Channel "{}" requires authentication (only available to VIP members))"sv, result);
       break;
     case 400:
       result = vip ? "books-l2-tbt"sv : "books"sv;
@@ -102,15 +101,9 @@ void emplace(MBPUpdate &result, const T &item) {
 }  // namespace
 
 MarketData::MarketData(
-    Handler &handler,
-    core::io::Context &context,
-    uint32_t stream_id,
-    Security &security,
-    Shared &shared,
-    size_t index)
-    : handler_(handler), stream_id_(stream_id), name_(fmt::format("{}:{}"sv, stream_id_, NAME)),
-      index_(index), connection_(create_connection(*this, context)),
-      decode_buffer_(Flags::decode_buffer_size()),
+    Handler &handler, core::io::Context &context, uint32_t stream_id, Security &security, Shared &shared, size_t index)
+    : handler_(handler), stream_id_(stream_id), name_(fmt::format("{}:{}"sv, stream_id_, NAME)), index_(index),
+      connection_(create_connection(*this, context)), decode_buffer_(Flags::decode_buffer_size()),
       request_id_(static_cast<uint64_t>(stream_id_) * 1000000),  // scale (debugging)
       counter_{
           .disconnect = create_metrics(name_, "disconnect"sv),
@@ -136,19 +129,18 @@ MarketData::MarketData(
           .ping = create_metrics(name_, "ping"sv),
           .heartbeat = create_metrics(name_, "heartbeat"sv),
       },
-      security_(security), shared_(shared),
-      download_({}, [this](auto state) { return download(state); }) {
+      security_(security), shared_(shared), download_({}, [this](auto state) { return download(state); }) {
 }
 
-void MarketData::operator()(const Event<Start> &) {
+void MarketData::operator()(Event<Start> const &) {
   connection_.start();
 }
 
-void MarketData::operator()(const Event<Stop> &) {
+void MarketData::operator()(Event<Stop> const &) {
   connection_.stop();
 }
 
-void MarketData::operator()(const Event<Timer> &event) {
+void MarketData::operator()(Event<Timer> const &event) {
   auto now = event.value.now;
   connection_.refresh(now);
   if (connection_.ready()) {
@@ -187,10 +179,10 @@ void MarketData::subscribe(size_t start_from) {
     subscribe(shared_.symbols.get_slice(index_, start_from));
 }
 
-void MarketData::operator()(const core::web::ClientSocket::Connected &) {
+void MarketData::operator()(core::web::ClientSocket::Connected const &) {
 }
 
-void MarketData::operator()(const core::web::ClientSocket::Disconnected &) {
+void MarketData::operator()(core::web::ClientSocket::Disconnected const &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
   download_.reset();
@@ -198,16 +190,16 @@ void MarketData::operator()(const core::web::ClientSocket::Disconnected &) {
   last_update_ = {};
 }
 
-void MarketData::operator()(const core::web::ClientSocket::Ready &) {
+void MarketData::operator()(core::web::ClientSocket::Ready const &) {
   (*this)(ConnectionStatus::DOWNLOADING);
   download_.begin();
   last_update_ = core::clock::GetSystem();
 }
 
-void MarketData::operator()(const core::web::ClientSocket::Close &) {
+void MarketData::operator()(core::web::ClientSocket::Close const &) {
 }
 
-void MarketData::operator()(const core::web::ClientSocket::Latency &latency) {
+void MarketData::operator()(core::web::ClientSocket::Latency const &latency) {
   auto trace_info = server::create_trace_info();
   const ExternalLatency external_latency{
       .stream_id = stream_id_,
@@ -218,11 +210,11 @@ void MarketData::operator()(const core::web::ClientSocket::Latency &latency) {
   latency_.ping.update(latency.sample);
 }
 
-void MarketData::operator()(const core::web::ClientSocket::Text &text) {
+void MarketData::operator()(core::web::ClientSocket::Text const &text) {
   parse(text.payload);
 }
 
-void MarketData::operator()(const core::web::ClientSocket::Binary &) {
+void MarketData::operator()(core::web::ClientSocket::Binary const &) {
   log::fatal("Unexpected: binary"sv);
 }
 
@@ -306,7 +298,7 @@ void MarketData::subscribe_static() {
   // subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
 }
 
-void MarketData::subscribe(const std::span<Symbol const> &symbols) {
+void MarketData::subscribe(std::span<Symbol const> const &symbols) {
   if (std::empty(symbols))
     return;
   // subscribe("price-limit"sv, "instType"sv, symbols);
@@ -323,7 +315,7 @@ void MarketData::subscribe(const std::span<Symbol const> &symbols) {
   }
 }
 
-void MarketData::subscribe(const std::string_view &channel) {
+void MarketData::subscribe(std::string_view const &channel) {
   auto message = fmt::format(
       R"({{)"
       R"("op":"subscribe",)"
@@ -338,9 +330,7 @@ void MarketData::subscribe(const std::string_view &channel) {
 }
 
 void MarketData::subscribe(
-    const std::string_view &channel,
-    const std::string_view &selector,
-    const std::string_view &value) {
+    std::string_view const &channel, std::string_view const &selector, std::string_view const &value) {
   auto message = fmt::format(
       R"({{)"
       R"("op":"subscribe",)"
@@ -358,9 +348,7 @@ void MarketData::subscribe(
 }
 
 void MarketData::subscribe(
-    const std::string_view &channel,
-    const std::string_view &selector,
-    const std::span<Symbol const> &values) {
+    std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values) {
   assert(!std::empty(values));
   auto prefix = fmt::format(
       R"({{)"
@@ -382,7 +370,7 @@ void MarketData::subscribe(
   subscribe_queue_.emplace_back(message);
 }
 
-void MarketData::parse(const std::string_view &message) {
+void MarketData::parse(std::string_view const &message) {
   profile_.parse([&]() {
     try {
       // log::debug(R"(message="{}")"sv, message);
@@ -640,13 +628,10 @@ void MarketData::operator()(Trace<json::Trades const> const &event) {
 }
 
 void MarketData::operator()(
-    Trace<json::BooksL2Tbt const> const &event,
-    const std::string_view &inst_id,
-    json::Action action) {
+    Trace<json::BooksL2Tbt const> const &event, std::string_view const &inst_id, json::Action action) {
   profile_.books_l2_tbt([&]() {
     auto &[trace_info, books_l2_tbt] = event;
-    log::info<3>(
-        "event={{books_l2_tbt={}, action={}, trace_info={}}}"sv, books_l2_tbt, action, trace_info);
+    log::info<3>("event={{books_l2_tbt={}, action={}, trace_info={}}}"sv, books_l2_tbt, action, trace_info);
     last_update(trace_info);
     auto snapshot = action == json::Action::SNAPSHOT;
     core::back_emplacer bids(shared_.bids), asks(shared_.asks);
@@ -787,13 +772,12 @@ void MarketData::check_subscribe_queue(std::chrono::nanoseconds now) {
       now);
 }
 
-void MarketData::last_update(const TraceInfo &trace_info) {
+void MarketData::last_update(TraceInfo const &trace_info) {
   last_update_ = trace_info.source_receive_time;
 }
 
 void MarketData::check_slow(std::chrono::nanoseconds now) {
-  if (last_update_.count() && last_update_ < now &&
-      (now - last_update_) > flags::Flags::ws_disconnect_timeout()) {
+  if (last_update_.count() && last_update_ < now && (now - last_update_) > flags::Flags::ws_disconnect_timeout()) {
     log::warn("Disconnecting due to timeout: stream_id={}"sv, stream_id_);
     connection_.close();
   }

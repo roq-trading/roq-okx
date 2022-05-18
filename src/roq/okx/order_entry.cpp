@@ -31,7 +31,7 @@ namespace roq {
 namespace okx {
 
 namespace {
-const auto NAME = "ex"sv;
+auto const NAME = "ex"sv;
 const Mask SUPPORTS{
     SupportType::CREATE_ORDER,
     SupportType::MODIFY_ORDER,
@@ -43,7 +43,7 @@ const Mask SUPPORTS{
 };
 
 struct create_metrics final : public core::metrics::Factory {
-  explicit create_metrics(const std::string_view &group, const std::string_view &function)
+  explicit create_metrics(std::string_view const &group, std::string_view const &function)
       : core::metrics::Factory(server::Flags::name(), group, function) {}
 };
 
@@ -96,23 +96,22 @@ OrderEntry::OrderEntry(
           .heartbeat = create_metrics(name_, "heartbeat"sv),
       },
       security_(security), shared_(shared), request_(request),
-      download_({}, [this](auto state) { return download(state); }),
-      trade_mode_(flags::Flags::trade_mode()) {
+      download_({}, [this](auto state) { return download(state); }), trade_mode_(flags::Flags::trade_mode()) {
 }
 
 bool OrderEntry::ready() const {
   return connection_.ready();
 }
 
-void OrderEntry::operator()(const Event<Start> &) {
+void OrderEntry::operator()(Event<Start> const &) {
   connection_.start();
 }
 
-void OrderEntry::operator()(const Event<Stop> &) {
+void OrderEntry::operator()(Event<Stop> const &) {
   connection_.stop();
 }
 
-void OrderEntry::operator()(const Event<Timer> &event) {
+void OrderEntry::operator()(Event<Timer> const &event) {
   connection_.refresh(event.value.now);
   check_response_orders();
 }
@@ -144,7 +143,7 @@ void OrderEntry::operator()(metrics::Writer &writer) {
 
 namespace {
 std::pair<json::OrderType, bool> compute_order_attributes(
-    const auto &order_type, const auto &time_in_force, const auto &execution_instructions) {
+    auto const &order_type, auto const &time_in_force, auto const &execution_instructions) {
   bool reduce_only = false;
   json::OrderType order_type_ = {};
   if (!std::empty(execution_instructions)) {
@@ -187,7 +186,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(
 }  // namespace
 
 uint16_t OrderEntry::operator()(
-    const Event<CreateOrder> &event, const oms::Order &, const std::string_view &request_id) {
+    Event<CreateOrder> const &event, oms::Order const &, std::string_view const &request_id) {
   auto &[message_info, create_order] = event;
   json::PositionSide position_side = json::PositionSide::NET;  // XXX should be configurable
   auto side = json::map(create_order.side);
@@ -261,15 +260,14 @@ uint16_t OrderEntry::operator()(
 }
 
 uint16_t OrderEntry::operator()(
-    const Event<ModifyOrder> &event,
-    const oms::Order &order,
-    const std::string_view &request_id,
-    const std::string_view &previous_request_id) {
+    Event<ModifyOrder> const &event,
+    oms::Order const &order,
+    std::string_view const &request_id,
+    std::string_view const &previous_request_id) {
   auto &[message_info, modify_order] = event;
   auto has_external_order_id = !std::empty(order.external_order_id);
   auto order_id_type = has_external_order_id ? "ordId"sv : "clOrdId"sv;
-  auto order_id =
-      has_external_order_id ? std::string_view{order.external_order_id} : previous_request_id;
+  auto order_id = has_external_order_id ? std::string_view{order.external_order_id} : previous_request_id;
   auto new_sz = std::isnan(modify_order.quantity) ? order.quantity : modify_order.quantity;
   auto new_px = std::isnan(modify_order.price) ? order.price : modify_order.price;
   auto message = fmt::format(
@@ -298,14 +296,13 @@ uint16_t OrderEntry::operator()(
 }
 
 uint16_t OrderEntry::operator()(
-    const Event<CancelOrder> &,
-    const oms::Order &order,
-    [[maybe_unused]] const std::string_view &request_id,
-    const std::string_view &previous_request_id) {
+    Event<CancelOrder> const &,
+    oms::Order const &order,
+    [[maybe_unused]] std::string_view const &request_id,
+    std::string_view const &previous_request_id) {
   auto has_external_order_id = !std::empty(order.external_order_id);
   auto order_id_type = has_external_order_id ? "ordId"sv : "clOrdId"sv;
-  auto order_id =
-      has_external_order_id ? std::string_view{order.external_order_id} : previous_request_id;
+  auto order_id = has_external_order_id ? std::string_view{order.external_order_id} : previous_request_id;
   auto message = fmt::format(
       R"({{)"
       R"("id":"{}",)"
@@ -325,8 +322,7 @@ uint16_t OrderEntry::operator()(
   return stream_id_;
 }
 
-uint16_t OrderEntry::operator()(
-    const Event<CancelAllOrders> &, [[maybe_unused]] const std::string_view &request_id) {
+uint16_t OrderEntry::operator()(Event<CancelAllOrders> const &, [[maybe_unused]] std::string_view const &request_id) {
   std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_ids;
   if (shared_.dispatcher_.get_all_orders(
           [&](auto &order) {
@@ -341,24 +337,24 @@ uint16_t OrderEntry::operator()(
   return stream_id_;
 }
 
-void OrderEntry::operator()(const core::web::ClientSocket::Connected &) {
+void OrderEntry::operator()(core::web::ClientSocket::Connected const &) {
 }
 
-void OrderEntry::operator()(const core::web::ClientSocket::Disconnected &) {
+void OrderEntry::operator()(core::web::ClientSocket::Disconnected const &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
   download_.reset();
 }
 
-void OrderEntry::operator()(const core::web::ClientSocket::Ready &) {
+void OrderEntry::operator()(core::web::ClientSocket::Ready const &) {
   (*this)(ConnectionStatus::DOWNLOADING);
   download_.begin();
 }
 
-void OrderEntry::operator()(const core::web::ClientSocket::Close &) {
+void OrderEntry::operator()(core::web::ClientSocket::Close const &) {
 }
 
-void OrderEntry::operator()(const core::web::ClientSocket::Latency &latency) {
+void OrderEntry::operator()(core::web::ClientSocket::Latency const &latency) {
   auto trace_info = server::create_trace_info();
   const ExternalLatency external_latency{
       .stream_id = stream_id_,
@@ -369,11 +365,11 @@ void OrderEntry::operator()(const core::web::ClientSocket::Latency &latency) {
   latency_.ping.update(latency.sample);
 }
 
-void OrderEntry::operator()(const core::web::ClientSocket::Text &text) {
+void OrderEntry::operator()(core::web::ClientSocket::Text const &text) {
   parse(text.payload);
 }
 
-void OrderEntry::operator()(const core::web::ClientSocket::Binary &) {
+void OrderEntry::operator()(core::web::ClientSocket::Binary const &) {
   log::fatal("Unexpected"sv);
 }
 
@@ -449,7 +445,7 @@ void OrderEntry::subscribe() {
   subscribe("orders"sv, "instType"sv, "ANY"sv);
 }
 
-void OrderEntry::subscribe(const std::string_view &channel) {
+void OrderEntry::subscribe(std::string_view const &channel) {
   auto message = fmt::format(
       R"({{)"
       R"("op":"subscribe",)"
@@ -464,9 +460,7 @@ void OrderEntry::subscribe(const std::string_view &channel) {
 }
 
 void OrderEntry::subscribe(
-    const std::string_view &channel,
-    const std::string_view &selector,
-    const std::string_view &value) {
+    std::string_view const &channel, std::string_view const &selector, std::string_view const &value) {
   auto message = fmt::format(
       R"({{)"
       R"("op":"subscribe",)"
@@ -483,7 +477,7 @@ void OrderEntry::subscribe(
   connection_.send_text(message);
 }
 
-void OrderEntry::parse(const std::string_view &message) {
+void OrderEntry::parse(std::string_view const &message) {
   profile_.parse([&]() {
     try {
       // log::debug(R"(message="{}")"sv, message);
@@ -562,9 +556,7 @@ void OrderEntry::operator()(Trace<json::FundingRate const> const &) {
 }
 
 void OrderEntry::operator()(
-    Trace<json::BooksL2Tbt const> const &,
-    [[maybe_unused]] const std::string_view &inst_id,
-    json::Action) {
+    Trace<json::BooksL2Tbt const> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) {
   log::fatal("Unexpected"sv);
 }
 
@@ -600,8 +592,7 @@ void OrderEntry::operator()(Trace<json::Account const> const &event) {
 void OrderEntry::operator()(Trace<json::BalanceAndPosition const> const &event) {
   profile_.balance_and_position([&]() {
     auto &[trace_info, balance_and_position] = event;
-    log::info<1>(
-        "event={{balance_and_position={}, trace_info={}}}"sv, balance_and_position, trace_info);
+    log::info<1>("event={{balance_and_position={}, trace_info={}}}"sv, balance_and_position, trace_info);
     // log::debug("balance_and_position={}"sv, balance_and_position);
   });
 }
@@ -670,11 +661,7 @@ void OrderEntry::operator()(Trace<json::Orders const> const &event) {
           .update_type = {},
       };
       if (shared_.update_order(
-              item.cl_ord_id,
-              stream_id_,
-              trace_info,
-              order_update,
-              [&]([[maybe_unused]] auto &order) {})) {
+              item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
       } else {
         log::warn("*** EXTERNAL ORDER ***"sv);
         log::warn("item={}"sv, item);
@@ -702,9 +689,7 @@ void OrderEntry::operator()(Trace<json::OrderAck const> const &event) {
           .quantity = NaN,
           .price = NaN,
       };
-      if (shared_.update_order(
-              item.cl_ord_id, stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {
-              })) {
+      if (shared_.update_order(item.cl_ord_id, stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {})) {
       } else {
         log::warn(R"(Did not find order: cl_ord_id="{}")"sv, item.cl_ord_id);
       }
@@ -731,9 +716,7 @@ void OrderEntry::operator()(Trace<json::AmendOrderAck const> const &event) {
           .quantity = NaN,
           .price = NaN,
       };
-      if (shared_.update_order(
-              item.cl_ord_id, stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {
-              })) {
+      if (shared_.update_order(item.cl_ord_id, stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {})) {
       } else {
         log::warn(R"(Did not find order: cl_ord_id="{}")"sv, item.cl_ord_id);
       }
@@ -760,9 +743,7 @@ void OrderEntry::operator()(Trace<json::CancelOrderAck const> const &event) {
           .quantity = NaN,
           .price = NaN,
       };
-      if (shared_.update_order(
-              item.cl_ord_id, stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {
-              })) {
+      if (shared_.update_order(item.cl_ord_id, stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {})) {
       } else {
         log::warn(R"(Did not find order: cl_ord_id="{}")"sv, item.cl_ord_id);
       }
@@ -771,7 +752,7 @@ void OrderEntry::operator()(Trace<json::CancelOrderAck const> const &event) {
 }
 
 void OrderEntry::cancel_all_orders(
-    const std::span<std::pair<std::string_view, std::string_view>> &symbol_and_external_order_ids) {
+    std::span<std::pair<std::string_view, std::string_view>> const &symbol_and_external_order_ids) {
   for (auto &[symbol, external_order_id] : symbol_and_external_order_ids) {
     auto message = fmt::format(
         R"({{)"

@@ -17,23 +17,20 @@ namespace tools {
 class Hasher final {
  public:
   Hasher();
-  Hasher(
-      const std::string_view &key,
-      const std::string_view &secret,
-      const std::string_view &passphrase);
+  Hasher(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase);
 
   Hasher(Hasher &&) = delete;
-  Hasher(const Hasher &) = delete;
+  Hasher(Hasher const &) = delete;
 
   std::string_view get_key() const { return key_; }
   std::string_view get_passphrase() const { return passphrase_; }
 
-  std::string create_sign(const std::string_view &timestamp);
+  std::string create_sign(std::string_view const &timestamp);
 
   std::string create_headers(
       core::http::Method,
-      const std::string_view &path,
-      const std::string_view &body,
+      std::string_view const &path,
+      std::string_view const &body,
       std::chrono::milliseconds timestamp);
 
  private:

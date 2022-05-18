@@ -32,49 +32,48 @@ namespace okx {
 class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::Handler {
  public:
   struct Handler {
-    virtual void operator()(const Trace<StreamStatus const> &) = 0;
-    virtual void operator()(const Trace<ExternalLatency const> &) = 0;
-    virtual void operator()(const Trace<TradeUpdate const> &, bool is_last, uint8_t user_id) = 0;
-    virtual void operator()(const Trace<FundsUpdate const> &, bool is_last) = 0;
-    virtual void operator()(const Trace<PositionUpdate const> &, bool is_last) = 0;
+    virtual void operator()(Trace<StreamStatus const> const &) = 0;
+    virtual void operator()(Trace<ExternalLatency const> const &) = 0;
+    virtual void operator()(Trace<TradeUpdate const> const &, bool is_last, uint8_t user_id) = 0;
+    virtual void operator()(Trace<FundsUpdate const> const &, bool is_last) = 0;
+    virtual void operator()(Trace<PositionUpdate const> const &, bool is_last) = 0;
   };
 
   OrderEntry(Handler &, core::io::Context &, uint16_t stream_id, Security &, Shared &, Request &);
 
   OrderEntry(OrderEntry &&) = delete;
-  OrderEntry(const OrderEntry &) = delete;
+  OrderEntry(OrderEntry const &) = delete;
 
   bool ready() const;
 
-  void operator()(const Event<Start> &);
-  void operator()(const Event<Stop> &);
-  void operator()(const Event<Timer> &);
+  void operator()(Event<Start> const &);
+  void operator()(Event<Stop> const &);
+  void operator()(Event<Timer> const &);
 
   void operator()(metrics::Writer &);
 
+  uint16_t operator()(Event<CreateOrder> const &, oms::Order const &, std::string_view const &request_id);
   uint16_t operator()(
-      const Event<CreateOrder> &, const oms::Order &, const std::string_view &request_id);
+      Event<ModifyOrder> const &,
+      oms::Order const &,
+      std::string_view const &request_id,
+      std::string_view const &previous_request_id);
   uint16_t operator()(
-      const Event<ModifyOrder> &,
-      const oms::Order &,
-      const std::string_view &request_id,
-      const std::string_view &previous_request_id);
-  uint16_t operator()(
-      const Event<CancelOrder> &,
-      const oms::Order &,
-      const std::string_view &request_id,
-      const std::string_view &previous_request_id);
+      Event<CancelOrder> const &,
+      oms::Order const &,
+      std::string_view const &request_id,
+      std::string_view const &previous_request_id);
 
-  uint16_t operator()(const Event<CancelAllOrders> &, const std::string_view &request_id);
+  uint16_t operator()(Event<CancelAllOrders> const &, std::string_view const &request_id);
 
  protected:
-  void operator()(const core::web::ClientSocket::Connected &) override;
-  void operator()(const core::web::ClientSocket::Disconnected &) override;
-  void operator()(const core::web::ClientSocket::Ready &) override;
-  void operator()(const core::web::ClientSocket::Close &) override;
-  void operator()(const core::web::ClientSocket::Latency &) override;
-  void operator()(const core::web::ClientSocket::Text &) override;
-  void operator()(const core::web::ClientSocket::Binary &) override;
+  void operator()(core::web::ClientSocket::Connected const &) override;
+  void operator()(core::web::ClientSocket::Disconnected const &) override;
+  void operator()(core::web::ClientSocket::Ready const &) override;
+  void operator()(core::web::ClientSocket::Close const &) override;
+  void operator()(core::web::ClientSocket::Latency const &) override;
+  void operator()(core::web::ClientSocket::Text const &) override;
+  void operator()(core::web::ClientSocket::Binary const &) override;
 
   void operator()(Trace<json::Error const> const &) override;
   void operator()(Trace<json::Subscribe const> const &) override;
@@ -87,10 +86,7 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
   void operator()(Trace<json::MarkPrice const> const &) override;
   void operator()(Trace<json::Tickers const> const &) override;
   void operator()(Trace<json::Trades const> const &) override;
-  void operator()(
-      Trace<json::BooksL2Tbt const> const &,
-      const std::string_view &inst_id,
-      json::Action) override;
+  void operator()(Trace<json::BooksL2Tbt const> const &, std::string_view const &inst_id, json::Action) override;
   void operator()(Trace<json::IndexTickers const> const &) override;
   void operator()(Trace<json::FundingRate const> const &) override;
 
@@ -111,16 +107,12 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
   void login();
 
   void subscribe();
-  void subscribe(const std::string_view &channel);
-  void subscribe(
-      const std::string_view &channel,
-      const std::string_view &selector,
-      const std::string_view &value);
+  void subscribe(std::string_view const &channel);
+  void subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value);
 
-  void parse(const std::string_view &message);
+  void parse(std::string_view const &message);
 
-  void cancel_all_orders(
-      const std::span<std::pair<std::string_view, std::string_view>> &symbol_and_external_order_id);
+  void cancel_all_orders(std::span<std::pair<std::string_view, std::string_view>> const &symbol_and_external_order_id);
 
   void request_orders();
   void check_response_orders();
@@ -141,9 +133,8 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
     core::metrics::Counter disconnect;
   } counter_;
   struct {
-    core::metrics::Profile parse, error, subscribe, unsubscribe, login, account,
-        balance_and_position, positions, orders, create_order, modify_order, cancel_order,
-        order_ack, amend_order_ack, cancel_order_ack;
+    core::metrics::Profile parse, error, subscribe, unsubscribe, login, account, balance_and_position, positions,
+        orders, create_order, modify_order, cancel_order, order_ack, amend_order_ack, cancel_order_ack;
   } profile_;
   struct {
     core::metrics::Latency ping, heartbeat;

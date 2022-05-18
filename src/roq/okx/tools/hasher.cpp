@@ -21,7 +21,7 @@ namespace okx {
 namespace tools {
 
 namespace {
-auto create_hmac(const std::string_view &secret) {
+auto create_hmac(std::string_view const &secret) {
   return core::crypto::HMAC_SHA256(secret);
 }
 }  // namespace
@@ -29,12 +29,11 @@ auto create_hmac(const std::string_view &secret) {
 Hasher::Hasher() : hmac_(create_hmac(""sv)) {
 }
 
-Hasher::Hasher(
-    const std::string_view &key, const std::string_view &secret, const std::string_view &passphrase)
+Hasher::Hasher(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase)
     : key_(key), hmac_(create_hmac(secret)), passphrase_(passphrase), secret_(secret) {
 }
 
-std::string Hasher::create_sign(const std::string_view &timestamp) {
+std::string Hasher::create_sign(std::string_view const &timestamp) {
   log::debug(R"(timestamp="{}", secret="{}")"sv, timestamp, secret_);
   hmac_.clear();
   hmac_.update(timestamp);
@@ -48,8 +47,8 @@ std::string Hasher::create_sign(const std::string_view &timestamp) {
 
 std::string Hasher::create_headers(
     core::http::Method method,
-    const std::string_view &path,
-    const std::string_view &body,
+    std::string_view const &path,
+    std::string_view const &body,
     std::chrono::milliseconds timestamp) {
   assert(!std::empty(path));
   auto tmp = fmt::format("{}"sv, core::to_iso8601(timestamp));

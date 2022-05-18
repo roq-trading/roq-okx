@@ -26,12 +26,12 @@ namespace roq {
 namespace okx {
 
 namespace {
-const auto NAME = "dc"sv;
+auto const NAME = "dc"sv;
 
-const Mask<SupportType> SUPPORTS;
+Mask<SupportType> const SUPPORTS;
 
 struct create_metrics final : public core::metrics::Factory {
-  explicit create_metrics(const std::string_view &group, const std::string_view &function)
+  explicit create_metrics(std::string_view const &group, std::string_view const &function)
       : core::metrics::Factory(server::Flags::name(), group, function) {}
 };
 
@@ -76,15 +76,15 @@ Rest::Rest(
       security_(security), shared_(shared), request_(request) {
 }
 
-void Rest::operator()(const Event<Start> &) {
+void Rest::operator()(Event<Start> const &) {
   connection_.start();
 }
 
-void Rest::operator()(const Event<Stop> &) {
+void Rest::operator()(Event<Stop> const &) {
   connection_.stop();
 }
 
-void Rest::operator()(const Event<Timer> &event) {
+void Rest::operator()(Event<Timer> const &event) {
   auto now = event.value.now;
   connection_.refresh(now);
   if (ready() && !download_orders_) {
@@ -125,17 +125,17 @@ void Rest::operator()(ConnectionStatus status) {
   }
 }
 
-void Rest::operator()(const core::web::Client::Connected &) {
+void Rest::operator()(core::web::Client::Connected const &) {
   (*this)(ConnectionStatus::READY);
 }
 
-void Rest::operator()(const core::web::Client::Disconnected &) {
+void Rest::operator()(core::web::Client::Disconnected const &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
   download_orders_ = false;
 }
 
-void Rest::operator()(const core::web::Client::Latency &latency) {
+void Rest::operator()(core::web::Client::Latency const &latency) {
   auto trace_info = server::create_trace_info();
   const ExternalLatency external_latency{
       .stream_id = stream_id_,
@@ -171,7 +171,7 @@ void Rest::get_orders() {
   });
 }
 
-void Rest::get_orders_ack(const Trace<core::web::Response const> &event) {
+void Rest::get_orders_ack(Trace<core::web::Response const> const &event) {
   profile_.orders_ack([&]() {
     auto &[trace_info, response] = event;
     try {
@@ -210,7 +210,7 @@ void Rest::get_orders_ack(const Trace<core::web::Response const> &event) {
   });
 }
 
-void Rest::operator()(const Trace<json::Orders const> &event) {
+void Rest::operator()(Trace<json::Orders const> const &event) {
   auto &[trace_info, orders] = event;
   log::info<4>("orders={}"sv, orders);
   for (auto &item : orders.data) {
@@ -244,11 +244,7 @@ void Rest::operator()(const Trace<json::Orders const> &event) {
         .update_type = UpdateType::SNAPSHOT,
     };
     if (shared_.update_order(
-            item.cl_ord_id,
-            stream_id_,
-            trace_info,
-            order_update,
-            [&]([[maybe_unused]] auto &order) {})) {
+            item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
     } else {
       log::warn("*** EXTERNAL ORDER ***"sv);
       log::warn("item={}"sv, item);

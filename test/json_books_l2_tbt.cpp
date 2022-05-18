@@ -59,9 +59,7 @@ TEST_CASE("json_books_l2_tbt_parser", "[json_books_l2_tbt]") {
     void operator()(Trace<json::Tickers const> const &) override { FAIL(); }
     void operator()(Trace<json::Trades const> const &) override { FAIL(); }
     void operator()(
-        Trace<json::BooksL2Tbt const> const &event,
-        const std::string_view &inst_id,
-        json::Action action) override {
+        Trace<json::BooksL2Tbt const> const &event, std::string_view const &inst_id, json::Action action) override {
       ++count_;
       auto &[trace_info, books_l2_tbt] = event;
       CHECK(inst_id == "BTC-USD-220325"sv);

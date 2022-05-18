@@ -19,10 +19,7 @@ namespace okx {
 namespace json {
 
 bool Parser::dispatch(
-    Handler &handler,
-    std::string_view const &message,
-    core::json::Buffer &buffer,
-    TraceInfo const &trace_info) {
+    Handler &handler, std::string_view const &message, core::json::Buffer &buffer, TraceInfo const &trace_info) {
   auto frame = core::json::Parser::create<Frame>(message, buffer);
   switch (frame.op) {
     using enum Operation::type_t;
@@ -61,14 +58,12 @@ bool Parser::dispatch(
             case BOOKS5:
             case BBO_TBT:
               // note! these updates appear to always be snapshot
-              dispatch_event<BooksL2Tbt>(
-                  handler, message, buffer, trace_info, frame.arg.inst_id, Action::SNAPSHOT);
+              dispatch_event<BooksL2Tbt>(handler, message, buffer, trace_info, frame.arg.inst_id, Action::SNAPSHOT);
               return true;
             case BOOKS:
             case BOOKS_L2_TBT:
             case BOOKS50_L2_TBT:
-              dispatch_event<BooksL2Tbt>(
-                  handler, message, buffer, trace_info, frame.arg.inst_id, frame.action);
+              dispatch_event<BooksL2Tbt>(handler, message, buffer, trace_info, frame.arg.inst_id, frame.action);
               return true;
             case INDEX_TICKERS:
               dispatch_event_array<IndexTickers>(handler, message, buffer, trace_info);
@@ -190,7 +185,7 @@ void Parser::dispatch_event_frame(
     core::json::Buffer &buffer,
     TraceInfo const &trace_info,
     Args &&...args) {
-  const auto obj = core::json::Parser::create<T>(message, buffer);
+  auto const obj = core::json::Parser::create<T>(message, buffer);
   create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
 }
 

@@ -5,7 +5,7 @@
 using namespace std::literals;
 
 namespace {
-const auto DESCRIPTION = "Roq OKX Gateway"sv;
+auto const DESCRIPTION = "Roq OKX Gateway"sv;
 }  // namespace
 
 int main(int argc, char **argv) {

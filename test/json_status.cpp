@@ -70,7 +70,7 @@ TEST_CASE("json_status_parser", "[json_status]") {
     void operator()(Trace<json::Trades const> const &) override { FAIL(); }
     void operator()(
         Trace<json::BooksL2Tbt const> const &,
-        [[maybe_unused]] const std::string_view &inst_id,
+        [[maybe_unused]] std::string_view const &inst_id,
         json::Action) override {
       FAIL();
     }
