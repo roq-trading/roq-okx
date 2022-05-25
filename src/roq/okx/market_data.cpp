@@ -429,11 +429,7 @@ void MarketData::operator()(Trace<json::Instruments const> const &event) {
     for (auto &item : instruments.data) {
       log::info<2>("item={}"sv, item);
       auto symbol = item.inst_id;
-      if (shared_.discard_symbol(symbol))
-        continue;
-      if (all_symbols_.emplace(symbol).second)  // only include new
-        symbols.emplace_back(symbol);
-      ++counter;
+      auto discard = shared_.discard_symbol(symbol);
       auto security_type = json::map(item.inst_type);
       auto option_type = json::map(item.opt_type);
       const ReferenceData reference_data{
@@ -460,8 +456,14 @@ void MarketData::operator()(Trace<json::Instruments const> const &event) {
           .settlement_date = {},
           .expiry_datetime = utils::safe_cast(item.exp_time),
           .expiry_datetime_utc = utils::safe_cast(item.exp_time),
+          .discard = discard,
       };
       create_trace_and_dispatch(handler_, trace_info, reference_data, true);
+      if (discard)
+        continue;
+      if (all_symbols_.emplace(symbol).second)  // only include new
+        symbols.emplace_back(symbol);
+      ++counter;
       auto trading_status = json::map(item.state);
       const MarketStatus market_status{
           .stream_id = stream_id_,
