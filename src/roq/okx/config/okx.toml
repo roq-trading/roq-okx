@@ -1,6 +1,8 @@
-#symbols = [ ".*" ]
-#symbols = ["BTC-USDT", "BTC-USD-SWAP"]
-symbols = ["BTC-USDT"]
+symbols = [
+  "^BTC-USD[A-Z]?(-[0-9]{6})?$",  # spot + futures
+  "^ETH-USD[A-Z]?(-[0-9]{6})?$",  # spot + futures
+  "^PERP-USD[A-Z]?(-SWAP)?$"      # swaps
+]
 
 #[accounts]
 #
