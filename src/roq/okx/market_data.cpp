@@ -250,12 +250,10 @@ uint32_t MarketData::download(MarketDataState state) {
         login();
         return 1;
       }
-    case SUBSCRIBE:
-      subscribe_static();
-      subscribe();
-      return 0;
     case DONE:
       (*this)(ConnectionStatus::READY);
+      subscribe_static();
+      subscribe();  // note! must be *after* READY
       return {};
   }
   assert(false);
@@ -413,8 +411,7 @@ void MarketData::operator()(Trace<json::Unsubscribe const> const &event) {
 void MarketData::operator()(Trace<json::Status const> const &event) {
   profile_.status([&]() {
     auto &[trace_info, status] = event;
-    log::info<3>("event={{status={}, trace_info={}}}"sv, status, trace_info);
-    log::debug("event={{status={}, trace_info={}}}"sv, status, trace_info);
+    log::info("event={{status={}, trace_info={}}}"sv, status, trace_info);
   });
 }
 

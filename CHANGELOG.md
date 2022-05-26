@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* Market data subscription was not working correctly after disconnect (#226)
+
 ## 0.8.4 &ndash; 2022-05-14
 
 ### Added
