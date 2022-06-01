@@ -118,9 +118,6 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
 
   void check_subscribe_queue(std::chrono::nanoseconds now);
 
-  void last_update(TraceInfo const &);
-  void check_slow(std::chrono::nanoseconds now);
-
  private:
   Handler &handler_;
   // config
@@ -152,7 +149,6 @@ class MarketData final : public core::web::ClientSocket::Handler, public json::P
   // state
   ConnectionStatus status_ = {};
   core::Download<MarketDataState> download_;
-  std::chrono::nanoseconds last_update_ = {};
   // queue
   core::TimerQueue subscribe_queue_;
 };

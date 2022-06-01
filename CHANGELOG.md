@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Changed
+
+* Market data support for `--net_disconnect_on_idle_timeout`.
+
 ### Fixed
 
 * Market data subscription was not working correctly after disconnect (#226)

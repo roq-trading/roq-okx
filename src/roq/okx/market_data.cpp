@@ -45,7 +45,7 @@ auto create_connection(auto &handler, auto &context) {
   core::web::ClientSocket::Config config{
       .always_reconnect = true,
       .connection_timeout = server::Flags::net_connection_timeout(),
-      .disconnect_on_idle_timeout = {},
+      .disconnect_on_idle_timeout = server::Flags::net_disconnect_on_idle_timeout(),
       .validate_certificate = server::Flags::net_tls_validate_certificate(),
       .uris = {&uri, 1},
       .query = {},
@@ -148,7 +148,6 @@ void MarketData::operator()(Event<Timer> const &event) {
   connection_.refresh(now);
   if (connection_.ready()) {
     check_subscribe_queue(now);
-    check_slow(now);
   }
 }
 
@@ -190,13 +189,11 @@ void MarketData::operator()(core::web::ClientSocket::Disconnected const &) {
   (*this)(ConnectionStatus::DISCONNECTED);
   download_.reset();
   subscribe_queue_.clear();
-  last_update_ = {};
 }
 
 void MarketData::operator()(core::web::ClientSocket::Ready const &) {
   (*this)(ConnectionStatus::DOWNLOADING);
   download_.begin();
-  last_update_ = core::clock::GetSystem();
 }
 
 void MarketData::operator()(core::web::ClientSocket::Close const &) {
@@ -422,7 +419,7 @@ void MarketData::operator()(Trace<json::Instruments const> const &event) {
   profile_.instruments([&]() {
     auto &[trace_info, instruments] = event;
     log::info<1>("event={{instruments={}, trace_info={}}}"sv, instruments, trace_info);
-    last_update(trace_info);
+    connection_.touch(trace_info.source_receive_time);
     std::vector<Symbol> symbols;
     symbols.reserve(std::size(instruments.data));
     size_t counter = {};
@@ -505,7 +502,7 @@ void MarketData::operator()(Trace<json::EstimatedPrice const> const &event) {
     auto &[trace_info, estimated_price] = event;
     log::info<3>("event={{estimated_price={}, trace_info={}}}"sv, estimated_price, trace_info);
     log::debug("event={{estimated_price={}, trace_info={}}}"sv, estimated_price, trace_info);
-    last_update(trace_info);
+    connection_.touch(trace_info.source_receive_time);
     log::fatal("here"sv);
   });
 }
@@ -515,7 +512,7 @@ void MarketData::operator()(Trace<json::PriceLimit const> const &event) {
     auto &[trace_info, price_limit] = event;
     log::info<3>("event={{price_limit={}, trace_info={}}}"sv, price_limit, trace_info);
     log::debug("event={{price_limit={}, trace_info={}}}"sv, price_limit, trace_info);
-    last_update(trace_info);
+    connection_.touch(trace_info.source_receive_time);
     log::fatal("here"sv);
   });
 }
@@ -525,7 +522,7 @@ void MarketData::operator()(Trace<json::MarkPrice const> const &event) {
     auto &[trace_info, mark_price] = event;
     log::info<3>("event={{mark_price={}, trace_info={}}}"sv, mark_price, trace_info);
     log::debug("event={{mark_price={}, trace_info={}}}"sv, mark_price, trace_info);
-    last_update(trace_info);
+    connection_.touch(trace_info.source_receive_time);
     log::fatal("here"sv);
   });
 }
@@ -534,7 +531,7 @@ void MarketData::operator()(Trace<json::Tickers const> const &event) {
   profile_.tickers([&]() {
     auto &[trace_info, tickers] = event;
     log::info<3>("event={{tickers={}, trace_info={}}}"sv, tickers, trace_info);
-    last_update(trace_info);
+    connection_.touch(trace_info.source_receive_time);
     for (auto &item : tickers.data) {
       const TopOfBook top_of_book{
           .stream_id = stream_id_,
@@ -594,7 +591,7 @@ void MarketData::operator()(Trace<json::Trades const> const &event) {
   profile_.trades([&]() {
     auto &[trace_info, trades] = event;
     log::info<3>("event={{trades={}, trace_info={}}}"sv, trades, trace_info);
-    last_update(trace_info);
+    connection_.touch(trace_info.source_receive_time);
     core::back_emplacer trades_(shared_.trades);
     std::string_view symbol;
     std::chrono::nanoseconds exchange_time_utc = {};
@@ -634,7 +631,7 @@ void MarketData::operator()(
   profile_.books_l2_tbt([&]() {
     auto &[trace_info, books_l2_tbt] = event;
     log::info<3>("event={{books_l2_tbt={}, action={}, trace_info={}}}"sv, books_l2_tbt, action, trace_info);
-    last_update(trace_info);
+    connection_.touch(trace_info.source_receive_time);
     auto snapshot = action == json::Action::SNAPSHOT;
     core::back_emplacer bids(shared_.bids), asks(shared_.asks);
     for (auto &item : books_l2_tbt.bids)
@@ -669,7 +666,7 @@ void MarketData::operator()(Trace<json::IndexTickers const> const &event) {
   profile_.index_tickers([&]() {
     auto &[trace_info, index_tickers] = event;
     log::info<3>("event={{index_tickers={}, trace_info={}}}"sv, index_tickers, trace_info);
-    last_update(trace_info);
+    connection_.touch(trace_info.source_receive_time);
     for (auto &item : index_tickers.data) {
       Statistics statistics[] = {
           {
@@ -696,7 +693,7 @@ void MarketData::operator()(Trace<json::FundingRate const> const &event) {
   profile_.funding_rate([&]() {
     auto &[trace_info, funding_rate] = event;
     log::info<3>("event={{funding_rate={}, trace_info={}}}"sv, funding_rate, trace_info);
-    last_update(trace_info);
+    connection_.touch(trace_info.source_receive_time);
     for (auto &item : funding_rate.data) {
       Statistics statistics[] = {
           {
@@ -730,7 +727,7 @@ void MarketData::operator()(Trace<json::Login const> const &event) {
     auto &[trace_info, login] = event;
     log::info<1>("event={{login={}, trace_info={}}}"sv, login, trace_info);
     log::debug("login={}"sv, login);
-    last_update(trace_info);
+    connection_.touch(trace_info.source_receive_time);
     auto state = MarketDataState::LOGIN;
     download_.check_relaxed(state);
   });
@@ -772,17 +769,6 @@ void MarketData::check_subscribe_queue(std::chrono::nanoseconds now) {
         connection_.send_text(message);
       },
       now);
-}
-
-void MarketData::last_update(TraceInfo const &trace_info) {
-  last_update_ = trace_info.source_receive_time;
-}
-
-void MarketData::check_slow(std::chrono::nanoseconds now) {
-  if (last_update_.count() && last_update_ < now && (now - last_update_) > flags::Flags::ws_disconnect_timeout()) {
-    log::warn("Disconnecting due to timeout: stream_id={}"sv, stream_id_);
-    connection_.close();
-  }
 }
 
 }  // namespace okx
