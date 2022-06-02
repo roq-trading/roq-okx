@@ -132,7 +132,7 @@ TEST_CASE("json_instruments_parser", "[json_instruments]") {
       CHECK(d0.opt_type == json::OptionType::UNDEFINED);
       CHECK(d0.quote_ccy == "BTC"sv);
       CHECK(d0.settle_ccy == ""sv);
-      CHECK(d0.state == json::State::LIVE);
+      CHECK(d0.state == json::InstrumentState::LIVE);
       CHECK(std::isnan(d0.stk) == true);
       CHECK(d0.tick_sz == 0.0000001_a);
       CHECK(d0.uly == ""sv);

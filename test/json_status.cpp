@@ -57,7 +57,7 @@ TEST_CASE("json_status_parser", "[json_status]") {
       CHECK(status.href == ""sv);
       CHECK(status.sche_desc == ""sv);
       CHECK(status.service_type == 0);
-      CHECK(status.state == "completed"sv);
+      CHECK(status.state == json::State::COMPLETED);
       CHECK(status.system == "unified"sv);
       CHECK(status.title == "Unified Account WebSocket system upgrade"sv);
       CHECK(status.ts == 1639647646363ms);
