@@ -412,6 +412,10 @@ void MarketData::operator()(Trace<json::Status const> const &event) {
   profile_.status([&]() {
     auto &[trace_info, status] = event;
     log::info("event={{status={}, trace_info={}}}"sv, status, trace_info);
+    if (status.state == json::State::ONGOING) {
+      log::warn("*** DISCONNECT: ONGOING MAINTENANCE ***"sv);
+      connection_.close();
+    }
   });
 }
 

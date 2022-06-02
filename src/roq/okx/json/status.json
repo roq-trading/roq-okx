@@ -8,7 +8,7 @@
     },
     {
       "name": "state",
-      "type": "std::string_view"
+      "type": "State"
     },
     {
       "name": "begin",

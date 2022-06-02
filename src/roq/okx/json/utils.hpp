@@ -10,11 +10,11 @@
 
 #include "roq/core/charconv/datetime.hpp"
 
+#include "roq/okx/json/instrument_state.hpp"
 #include "roq/okx/json/instrument_type.hpp"
 #include "roq/okx/json/option_type.hpp"
 #include "roq/okx/json/order_state.hpp"
 #include "roq/okx/json/side.hpp"
-#include "roq/okx/json/state.hpp"
 
 namespace roq {
 namespace okx {
@@ -136,9 +136,9 @@ inline roq::OptionType map(json::OptionType value) {
 
 // state
 
-inline roq::TradingStatus map(json::State value) {
+inline roq::TradingStatus map(json::InstrumentState value) {
   switch (value) {
-    using enum json::State::type_t;
+    using enum json::InstrumentState::type_t;
     case UNDEFINED:
       break;
     case UNKNOWN:

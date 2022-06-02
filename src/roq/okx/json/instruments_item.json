@@ -72,7 +72,7 @@
     },
     {
       "name": "state",
-      "type": "State"
+      "type": "InstrumentState"
     },
     {
       "name": "stk",

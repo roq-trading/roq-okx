@@ -27,6 +27,7 @@ index_tickers_item.hpp
 index_tickers.hpp
 instruments_item.hpp
 instruments.hpp
+instrument_state.hpp
 instrument_type.hpp
 login.hpp
 margin_mode.hpp
@@ -84,6 +85,7 @@ index_tickers_item.cpp
 index_tickers.cpp
 instruments_item.cpp
 instruments.cpp
+instrument_state.cpp
 instrument_type.cpp
 login.cpp
 margin_mode.cpp

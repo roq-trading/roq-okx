@@ -32,6 +32,7 @@ set(AUTOGEN_SCHEMAS
     index_tickers.json
     instruments_item.json
     instruments.json
+    instrument_state.json
     instrument_type.json
     login.json
     margin_mode.json
