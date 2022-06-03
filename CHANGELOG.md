@@ -6,6 +6,7 @@ All notable changes will be documented in this file.
 
 ### Changed
 
+* `TopOfBook` now sourced from `bbo-tbt` (#231)
 * Market data support for `--net_disconnect_on_idle_timeout`.
 
 ### Fixed

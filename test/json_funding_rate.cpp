@@ -53,6 +53,9 @@ TEST_CASE("json_funding_rate_parser", "[json_funding_rate]") {
     void operator()(Trace<json::MarkPrice const> const &) override { FAIL(); }
     void operator()(Trace<json::Tickers const> const &) override { FAIL(); }
     void operator()(Trace<json::Trades const> const &) override { FAIL(); }
+    void operator()(Trace<json::BboTbt const> const &, [[maybe_unused]] std::string_view const &inst_id) override {
+      FAIL();
+    }
     void operator()(
         Trace<json::BooksL2Tbt const> const &,
         [[maybe_unused]] std::string_view const &inst_id,

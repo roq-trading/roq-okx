@@ -1,0 +1,26 @@
+{
+  "name": "BboTbt",
+  "type": "comp",
+  "values": [
+    {
+      "name": "bids",
+      "type": "std::span<BooksL2Item>"
+    },
+    {
+      "name": "asks",
+      "type": "std::span<BooksL2Item>"
+    },
+    {
+      "name": "instId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "ts",
+      "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "checksum",
+      "type": "int64_t"
+    }
+  ]
+}

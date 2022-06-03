@@ -64,6 +64,9 @@ TEST_CASE("json_balance_and_position_parser", "[json_balance_and_position]") {
     void operator()(Trace<json::MarkPrice const> const &) override { FAIL(); }
     void operator()(Trace<json::Tickers const> const &) override { FAIL(); }
     void operator()(Trace<json::Trades const> const &) override { FAIL(); }
+    void operator()(Trace<json::BboTbt const> const &, [[maybe_unused]] std::string_view const &inst_id) override {
+      FAIL();
+    }
     void operator()(
         Trace<json::BooksL2Tbt const> const &,
         [[maybe_unused]] std::string_view const &inst_id,
@@ -161,6 +164,9 @@ TEST_CASE("json_balance_and_position_sample_2", "[json_balance_and_position]") {
     void operator()(Trace<json::MarkPrice const> const &) override { FAIL(); }
     void operator()(Trace<json::Tickers const> const &) override { FAIL(); }
     void operator()(Trace<json::Trades const> const &) override { FAIL(); }
+    void operator()(Trace<json::BboTbt const> const &, [[maybe_unused]] std::string_view const &inst_id) override {
+      FAIL();
+    }
     void operator()(
         Trace<json::BooksL2Tbt const> const &,
         [[maybe_unused]] std::string_view const &inst_id,

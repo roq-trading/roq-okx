@@ -15,6 +15,7 @@
 #include "roq/okx/json/subscribe.hpp"
 #include "roq/okx/json/unsubscribe.hpp"
 
+#include "roq/okx/json/bbo_tbt.hpp"
 #include "roq/okx/json/books_l2_tbt.hpp"
 #include "roq/okx/json/estimated_price.hpp"
 #include "roq/okx/json/funding_rate.hpp"
@@ -57,6 +58,7 @@ struct Parser final {
     virtual void operator()(Trace<json::MarkPrice const> const &) = 0;
     virtual void operator()(Trace<json::Tickers const> const &) = 0;
     virtual void operator()(Trace<json::Trades const> const &) = 0;
+    virtual void operator()(Trace<json::BboTbt const> const &, std::string_view const &inst_id) = 0;
     virtual void operator()(Trace<json::BooksL2Tbt const> const &, std::string_view const &inst_id, Action) = 0;
     virtual void operator()(Trace<json::IndexTickers const> const &) = 0;
     virtual void operator()(Trace<json::FundingRate const> const &) = 0;

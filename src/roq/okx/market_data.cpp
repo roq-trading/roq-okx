@@ -60,9 +60,6 @@ std::string_view get_books_channel(auto security) {
   std::string_view result;
   auto vip = security && !flags::Flags::ws_books_use_public();
   switch (flags::Flags::ws_books_depth()) {
-    case 1:
-      result = "bbo-tbt"sv;
-      break;
     case 5:
       result = "books5"sv;
       break;
@@ -124,6 +121,7 @@ MarketData::MarketData(
           .mark_price = create_metrics(name_, "mark_price"sv),
           .tickers = create_metrics(name_, "tickers"sv),
           .trades = create_metrics(name_, "trades"sv),
+          .bbo_tbt = create_metrics(name_, "bbo_tbt"sv),
           .books_l2_tbt = create_metrics(name_, "books_l2_tbt"sv),
           .index_tickers = create_metrics(name_, "index_tickers"sv),
           .funding_rate = create_metrics(name_, "funding_rate"sv),
@@ -168,6 +166,7 @@ void MarketData::operator()(metrics::Writer &writer) {
       .write(profile_.mark_price, metrics::PROFILE)
       .write(profile_.tickers, metrics::PROFILE)
       .write(profile_.trades, metrics::PROFILE)
+      .write(profile_.bbo_tbt, metrics::PROFILE)
       .write(profile_.books_l2_tbt, metrics::PROFILE)
       .write(profile_.index_tickers, metrics::PROFILE)
       .write(profile_.funding_rate, metrics::PROFILE)
@@ -303,6 +302,7 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols) {
   // subscribe("mark-price"sv, "instType"sv, symbols);
   subscribe("tickers"sv, "instId"sv, symbols);
   subscribe("trades"sv, "instId"sv, symbols);
+  subscribe("bbo-tbt"sv, "instId"sv, symbols);
   subscribe(get_books_channel(!std::empty(security_)), "instId"sv, symbols);
   for (auto &symbol : symbols) {
     if (flags::Flags::include_bad_subscriptions() ||
@@ -537,21 +537,6 @@ void MarketData::operator()(Trace<json::Tickers const> const &event) {
     log::info<3>("event={{tickers={}, trace_info={}}}"sv, tickers, trace_info);
     connection_.touch(trace_info.source_receive_time);
     for (auto &item : tickers.data) {
-      const TopOfBook top_of_book{
-          .stream_id = stream_id_,
-          .exchange = Flags::exchange(),
-          .symbol = item.inst_id,
-          .layer{
-              .bid_price = item.bid_px,
-              .bid_quantity = item.bid_sz,
-              .ask_price = item.ask_px,
-              .ask_quantity = item.ask_sz,
-          },
-          .update_type = UpdateType::INCREMENTAL,
-          .exchange_time_utc = utils::safe_cast(item.ts),
-          .exchange_sequence = {},
-      };
-      create_trace_and_dispatch(handler_, trace_info, top_of_book, true);
       Statistics statistics[] = {
           {
               .type = StatisticsType::OPEN_PRICE,
@@ -627,6 +612,33 @@ void MarketData::operator()(Trace<json::Trades const> const &event) {
       };
       create_trace_and_dispatch(handler_, trace_info, trade_summary, true);
     }
+  });
+}
+
+void MarketData::operator()(Trace<json::BboTbt const> const &event, std::string_view const &inst_id) {
+  profile_.bbo_tbt([&]() {
+    auto &[trace_info, bbo_tbt] = event;
+    log::info<3>("event={{bbo_tbt={}, trace_info={}}}"sv, bbo_tbt, trace_info);
+    connection_.touch(trace_info.source_receive_time);
+    auto &bids = bbo_tbt.bids;
+    auto &asks = bbo_tbt.asks;
+    if (std::size(bids) > 1 || std::size(asks) > 1)
+      log::fatal("Unexpected"sv);
+    const TopOfBook top_of_book{
+        .stream_id = stream_id_,
+        .exchange = Flags::exchange(),
+        .symbol = inst_id,
+        .layer{
+            .bid_price = std::empty(bids) ? NaN : bids[0].price,
+            .bid_quantity = std::empty(bids) ? NaN : bids[0].size,
+            .ask_price = std::empty(asks) ? NaN : asks[0].price,
+            .ask_quantity = std::empty(asks) ? NaN : asks[0].size,
+        },
+        .update_type = UpdateType::INCREMENTAL,
+        .exchange_time_utc = utils::safe_cast(bbo_tbt.ts),
+        .exchange_sequence = {},
+    };
+    create_trace_and_dispatch(handler_, trace_info, top_of_book, true);
   });
 }
 

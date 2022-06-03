@@ -58,6 +58,9 @@ TEST_CASE("json_books_l2_tbt_parser", "[json_books_l2_tbt]") {
     void operator()(Trace<json::MarkPrice const> const &) override { FAIL(); }
     void operator()(Trace<json::Tickers const> const &) override { FAIL(); }
     void operator()(Trace<json::Trades const> const &) override { FAIL(); }
+    void operator()(Trace<json::BboTbt const> const &, [[maybe_unused]] std::string_view const &inst_id) override {
+      FAIL();
+    }
     void operator()(
         Trace<json::BooksL2Tbt const> const &event, std::string_view const &inst_id, json::Action action) override {
       ++count_;

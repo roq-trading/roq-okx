@@ -58,7 +58,7 @@ bool Parser::dispatch(
             case BOOKS5:
             case BBO_TBT:
               // note! these updates appear to always be snapshot
-              dispatch_event<BooksL2Tbt>(handler, message, buffer, trace_info, frame.arg.inst_id, Action::SNAPSHOT);
+              dispatch_event<BboTbt>(handler, message, buffer, trace_info, frame.arg.inst_id);
               return true;
             case BOOKS:
             case BOOKS_L2_TBT:
