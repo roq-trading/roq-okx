@@ -151,6 +151,8 @@ inline roq::TradingStatus map(json::InstrumentState value) {
       return roq::TradingStatus::PRE_OPEN;
     case SETTLEMENT:
       break;
+    case EXPIRED:
+      break;
   }
   return {};
 }

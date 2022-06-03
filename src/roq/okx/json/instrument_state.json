@@ -13,6 +13,9 @@
     },
     {
       "name": "settlement"
+    },
+    {
+      "name": "expired"
     }
   ]
 }
