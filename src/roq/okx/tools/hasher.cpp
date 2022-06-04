@@ -9,8 +9,7 @@
 #include "roq/logging.hpp"
 
 #include "roq/utils/chrono.hpp"
-
-#include "roq/core/iso_datetime.hpp"
+#include "roq/utils/datetime.hpp"
 
 #include "roq/core/binascii/base64.hpp"
 
@@ -51,7 +50,7 @@ std::string Hasher::create_headers(
     std::string_view const &body,
     std::chrono::milliseconds timestamp) {
   assert(!std::empty(path));
-  auto tmp = fmt::format("{}"sv, core::to_iso8601(timestamp));
+  auto tmp = fmt::format("{}"sv, utils::DateTime_iso8601{timestamp});
   auto tmp_2 = fmt::format("{}{}"sv, tmp, method);
   hmac_.clear();
   hmac_.update(tmp_2);
