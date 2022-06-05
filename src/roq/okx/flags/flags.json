@@ -45,7 +45,7 @@
       "name": "rest_ping_path",
       "type": "std::string",
       "validator": "roq::core::flags::Path<std::string>",
-      "default": "/api/v5/system/status",
+      "default": "/api/v5/rubik/stat/contracts/long-short-account-ratio?ccy=BTC",
       "description": "URI path used for REST connection keep-alive messages"
     },
     {
