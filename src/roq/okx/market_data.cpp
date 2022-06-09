@@ -94,7 +94,7 @@ void emplace(MBPUpdate &result, const T &item) {
       .price = item.price,
       .quantity = item.size,
       .implied_quantity = NaN,
-      .number_of_orders = item.orders,
+      .number_of_orders = utils::safe_cast(item.orders),
       .update_action = {},
       .price_level = {},
   };
