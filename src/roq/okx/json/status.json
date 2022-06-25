@@ -37,6 +37,10 @@
     {
       "name": "ts",
       "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "preOpenBegin",
+      "type": "std::string_view"
     }
   ]
 }
