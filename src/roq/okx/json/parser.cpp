@@ -21,6 +21,7 @@ namespace json {
 bool Parser::dispatch(
     Handler &handler, std::string_view const &message, core::json::Buffer &buffer, TraceInfo const &trace_info) {
   auto frame = core::json::Parser::create<Frame>(message, buffer);
+  log::info("{}"sv, frame.arg.channel);
   switch (frame.op) {
     using enum Operation::type_t;
     case UNDEFINED:
@@ -56,6 +57,9 @@ bool Parser::dispatch(
               dispatch_event_array<Trades>(handler, message, buffer, trace_info);
               return true;
             case BOOKS5:
+              dispatch_event<BooksL2Tbt>(
+                  handler, message, buffer, trace_info, frame.arg.inst_id, json::Action::SNAPSHOT);
+              return true;
             case BBO_TBT:
               // note! these updates appear to always be snapshot
               dispatch_event<BboTbt>(handler, message, buffer, trace_info, frame.arg.inst_id);

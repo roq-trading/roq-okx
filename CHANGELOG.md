@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* Using `--ws_books_depth=5` was not working (#239)
+
 ## 0.8.5 &ndash; 2022-06-06
 
 ### Changed
