@@ -21,7 +21,6 @@ namespace json {
 bool Parser::dispatch(
     Handler &handler, std::string_view const &message, core::json::Buffer &buffer, TraceInfo const &trace_info) {
   auto frame = core::json::Parser::create<Frame>(message, buffer);
-  log::info("{}"sv, frame.arg.channel);
   switch (frame.op) {
     using enum Operation::type_t;
     case UNDEFINED:
