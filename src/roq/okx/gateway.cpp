@@ -12,6 +12,8 @@
 #include "roq/core/clock.hpp"
 #include "roq/core/utils.hpp"
 
+#include "roq/core/io/context_factory.hpp"
+
 #include "roq/okx/flags.hpp"
 
 #include "roq/okx/json/utils.hpp"
@@ -104,13 +106,13 @@ auto create_market_data(
 
 Gateway::Gateway(server::Dispatcher &dispatcher, Config const &config)
     : dispatcher_(dispatcher), master_account_(config.get_master_account()),
-      security_(create_security<decltype(security_)>(config)), shared_(dispatcher),
-      request_(create_request<decltype(request_)>(config)),
-      rest_(create_rest<decltype(rest_)>(*this, context_, ++stream_id_, security_, shared_, request_)),
+      security_(create_security<decltype(security_)>(config)), context_(core::io::ContextFactory::create()),
+      shared_(dispatcher), request_(create_request<decltype(request_)>(config)),
+      rest_(create_rest<decltype(rest_)>(*this, *context_, ++stream_id_, security_, shared_, request_)),
       order_entry_(
-          create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, security_, shared_, request_)),
+          create_order_entry<decltype(order_entry_)>(*this, *context_, stream_id_, security_, shared_, request_)),
       market_data_(create_market_data<decltype(market_data_)>(
-          *this, context_, stream_id_, security_, master_account_, shared_)) {
+          *this, *context_, stream_id_, security_, master_account_, shared_)) {
 }
 
 void Gateway::operator()(Event<Start> const &event) {
@@ -143,7 +145,7 @@ void Gateway::operator()(Event<Timer> const &event) {
       (*order_entry)(event);
   for (auto &market_data : market_data_)
     (*market_data)(event);
-  context_.dispatch(true);
+  (*context_).drain();
 }
 
 void Gateway::operator()(Event<Connected> const &) {
@@ -235,7 +237,7 @@ void Gateway::ensure_symbol_slices(size_t size) {
     auto index = std::size(market_data_);
     log::debug("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
     auto market_data = std::make_unique<MarketData>(
-        *this, context_, stream_id, get_security(security_, master_account_), shared_, index);
+        *this, *context_, stream_id, get_security(security_, master_account_), shared_, index);
     MessageInfo message_info;
     Start start;
     create_event_and_dispatch(*market_data, message_info, start);
