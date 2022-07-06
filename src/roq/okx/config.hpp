@@ -55,7 +55,7 @@ struct fmt::formatter<roq::okx::Config> {
     return std::begin(context);
   }
   template <typename Context>
-  auto format(roq::okx::Config const &value, Context &context) {
+  auto format(roq::okx::Config const &value, Context &context) const {
     using namespace std::literals;
     return fmt::format_to(
         context.out(),
