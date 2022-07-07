@@ -13,6 +13,9 @@
     },
     {
       "name": "canceled"
+    },
+    {
+      "name": "pre_open"
     }
   ]
 }
