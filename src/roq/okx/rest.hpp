@@ -12,7 +12,7 @@
 #include "roq/core/metrics/latency.hpp"
 #include "roq/core/metrics/profile.hpp"
 
-#include "roq/core/io/context.hpp"
+#include "roq/io/context.hpp"
 
 #include "roq/core/web/client.hpp"
 
@@ -34,7 +34,7 @@ class Rest final : public core::web::Client::Handler {
     virtual void operator()(Trace<ExternalLatency const> const &) = 0;
   };
 
-  Rest(Handler &, core::io::Context &context, uint16_t stream_id, Security &, Shared &, Request &);
+  Rest(Handler &, io::Context &context, uint16_t stream_id, Security &, Shared &, Request &);
 
   Rest(Rest &&) = delete;
   Rest(Rest const &) = delete;

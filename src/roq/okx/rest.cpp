@@ -56,7 +56,7 @@ auto create_connection(auto &handler, auto &context) {
 
 Rest::Rest(
     Handler &handler,
-    core::io::Context &context,
+    io::Context &context,
     uint16_t stream_id,
     Security &security,
     Shared &shared,

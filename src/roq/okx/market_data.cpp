@@ -102,7 +102,7 @@ void emplace(MBPUpdate &result, const T &item) {
 }  // namespace
 
 MarketData::MarketData(
-    Handler &handler, core::io::Context &context, uint32_t stream_id, Security &security, Shared &shared, size_t index)
+    Handler &handler, io::Context &context, uint32_t stream_id, Security &security, Shared &shared, size_t index)
     : handler_(handler), stream_id_(stream_id), name_(fmt::format("{}:{}"sv, stream_id_, NAME)), index_(index),
       connection_(create_connection(*this, context)), decode_buffer_(Flags::decode_buffer_size()),
       request_id_(static_cast<uint64_t>(stream_id_) * 1000000),  // scale (debugging)

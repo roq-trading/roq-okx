@@ -12,7 +12,7 @@
 #include "roq/core/metrics/latency.hpp"
 #include "roq/core/metrics/profile.hpp"
 
-#include "roq/core/io/context.hpp"
+#include "roq/io/context.hpp"
 
 #include "roq/core/web/client_socket.hpp"
 
@@ -39,7 +39,7 @@ class OrderEntry final : public core::web::ClientSocket::Handler, json::Parser::
     virtual void operator()(Trace<PositionUpdate const> const &, bool is_last) = 0;
   };
 
-  OrderEntry(Handler &, core::io::Context &, uint16_t stream_id, Security &, Shared &, Request &);
+  OrderEntry(Handler &, io::Context &, uint16_t stream_id, Security &, Shared &, Request &);
 
   OrderEntry(OrderEntry &&) = delete;
   OrderEntry(OrderEntry const &) = delete;

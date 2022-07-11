@@ -12,7 +12,7 @@
 #include "roq/core/clock.hpp"
 #include "roq/core/utils.hpp"
 
-#include "roq/core/io/event_context.hpp"
+#include "roq/io/event/context_factory.hpp"
 
 #include "roq/okx/flags.hpp"
 
@@ -55,7 +55,7 @@ auto create_request(Config const &config) {
 template <typename R>
 auto create_rest(
     Gateway &gateway,
-    core::io::Context &context,
+    io::Context &context,
     uint16_t &stream_id,
     auto &security_by_account,
     Shared &shared,
@@ -71,7 +71,7 @@ auto create_rest(
 template <typename R>
 auto create_order_entry(
     Gateway &gateway,
-    core::io::Context &context,
+    io::Context &context,
     uint16_t &stream_id,
     auto &security_by_account,
     Shared &shared,
@@ -88,7 +88,7 @@ auto create_order_entry(
 template <typename R>
 auto create_market_data(
     Gateway &gateway,
-    core::io::Context &context,
+    io::Context &context,
     uint16_t &stream_id,
     auto &security_by_account,
     auto &master_account,
@@ -106,7 +106,7 @@ auto create_market_data(
 
 Gateway::Gateway(server::Dispatcher &dispatcher, Config const &config)
     : dispatcher_(dispatcher), master_account_(config.get_master_account()),
-      security_(create_security<decltype(security_)>(config)), context_(core::io::EventContext::create()),
+      security_(create_security<decltype(security_)>(config)), context_(io::event::ContextFactory::create()),
       shared_(dispatcher), request_(create_request<decltype(request_)>(config)),
       rest_(create_rest<decltype(rest_)>(*this, *context_, ++stream_id_, security_, shared_, request_)),
       order_entry_(
