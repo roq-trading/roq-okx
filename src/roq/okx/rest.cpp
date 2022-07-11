@@ -55,12 +55,7 @@ auto create_connection(auto &handler, auto &context) {
 }  // namespace
 
 Rest::Rest(
-    Handler &handler,
-    io::Context &context,
-    uint16_t stream_id,
-    Security &security,
-    Shared &shared,
-    Request &request)
+    Handler &handler, io::Context &context, uint16_t stream_id, Security &security, Shared &shared, Request &request)
     : handler_(handler), stream_id_(stream_id), name_(fmt::format("{}:{}"sv, stream_id_, NAME)),
       connection_(create_connection(*this, context)), decode_buffer_(Flags::decode_buffer_size()),
       counter_{
