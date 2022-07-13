@@ -16,6 +16,8 @@
 
 #include "roq/core/json/buffer.hpp"
 
+#include "roq/web/socket/client_factory.hpp"
+
 #include "roq/server.hpp"
 
 #include "roq/okx/flags.hpp"
@@ -49,7 +51,7 @@ struct create_metrics final : public core::metrics::Factory {
 
 auto create_connection(auto &handler, auto &context) {
   auto uri = Flags::ws_private_uri();
-  core::web::ClientSocket::Config config{
+  web::socket::Client::Config config{
       .always_reconnect = true,
       .connection_timeout = server::Flags::net_connection_timeout(),
       .disconnect_on_idle_timeout = {},
@@ -60,7 +62,7 @@ auto create_connection(auto &handler, auto &context) {
       .read_buffer_size = Flags::decode_buffer_size(),
       .encode_buffer_size = Flags::encode_buffer_size(),
   };
-  return core::web::ClientSocket{handler, context, config, []() { return std::string(); }};
+  return web::socket::ClientFactory::create(handler, context, config, []() { return std::string(); });
 }
 }  // namespace
 
@@ -98,19 +100,19 @@ OrderEntry::OrderEntry(
 }
 
 bool OrderEntry::ready() const {
-  return connection_.ready();
+  return (*connection_).ready();
 }
 
 void OrderEntry::operator()(Event<Start> const &) {
-  connection_.start();
+  (*connection_).start();
 }
 
 void OrderEntry::operator()(Event<Stop> const &) {
-  connection_.stop();
+  (*connection_).stop();
 }
 
 void OrderEntry::operator()(Event<Timer> const &event) {
-  connection_.refresh(event.value.now);
+  (*connection_).refresh(event.value.now);
   check_response_orders();
 }
 
@@ -219,7 +221,7 @@ uint16_t OrderEntry::operator()(
           reduce_only,
           create_order.quantity);
       log::debug("message={}"sv, message);
-      connection_.send_text(message);
+      (*connection_).send_text(message);
       break;
     }
     default: {
@@ -251,7 +253,7 @@ uint16_t OrderEntry::operator()(
           create_order.quantity,
           create_order.price);
       log::debug("message={}"sv, message);
-      connection_.send_text(message);
+      (*connection_).send_text(message);
     }
   }
   return stream_id_;
@@ -289,7 +291,7 @@ uint16_t OrderEntry::operator()(
       new_sz,
       new_px);
   log::debug("message={}"sv, message);
-  connection_.send_text(message);
+  (*connection_).send_text(message);
   return stream_id_;
 }
 
@@ -316,7 +318,7 @@ uint16_t OrderEntry::operator()(
       order_id,
       order.symbol);
   log::debug("message={}"sv, message);
-  connection_.send_text(message);
+  (*connection_).send_text(message);
   return stream_id_;
 }
 
@@ -335,24 +337,24 @@ uint16_t OrderEntry::operator()(Event<CancelAllOrders> const &, [[maybe_unused]]
   return stream_id_;
 }
 
-void OrderEntry::operator()(core::web::ClientSocket::Connected const &) {
+void OrderEntry::operator()(web::socket::Client::Connected const &) {
 }
 
-void OrderEntry::operator()(core::web::ClientSocket::Disconnected const &) {
+void OrderEntry::operator()(web::socket::Client::Disconnected const &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
   download_.reset();
 }
 
-void OrderEntry::operator()(core::web::ClientSocket::Ready const &) {
+void OrderEntry::operator()(web::socket::Client::Ready const &) {
   (*this)(ConnectionStatus::DOWNLOADING);
   download_.begin();
 }
 
-void OrderEntry::operator()(core::web::ClientSocket::Close const &) {
+void OrderEntry::operator()(web::socket::Client::Close const &) {
 }
 
-void OrderEntry::operator()(core::web::ClientSocket::Latency const &latency) {
+void OrderEntry::operator()(web::socket::Client::Latency const &latency) {
   auto trace_info = server::create_trace_info();
   const ExternalLatency external_latency{
       .stream_id = stream_id_,
@@ -363,11 +365,11 @@ void OrderEntry::operator()(core::web::ClientSocket::Latency const &latency) {
   latency_.ping.update(latency.sample);
 }
 
-void OrderEntry::operator()(core::web::ClientSocket::Text const &text) {
+void OrderEntry::operator()(web::socket::Client::Text const &text) {
   parse(text.payload);
 }
 
-void OrderEntry::operator()(core::web::ClientSocket::Binary const &) {
+void OrderEntry::operator()(web::socket::Client::Binary const &) {
   log::fatal("Unexpected"sv);
 }
 
@@ -432,7 +434,7 @@ void OrderEntry::login() {
       timestamp,
       sign);
   log::debug("message={}"sv, message);
-  connection_.send_text(message);
+  (*connection_).send_text(message);
   (*this)(ConnectionStatus::LOGIN_SENT);
 }
 
@@ -454,7 +456,7 @@ void OrderEntry::subscribe(std::string_view const &channel) {
       R"(}})"sv,
       channel);
   log::debug("message={}"sv, message);
-  connection_.send_text(message);
+  (*connection_).send_text(message);
 }
 
 void OrderEntry::subscribe(
@@ -472,7 +474,7 @@ void OrderEntry::subscribe(
       selector,
       value);
   log::debug("message={}"sv, message);
-  connection_.send_text(message);
+  (*connection_).send_text(message);
 }
 
 void OrderEntry::parse(std::string_view const &message) {
@@ -770,7 +772,7 @@ void OrderEntry::cancel_all_orders(
         symbol,
         external_order_id);
     log::debug("message={}"sv, message);
-    connection_.send_text(message);
+    (*connection_).send_text(message);
   }
 }
 

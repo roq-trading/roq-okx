@@ -6,7 +6,7 @@
 #include <string>
 #include <string_view>
 
-#include "roq/core/http/method.hpp"
+#include "roq/web/http/method.hpp"
 
 #include "roq/core/crypto/hmac_sha256.hpp"
 
@@ -28,7 +28,7 @@ class Hasher final {
   std::string create_sign(std::string_view const &timestamp);
 
   std::string create_headers(
-      core::http::Method,
+      web::http::Method,
       std::string_view const &path,
       std::string_view const &body,
       std::chrono::milliseconds timestamp);

@@ -15,7 +15,7 @@ Security::Security(Config const &config, std::string_view const &account)
 }
 
 std::string Security::create_headers(
-    core::http::Method method, std::string_view const &path, std::string_view const &body) {
+    web::http::Method method, std::string_view const &path, std::string_view const &body) {
   auto timestamp = core::clock::GetRealTime<std::chrono::milliseconds>();
   return hasher_.create_headers(method, path, body, timestamp);
 }

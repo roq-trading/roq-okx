@@ -16,6 +16,8 @@
 
 #include "roq/core/metrics/factory.hpp"
 
+#include "roq/web/rest/client_factory.hpp"
+
 #include "roq/okx/flags.hpp"
 
 #include "roq/okx/json/utils.hpp"
@@ -37,20 +39,20 @@ struct create_metrics final : public core::metrics::Factory {
 
 auto create_connection(auto &handler, auto &context) {
   auto uri = Flags::rest_uri();
-  core::web::Client::Config config{
+  web::rest::Client::Config config{
       .decode_buffer_size = Flags::decode_buffer_size(),
       .encode_buffer_size = Flags::encode_buffer_size(),
       .validate_certificate = server::Flags::net_tls_validate_certificate(),
       .uris = {&uri, 1},
       .proxy = Flags::rest_proxy(),
       .user_agent = ROQ_PACKAGE_NAME,
-      .connection = core::http::Connection::KEEP_ALIVE,
+      .connection = web::http::Connection::KEEP_ALIVE,
       .allow_pipelining = true,
       .request_timeout = Flags::rest_request_timeout(),
       .ping_frequency = Flags::rest_ping_freq(),
       .ping_path = Flags::rest_ping_path(),
   };
-  return core::web::Client{handler, context, config};
+  return web::rest::ClientFactory::create(handler, context, config);
 }
 }  // namespace
 
@@ -72,16 +74,16 @@ Rest::Rest(
 }
 
 void Rest::operator()(Event<Start> const &) {
-  connection_.start();
+  (*connection_).start();
 }
 
 void Rest::operator()(Event<Stop> const &) {
-  connection_.stop();
+  (*connection_).stop();
 }
 
 void Rest::operator()(Event<Timer> const &event) {
   auto now = event.value.now;
-  connection_.refresh(now);
+  (*connection_).refresh(now);
   if (ready() && !download_orders_) {
     if (request_.respond_orders < request_.request_orders) {
       log::info<1>("Download orders..."sv);
@@ -120,17 +122,17 @@ void Rest::operator()(ConnectionStatus status) {
   }
 }
 
-void Rest::operator()(core::web::Client::Connected const &) {
+void Rest::operator()(web::rest::Client::Connected const &) {
   (*this)(ConnectionStatus::READY);
 }
 
-void Rest::operator()(core::web::Client::Disconnected const &) {
+void Rest::operator()(web::rest::Client::Disconnected const &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
   download_orders_ = false;
 }
 
-void Rest::operator()(core::web::Client::Latency const &latency) {
+void Rest::operator()(web::rest::Client::Latency const &latency) {
   auto trace_info = server::create_trace_info();
   const ExternalLatency external_latency{
       .stream_id = stream_id_,
@@ -145,20 +147,20 @@ void Rest::operator()(core::web::Client::Latency const &latency) {
 
 void Rest::get_orders() {
   profile_.orders([&]() {
-    auto method = core::http::Method::GET;
+    auto method = web::http::Method::GET;
     auto path = "/api/v5/trade/orders-pending"sv;
     auto headers = security_.create_headers(method, path, {});
-    core::web::Request request{
+    web::rest::Request request{
         .method = method,
         .path = path,
         .query = {},
-        .accept = core::http::Accept::JSON,
+        .accept = web::http::Accept::JSON,
         .content_type = {},
         .headers = headers,
         .body = {},
         .quality_of_service = {},
     };
-    connection_("orders"sv, request, [this]([[maybe_unused]] auto &request_id, auto &response) {
+    (*connection_)("orders"sv, request, [this]([[maybe_unused]] auto &request_id, auto &response) {
       auto trace_info = server::create_trace_info();
       Trace event(trace_info, response);
       get_orders_ack(event);
@@ -166,14 +168,14 @@ void Rest::get_orders() {
   });
 }
 
-void Rest::get_orders_ack(Trace<core::web::Response const> const &event) {
+void Rest::get_orders_ack(Trace<web::rest::Response const> const &event) {
   profile_.orders_ack([&]() {
     auto &[trace_info, response] = event;
     try {
       auto [status, category, body] = response.result();
       // log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
       switch (category) {
-        using enum core::http::Category;
+        using enum web::http::Category;
         case UNKNOWN:
           log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
           break;
