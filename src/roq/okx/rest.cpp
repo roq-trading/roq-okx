@@ -201,7 +201,7 @@ void Rest::get_orders_ack(Trace<web::rest::Response const> const &event) {
       (*this)(event);
       download_orders_ = false;
       request_.respond_orders = core::clock::GetSystem();
-    } catch (core::NetworkError &e) {
+    } catch (NetworkError &e) {
       log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
     }
   });
