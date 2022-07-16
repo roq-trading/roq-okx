@@ -12,7 +12,7 @@
 #include "roq/core/clock.hpp"
 #include "roq/core/utils.hpp"
 
-#include "roq/io/event/context_factory.hpp"
+#include "roq/io/engine/libevent/context_factory.hpp"
 
 #include "roq/okx/flags.hpp"
 
@@ -106,7 +106,7 @@ auto create_market_data(
 
 Gateway::Gateway(server::Dispatcher &dispatcher, Config const &config)
     : dispatcher_(dispatcher), master_account_(config.get_master_account()),
-      security_(create_security<decltype(security_)>(config)), context_(io::event::ContextFactory::create()),
+      security_(create_security<decltype(security_)>(config)), context_(io::engine::libevent::ContextFactory::create()),
       shared_(dispatcher), request_(create_request<decltype(request_)>(config)),
       rest_(create_rest<decltype(rest_)>(*this, *context_, ++stream_id_, security_, shared_, request_)),
       order_entry_(
