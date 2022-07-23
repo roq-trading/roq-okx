@@ -448,6 +448,7 @@ void MarketData::operator()(Trace<json::Instruments const> const &event) {
           .commission_currency = {},
           .tick_size = item.tick_sz,
           .multiplier = item.ct_mult,
+          .min_notional = NaN,
           .min_trade_vol = item.min_sz,
           .max_trade_vol = NaN,
           .trade_vol_step_size = NaN,
