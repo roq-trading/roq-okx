@@ -154,7 +154,7 @@ void Rest::get_orders() {
         .method = method,
         .path = path,
         .query = {},
-        .accept = web::http::Accept::JSON,
+        .accept = web::http::Accept::APPLICATION_JSON,
         .content_type = {},
         .headers = headers,
         .body = {},
