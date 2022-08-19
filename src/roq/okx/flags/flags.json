@@ -86,7 +86,7 @@
     {
       "name": "ws_books_depth",
       "type": "uint16_t",
-      "validator": "roq::core::flags::NonZero<uint32_t>",
+      "validator": "roq::core::flags::NonZero<uint16_t>",
       "default": 400,
       "description": "defines what 'books' channel to subscribe to (some require authentication)"
     },
