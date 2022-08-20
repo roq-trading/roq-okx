@@ -97,6 +97,10 @@
     {
       "name": "uTime",
       "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "spotInUseAmt",
+      "type": "double"
     }
   ]
 }
