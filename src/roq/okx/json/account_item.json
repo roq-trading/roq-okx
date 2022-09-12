@@ -101,6 +101,10 @@
     {
       "name": "spotInUseAmt",
       "type": "double"
+    },
+    {
+      "name": "fixedBal",
+      "type": "double"
     }
   ]
 }
