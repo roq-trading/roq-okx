@@ -43,33 +43,29 @@ TEST_CASE("json_order_ack_parser_success", "[json_order_ack]") {
     auto get_count() const { return count_; }
 
    protected:
-    void operator()(Trace<json::Error const> const &) override { FAIL(); }
-    void operator()(Trace<json::Subscribe const> const &) override { FAIL(); }
-    void operator()(Trace<json::Unsubscribe const> const &) override { FAIL(); }
-    void operator()(Trace<json::Status const> const &) override { FAIL(); }
-    void operator()(Trace<json::Instruments const> const &) override { FAIL(); }
-    void operator()(Trace<json::EstimatedPrice const> const &) override { FAIL(); }
-    void operator()(Trace<json::PriceLimit const> const &) override { FAIL(); }
-    void operator()(Trace<json::MarkPrice const> const &) override { FAIL(); }
-    void operator()(Trace<json::Tickers const> const &) override { FAIL(); }
-    void operator()(Trace<json::Trades const> const &) override { FAIL(); }
-    void operator()(Trace<json::BboTbt const> const &, [[maybe_unused]] std::string_view const &inst_id) override {
-      FAIL();
-    }
+    void operator()(Trace<json::Error> const &) override { FAIL(); }
+    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
+    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
+    void operator()(Trace<json::Status> const &) override { FAIL(); }
+    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
+    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
+    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
+    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
+    void operator()(Trace<json::Tickers> const &) override { FAIL(); }
+    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
     void operator()(
-        Trace<json::BooksL2Tbt const> const &,
-        [[maybe_unused]] std::string_view const &inst_id,
-        json::Action) override {
+        Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override {
       FAIL();
     }
-    void operator()(Trace<json::IndexTickers const> const &) override { FAIL(); }
-    void operator()(Trace<json::FundingRate const> const &) override { FAIL(); }
-    void operator()(Trace<json::Login const> const &) override { FAIL(); }
-    void operator()(Trace<json::Account const> const &) override { FAIL(); }
-    void operator()(Trace<json::BalanceAndPosition const> const &) override { FAIL(); }
-    void operator()(Trace<json::Positions const> const &) override { FAIL(); }
-    void operator()(Trace<json::Orders const> const &) override { FAIL(); }
-    void operator()(Trace<json::OrderAck const> const &event) override {
+    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
+    void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
+    void operator()(Trace<json::Login> const &) override { FAIL(); }
+    void operator()(Trace<json::Account> const &) override { FAIL(); }
+    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
+    void operator()(Trace<json::Positions> const &) override { FAIL(); }
+    void operator()(Trace<json::Orders> const &) override { FAIL(); }
+    void operator()(Trace<json::OrderAck> const &event) override {
       ++count_;
       auto &[trace_info, order_ack] = event;
       CHECK(order_ack.code == 0);
@@ -85,8 +81,8 @@ TEST_CASE("json_order_ack_parser_success", "[json_order_ack]") {
       CHECK(order_ack.msg == ""sv);
       CHECK(order_ack.op == json::Operation::ORDER);
     }
-    void operator()(Trace<json::AmendOrderAck const> const &) override { FAIL(); }
-    void operator()(Trace<json::CancelOrderAck const> const &) override { FAIL(); }
+    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};
@@ -118,33 +114,29 @@ TEST_CASE("json_order_ack_parser_failure", "[json_order_ack]") {
     auto get_count() const { return count_; }
 
    protected:
-    void operator()(Trace<json::Error const> const &) override { FAIL(); }
-    void operator()(Trace<json::Subscribe const> const &) override { FAIL(); }
-    void operator()(Trace<json::Unsubscribe const> const &) override { FAIL(); }
-    void operator()(Trace<json::Status const> const &) override { FAIL(); }
-    void operator()(Trace<json::Instruments const> const &) override { FAIL(); }
-    void operator()(Trace<json::EstimatedPrice const> const &) override { FAIL(); }
-    void operator()(Trace<json::PriceLimit const> const &) override { FAIL(); }
-    void operator()(Trace<json::MarkPrice const> const &) override { FAIL(); }
-    void operator()(Trace<json::Tickers const> const &) override { FAIL(); }
-    void operator()(Trace<json::Trades const> const &) override { FAIL(); }
-    void operator()(Trace<json::BboTbt const> const &, [[maybe_unused]] std::string_view const &inst_id) override {
-      FAIL();
-    }
+    void operator()(Trace<json::Error> const &) override { FAIL(); }
+    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
+    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
+    void operator()(Trace<json::Status> const &) override { FAIL(); }
+    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
+    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
+    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
+    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
+    void operator()(Trace<json::Tickers> const &) override { FAIL(); }
+    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
     void operator()(
-        Trace<json::BooksL2Tbt const> const &,
-        [[maybe_unused]] std::string_view const &inst_id,
-        json::Action) override {
+        Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override {
       FAIL();
     }
-    void operator()(Trace<json::IndexTickers const> const &) override { FAIL(); }
-    void operator()(Trace<json::FundingRate const> const &) override { FAIL(); }
-    void operator()(Trace<json::Login const> const &) override { FAIL(); }
-    void operator()(Trace<json::Account const> const &) override { FAIL(); }
-    void operator()(Trace<json::BalanceAndPosition const> const &) override { FAIL(); }
-    void operator()(Trace<json::Positions const> const &) override { FAIL(); }
-    void operator()(Trace<json::Orders const> const &) override { FAIL(); }
-    void operator()(Trace<json::OrderAck const> const &event) override {
+    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
+    void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
+    void operator()(Trace<json::Login> const &) override { FAIL(); }
+    void operator()(Trace<json::Account> const &) override { FAIL(); }
+    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
+    void operator()(Trace<json::Positions> const &) override { FAIL(); }
+    void operator()(Trace<json::Orders> const &) override { FAIL(); }
+    void operator()(Trace<json::OrderAck> const &event) override {
       ++count_;
       auto &[trace_info, order_ack] = event;
       CHECK(order_ack.code == 1);
@@ -160,8 +152,8 @@ TEST_CASE("json_order_ack_parser_failure", "[json_order_ack]") {
       CHECK(order_ack.msg == ""sv);
       CHECK(order_ack.op == json::Operation::ORDER);
     }
-    void operator()(Trace<json::AmendOrderAck const> const &) override { FAIL(); }
-    void operator()(Trace<json::CancelOrderAck const> const &) override { FAIL(); }
+    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};

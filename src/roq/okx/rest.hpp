@@ -30,8 +30,8 @@ namespace okx {
 class Rest final : public web::rest::Client::Handler {
  public:
   struct Handler {
-    virtual void operator()(Trace<StreamStatus const> const &) = 0;
-    virtual void operator()(Trace<ExternalLatency const> const &) = 0;
+    virtual void operator()(Trace<StreamStatus> const &) = 0;
+    virtual void operator()(Trace<ExternalLatency> const &) = 0;
   };
 
   Rest(Handler &, io::Context &context, uint16_t stream_id, Security &, Shared &, Request &);
@@ -55,8 +55,8 @@ class Rest final : public web::rest::Client::Handler {
   void operator()(ConnectionStatus);
 
   void get_orders();
-  void get_orders_ack(Trace<web::rest::Response const> const &);
-  void operator()(Trace<json::Orders const> const &);
+  void get_orders_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<json::Orders> const &);
 
  private:
   Handler &handler_;

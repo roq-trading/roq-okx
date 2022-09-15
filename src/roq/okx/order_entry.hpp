@@ -32,11 +32,11 @@ namespace okx {
 class OrderEntry final : public web::socket::Client::Handler, json::Parser::Handler {
  public:
   struct Handler {
-    virtual void operator()(Trace<StreamStatus const> const &) = 0;
-    virtual void operator()(Trace<ExternalLatency const> const &) = 0;
-    virtual void operator()(Trace<TradeUpdate const> const &, bool is_last, uint8_t user_id) = 0;
-    virtual void operator()(Trace<FundsUpdate const> const &, bool is_last) = 0;
-    virtual void operator()(Trace<PositionUpdate const> const &, bool is_last) = 0;
+    virtual void operator()(Trace<StreamStatus> const &) = 0;
+    virtual void operator()(Trace<ExternalLatency> const &) = 0;
+    virtual void operator()(Trace<TradeUpdate> const &, bool is_last, uint8_t user_id) = 0;
+    virtual void operator()(Trace<FundsUpdate> const &, bool is_last) = 0;
+    virtual void operator()(Trace<PositionUpdate> const &, bool is_last) = 0;
   };
 
   OrderEntry(Handler &, io::Context &, uint16_t stream_id, Security &, Shared &, Request &);
@@ -75,30 +75,30 @@ class OrderEntry final : public web::socket::Client::Handler, json::Parser::Hand
   void operator()(web::socket::Client::Text const &) override;
   void operator()(web::socket::Client::Binary const &) override;
 
-  void operator()(Trace<json::Error const> const &) override;
-  void operator()(Trace<json::Subscribe const> const &) override;
-  void operator()(Trace<json::Unsubscribe const> const &) override;
+  void operator()(Trace<json::Error> const &) override;
+  void operator()(Trace<json::Subscribe> const &) override;
+  void operator()(Trace<json::Unsubscribe> const &) override;
 
-  void operator()(Trace<json::Status const> const &) override;
-  void operator()(Trace<json::Instruments const> const &) override;
-  void operator()(Trace<json::EstimatedPrice const> const &) override;
-  void operator()(Trace<json::PriceLimit const> const &) override;
-  void operator()(Trace<json::MarkPrice const> const &) override;
-  void operator()(Trace<json::Tickers const> const &) override;
-  void operator()(Trace<json::Trades const> const &) override;
-  void operator()(Trace<json::BboTbt const> const &, std::string_view const &inst_id) override;
-  void operator()(Trace<json::BooksL2Tbt const> const &, std::string_view const &inst_id, json::Action) override;
-  void operator()(Trace<json::IndexTickers const> const &) override;
-  void operator()(Trace<json::FundingRate const> const &) override;
+  void operator()(Trace<json::Status> const &) override;
+  void operator()(Trace<json::Instruments> const &) override;
+  void operator()(Trace<json::EstimatedPrice> const &) override;
+  void operator()(Trace<json::PriceLimit> const &) override;
+  void operator()(Trace<json::MarkPrice> const &) override;
+  void operator()(Trace<json::Tickers> const &) override;
+  void operator()(Trace<json::Trades> const &) override;
+  void operator()(Trace<json::BboTbt> const &, std::string_view const &inst_id) override;
+  void operator()(Trace<json::BooksL2Tbt> const &, std::string_view const &inst_id, json::Action) override;
+  void operator()(Trace<json::IndexTickers> const &) override;
+  void operator()(Trace<json::FundingRate> const &) override;
 
-  void operator()(Trace<json::Login const> const &) override;
-  void operator()(Trace<json::Account const> const &) override;
-  void operator()(Trace<json::BalanceAndPosition const> const &) override;
-  void operator()(Trace<json::Positions const> const &) override;
-  void operator()(Trace<json::Orders const> const &) override;
-  void operator()(Trace<json::OrderAck const> const &) override;
-  void operator()(Trace<json::AmendOrderAck const> const &) override;
-  void operator()(Trace<json::CancelOrderAck const> const &) override;
+  void operator()(Trace<json::Login> const &) override;
+  void operator()(Trace<json::Account> const &) override;
+  void operator()(Trace<json::BalanceAndPosition> const &) override;
+  void operator()(Trace<json::Positions> const &) override;
+  void operator()(Trace<json::Orders> const &) override;
+  void operator()(Trace<json::OrderAck> const &) override;
+  void operator()(Trace<json::AmendOrderAck> const &) override;
+  void operator()(Trace<json::CancelOrderAck> const &) override;
 
  private:
   void operator()(ConnectionStatus);

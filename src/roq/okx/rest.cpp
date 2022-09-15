@@ -168,7 +168,7 @@ void Rest::get_orders() {
   });
 }
 
-void Rest::get_orders_ack(Trace<web::rest::Response const> const &event) {
+void Rest::get_orders_ack(Trace<web::rest::Response> const &event) {
   profile_.orders_ack([&]() {
     auto &[trace_info, response] = event;
     try {
@@ -207,7 +207,7 @@ void Rest::get_orders_ack(Trace<web::rest::Response const> const &event) {
   });
 }
 
-void Rest::operator()(Trace<json::Orders const> const &event) {
+void Rest::operator()(Trace<json::Orders> const &event) {
   auto &[trace_info, orders] = event;
   log::info<4>("orders={}"sv, orders);
   for (auto &item : orders.data) {
