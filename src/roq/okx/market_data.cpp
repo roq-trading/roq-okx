@@ -81,17 +81,19 @@ std::string_view get_books_channel(auto security) {
 }
 
 template <typename T>
-void emplace(Trade &result, const T &value) {
+void emplace(Trade &result, T const &value) {
   new (&result) Trade{
       .side = json::map(value.side),
       .price = value.px,
       .quantity = value.sz,
       .trade_id = value.trade_id,
+      .taker_order_id = {},
+      .maker_order_id = {},
   };
 }
 
 template <typename T>
-void emplace(MBPUpdate &result, const T &item) {
+void emplace(MBPUpdate &result, T const &item) {
   new (&result) MBPUpdate{
       .price = item.price,
       .quantity = item.size,
@@ -597,6 +599,7 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
             .symbol = symbol,
             .trades = trades_,
             .exchange_time_utc = exchange_time_utc,
+            .exchange_sequence = {},
         };
         create_trace_and_dispatch(handler_, trace_info, trade_summary, false);
         trades_.clear();
@@ -613,6 +616,7 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
           .symbol = symbol,
           .trades = trades_,
           .exchange_time_utc = exchange_time_utc,
+          .exchange_sequence = {},
       };
       create_trace_and_dispatch(handler_, trace_info, trade_summary, true);
     }
