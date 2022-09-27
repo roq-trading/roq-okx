@@ -26,8 +26,11 @@ using namespace std::literals;
 namespace roq {
 namespace okx {
 
+// === CONSTANTS ===
+
 namespace {
 auto const NAME = "md"sv;
+
 const Mask SUPPORTS{
     SupportType::REFERENCE_DATA,
     SupportType::MARKET_STATUS,
@@ -36,11 +39,14 @@ const Mask SUPPORTS{
     SupportType::TRADE_SUMMARY,
     SupportType::STATISTICS,
 };
+}  // namespace
 
-struct create_metrics final : public core::metrics::Factory {
-  explicit create_metrics(std::string_view const &group, std::string_view const &function)
-      : core::metrics::Factory(server::Flags::name(), group, function) {}
-};
+// === HELPERS ===
+
+namespace {
+auto create_name(auto stream_id) {
+  return fmt::format("{}:{}"sv, stream_id, NAME);
+}
 
 auto create_connection(auto &handler, auto &context) {
   auto uri = Flags::ws_public_uri();
@@ -58,56 +64,17 @@ auto create_connection(auto &handler, auto &context) {
   return web::socket::ClientFactory::create(handler, context, config, []() { return std::string(); });
 }
 
-std::string_view get_books_channel(auto security) {
-  std::string_view result;
-  auto vip = security && !flags::Flags::ws_books_use_public();
-  switch (flags::Flags::ws_books_depth()) {
-    case 5:
-      result = "books5"sv;
-      break;
-    case 50:
-      result = "books50-l2-tbt"sv;
-      if (!vip)
-        log::fatal(R"(Channel "{}" requires authentication (only available to VIP members))"sv, result);
-      break;
-    case 400:
-      result = vip ? "books-l2-tbt"sv : "books"sv;
-      break;
-    default:
-      log::fatal("Unsupported --ws_books_depth={}"sv, flags::Flags::ws_books_depth());
-  }
-  log::info(R"(DEBUG: using channel="{}")"sv, result);
-  return result;
-}
-
-template <typename T>
-void emplace(Trade &result, T const &value) {
-  new (&result) Trade{
-      .side = json::map(value.side),
-      .price = value.px,
-      .quantity = value.sz,
-      .trade_id = value.trade_id,
-      .taker_order_id = {},
-      .maker_order_id = {},
-  };
-}
-
-template <typename T>
-void emplace(MBPUpdate &result, T const &item) {
-  new (&result) MBPUpdate{
-      .price = item.price,
-      .quantity = item.size,
-      .implied_quantity = NaN,
-      .number_of_orders = utils::safe_cast(item.orders),
-      .update_action = {},
-      .price_level = {},
-  };
-}
+struct create_metrics final : public core::metrics::Factory {
+  explicit create_metrics(auto const &group, auto const &function)
+      : core::metrics::Factory(server::Flags::name(), group, function) {}
+};
 }  // namespace
+
+// === IMPLEMENTATION ===
 
 MarketData::MarketData(
     Handler &handler, io::Context &context, uint32_t stream_id, Security &security, Shared &shared, size_t index)
-    : handler_(handler), stream_id_(stream_id), name_(fmt::format("{}:{}"sv, stream_id_, NAME)), index_(index),
+    : handler_(handler), stream_id_(stream_id), name_(create_name(stream_id_)), index_(index),
       connection_(create_connection(*this, context)), decode_buffer_(Flags::decode_buffer_size()),
       request_id_(static_cast<uint64_t>(stream_id_) * 1000000),  // scale (debugging)
       counter_{
@@ -308,6 +275,27 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols) {
   subscribe("tickers"sv, "instId"sv, symbols);
   subscribe("trades"sv, "instId"sv, symbols);
   subscribe("bbo-tbt"sv, "instId"sv, symbols);
+  auto get_books_channel = [](auto security) {
+    std::string_view result;
+    auto vip = security && !flags::Flags::ws_books_use_public();
+    switch (flags::Flags::ws_books_depth()) {
+      case 5:
+        result = "books5"sv;
+        break;
+      case 50:
+        result = "books50-l2-tbt"sv;
+        if (!vip)
+          log::fatal(R"(Channel "{}" requires authentication (only available to VIP members))"sv, result);
+        break;
+      case 400:
+        result = vip ? "books-l2-tbt"sv : "books"sv;
+        break;
+      default:
+        log::fatal("Unsupported --ws_books_depth={}"sv, flags::Flags::ws_books_depth());
+    }
+    log::info(R"(DEBUG: using channel="{}")"sv, result);
+    return result;
+  };
   subscribe(get_books_channel(!std::empty(security_)), "instId"sv, symbols);
   for (auto &symbol : symbols) {
     if (flags::Flags::include_bad_subscriptions() ||
@@ -587,6 +575,16 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
     auto &[trace_info, trades] = event;
     log::info<3>("event={{trades={}, trace_info={}}}"sv, trades, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
+    auto create_trade = []<typename T>(T &result, auto const &value) {
+      new (&result) T{
+          .side = json::map(value.side),
+          .price = value.px,
+          .quantity = value.sz,
+          .trade_id = value.trade_id,
+          .taker_order_id = {},
+          .maker_order_id = {},
+      };
+    };
     core::back_emplacer trades_(shared_.trades);
     std::string_view symbol;
     std::chrono::nanoseconds exchange_time_utc = {};
@@ -606,7 +604,7 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
         exchange_time_utc = {};
       }
       utils::update_max(exchange_time_utc, item.ts);
-      trades_.emplace_back([&item](auto &result) { emplace(result, item); });
+      trades_.emplace_back([&](auto &result) { create_trade(result, item); });
     }
     if (!std::empty(trades_)) {
       assert(!std::empty(symbol));
@@ -657,11 +655,21 @@ void MarketData::operator()(
     log::info<3>("event={{books_l2_tbt={}, action={}, trace_info={}}}"sv, books_l2_tbt, action, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
     auto snapshot = action == json::Action::SNAPSHOT;
+    auto create_mbp_update = []<typename T>(T &result, auto const &item) {
+      new (&result) T{
+          .price = item.price,
+          .quantity = item.size,
+          .implied_quantity = NaN,
+          .number_of_orders = utils::safe_cast(item.orders),
+          .update_action = {},
+          .price_level = {},
+      };
+    };
     core::back_emplacer bids(shared_.bids), asks(shared_.asks);
     for (auto &item : books_l2_tbt.bids)
-      bids.emplace_back([&item](auto &result) { emplace(result, item); });
+      bids.emplace_back([&](auto &result) { create_mbp_update(result, item); });
     for (auto &item : books_l2_tbt.asks)
-      asks.emplace_back([&item](auto &result) { emplace(result, item); });
+      asks.emplace_back([&](auto &result) { create_mbp_update(result, item); });
     // XXX HANS validate checksum
     auto update_type = snapshot ? UpdateType::SNAPSHOT : UpdateType::INCREMENTAL;
     const MarketByPriceUpdate market_by_price_update{
