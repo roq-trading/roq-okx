@@ -5,33 +5,33 @@
     {
       "name": "config_file",
       "type": "std::string",
-      "validator": "roq::core::flags::Path<std::string>",
+      "validator": "roq::core::flags::Path",
       "description": "config file (path)"
     },
     {
       "name": "secrets_file",
       "type": "std::string",
-      "validator": "roq::core::flags::Path<std::string>",
+      "validator": "roq::core::flags::Path",
       "description": "secrets file (path, optional)"
     },
     {
       "name": "exchange",
       "type": "std::string",
-      "validator": "roq::core::flags::NonEmpty<std::string>",
+      "validator": "roq::core::flags::NonEmpty",
       "default": "okx",
       "description": "exchange identifier (string)"
     },
     {
       "name": "rest_uri",
       "type": "roq::io::web::URI",
-      "validator": "roq::core::flags::URI<std::string>",
+      "validator": "roq::core::flags::URI",
       "default": "https://www.okx.com",
       "description": "REST end-point (URI)"
     },
     {
       "name": "rest_proxy",
       "type": "roq::io::web::URI",
-      "validator": "roq::core::flags::URI<std::string>",
+      "validator": "roq::core::flags::URI",
       "description": "proxy end-point (URI)"
     },
     {
@@ -44,7 +44,7 @@
     {
       "name": "rest_ping_path",
       "type": "std::string",
-      "validator": "roq::core::flags::Path<std::string>",
+      "validator": "roq::core::flags::Path",
       "default": "/api/v5/rubik/stat/contracts/long-short-account-ratio?ccy=BTC",
       "description": "URI path used for REST connection keep-alive messages"
     },
@@ -58,14 +58,14 @@
     {
       "name": "ws_public_uri",
       "type": "roq::io::web::URI",
-      "validator": "roq::core::flags::URI<std::string>",
+      "validator": "roq::core::flags::URI",
       "default": "wss://ws.okx.com:8443/ws/v5/public",
       "description": "WS end-point (URI)"
     },
     {
       "name": "ws_private_uri",
       "type": "roq::io::web::URI",
-      "validator": "roq::core::flags::URI<std::string>",
+      "validator": "roq::core::flags::URI",
       "default": "wss://ws.okx.com:8443/ws/v5/private",
       "description": "WS end-point (URI)"
     },
@@ -145,7 +145,7 @@
     {
       "name": "trade_mode",
       "type": "std::string",
-      "validator": "roq::core::flags::NonEmpty<std::string>",
+      "validator": "roq::core::flags::NonEmpty",
       "default": "cross",
       "description": "Trade mode (string)"
     }
