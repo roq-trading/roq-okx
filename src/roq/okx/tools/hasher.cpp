@@ -19,11 +19,15 @@ namespace roq {
 namespace okx {
 namespace tools {
 
+// === HELPERS ===
+
 namespace {
-auto create_hmac(std::string_view const &secret) {
-  return core::crypto::HMAC_SHA256(secret);
+auto create_hmac(auto const &secret) {
+  return core::crypto::HMAC_SHA256{secret};
 }
 }  // namespace
+
+// === IMPLEMENTATION ===
 
 Hasher::Hasher() : hmac_(create_hmac(""sv)) {
 }

@@ -9,9 +9,6 @@
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
 
-#include "roq/core/back_emplacer.hpp"
-#include "roq/core/charconv.hpp"
-
 #include "roq/core/json/parser.hpp"
 
 #include "roq/core/metrics/factory.hpp"
@@ -174,7 +171,7 @@ void Rest::get_orders() {
     };
     (*connection_)("orders"sv, request, [this]([[maybe_unused]] auto &request_id, auto &response) {
       auto trace_info = server::create_trace_info();
-      Trace event(trace_info, response);
+      Trace event{trace_info, response};
       get_orders_ack(event);
     });
   });
@@ -207,9 +204,9 @@ void Rest::get_orders_ack(Trace<web::rest::Response> const &event) {
           break;
       }
       // log::debug(R"(body="{}")"sv, body);
-      core::json::Buffer buffer(decode_buffer_);
+      core::json::Buffer buffer{decode_buffer_};
       const auto orders = core::json::Parser::create<json::Orders>(body, buffer);
-      Trace event(trace_info, orders);
+      Trace event{trace_info, orders};
       (*this)(event);
       download_orders_ = false;
       request_.respond_orders = core::clock::GetSystem();

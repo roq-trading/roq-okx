@@ -21,14 +21,20 @@ using namespace std::literals;
 namespace roq {
 namespace okx {
 
-namespace {
-Security NO_SECURITY;
+// === CONSTANTS ===
 
+namespace {
+Security NO_SECURITY;  // XXX not const...
+}
+
+// === HELPERS ===
+
+namespace {
 template <typename R>
-auto create_security(Config const &config) {
+auto create_security(auto const &config) {
   R result;
-  for (auto &[_, iter] : config.accounts)
-    result.try_emplace(iter.name, std::make_unique<Security>(config, iter.name));
+  for (auto &[_, account] : config.accounts)
+    result.try_emplace(account.name, std::make_unique<Security>(config, account.name));
   return result;
 }
 
@@ -43,21 +49,16 @@ auto &get_security(auto &security_by_account, auto const &master_account) {
 }
 
 template <typename R>
-auto create_request(Config const &config) {
+auto create_request(auto const &config) {
   R result;
-  for (auto &[_, iter] : config.accounts)
-    result.try_emplace(iter.name, Request{});
+  for (auto &[_, account] : config.accounts)
+    result.try_emplace(account.name, Request{});
   return result;
 }
 
 template <typename R>
 auto create_rest(
-    Gateway &gateway,
-    io::Context &context,
-    uint16_t &stream_id,
-    auto &security_by_account,
-    Shared &shared,
-    auto &request_by_account) {
+    auto &gateway, auto &context, auto &stream_id, auto &security_by_account, auto &shared, auto &request_by_account) {
   R result;
   for (auto &[account, security] : security_by_account) {
     auto &request = request_by_account[account];
@@ -68,12 +69,7 @@ auto create_rest(
 
 template <typename R>
 auto create_order_entry(
-    Gateway &gateway,
-    io::Context &context,
-    uint16_t &stream_id,
-    auto &security_by_account,
-    Shared &shared,
-    auto &request_by_account) {
+    auto &gateway, auto &context, auto &stream_id, auto &security_by_account, auto &shared, auto &request_by_account) {
   R result;
   for (auto &[account, security] : security_by_account) {
     auto &request = request_by_account[account];
@@ -85,12 +81,7 @@ auto create_order_entry(
 
 template <typename R>
 auto create_market_data(
-    Gateway &gateway,
-    io::Context &context,
-    uint16_t &stream_id,
-    auto &security_by_account,
-    auto &master_account,
-    Shared &shared) {
+    auto &gateway, auto &context, auto &stream_id, auto &security_by_account, auto &master_account, auto &shared) {
   R result;
   ++stream_id;
   auto index = std::size(result);
@@ -101,6 +92,8 @@ auto create_market_data(
   return result;
 }
 }  // namespace
+
+// === IMPLEMENTATION ===
 
 Gateway::Gateway(server::Dispatcher &dispatcher, Config const &config, io::Context &context)
     : dispatcher_(dispatcher), master_account_(config.get_master_account()),
@@ -169,7 +162,7 @@ void Gateway::operator()(Event<Disconnected> const &event) {
           CancelAllOrders cancel_all_orders{
               .account = account,
           };
-          Event event(message_info, cancel_all_orders);
+          Event event{message_info, cancel_all_orders};
           (*order_entry)(event, {});
         }
       }
@@ -287,7 +280,7 @@ OrderEntry &Gateway::get_order_entry(std::string_view const &account) {
   auto iter = order_entry_.find(account);
   if (iter != std::end(order_entry_))
     return *(*iter).second;
-  throw RuntimeError(R"(Unknown account="{}")"sv, account);
+  throw RuntimeError{R"(Unknown account="{}")"sv, account};
 }
 
 }  // namespace okx

@@ -37,7 +37,7 @@ namespace okx {
 namespace {
 auto const NAME = "ex"sv;
 
-const Mask SUPPORTS{
+Mask const SUPPORTS{
     SupportType::CREATE_ORDER,
     SupportType::MODIFY_ORDER,
     SupportType::CANCEL_ORDER,
@@ -164,7 +164,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(
       order_type_ = json::OrderType::POST_ONLY;
     if (execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE))
       reduce_only = true;
-    // throw oms::NotSupported("not supported"sv);
+    // throw oms::NotSupported{"not supported"sv};
   }
   switch (time_in_force) {
     using enum TimeInForce;
@@ -179,7 +179,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(
         order_type_ = json::OrderType::IOC;
       break;
     default:
-      throw oms::NotSupported("not supported"sv);
+      throw oms::NotSupported{"not supported"sv};
   }
   if (order_type_ == json::OrderType{}) {
     switch (order_type) {
@@ -191,7 +191,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(
         order_type_ = json::OrderType::LIMIT;
         break;
       default:
-        throw oms::NotSupported("not supported"sv);
+        throw oms::NotSupported{"not supported"sv};
     }
   }
   return {order_type_, reduce_only};
@@ -495,7 +495,7 @@ void OrderEntry::parse(std::string_view const &message) {
     try {
       // log::debug(R"(message="{}")"sv, message);
       auto trace_info = server::create_trace_info();
-      core::json::Buffer buffer(decode_buffer_);
+      core::json::Buffer buffer{decode_buffer_};
       if (json::Parser::dispatch(*this, message, buffer, trace_info)) {
       } else {
         log::fatal(R"(message="{}")"sv, message);
