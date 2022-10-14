@@ -21,6 +21,10 @@
     {
       "name": "nextFundingRate",
       "type": "double"
+    },
+    {
+      "name": "nextFundingTime",
+      "type": "std::chrono::milliseconds"
     }
   ]
 }

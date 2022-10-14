@@ -109,6 +109,10 @@
     {
       "name": "maxTwapSz",
       "type": "double"
+    },
+    {
+      "name": "instFamily",
+      "type": "std::string_view"
     }
   ]
 }
