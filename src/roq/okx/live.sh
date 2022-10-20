@@ -3,9 +3,9 @@
 CWD="$(realpath "$(dirname "${BASH_SOURCE[0]}")")"
 
 if [ "$1" == "debug" ]; then
-	PREFIX="gdb --args"
+  PREFIX="gdb --args"
 else
-	PREFIX=
+  PREFIX=
 fi
 
 NAME="okx"
@@ -19,10 +19,11 @@ WS_URI="wss://ws.$URI:8443/ws/v5"
 $PREFIX ./roq-okx \
   --name "okx" \
   --config_file "$CONFIG_FILE" \
+  --cache_dir "$HOME/var/lib/roq/cache" \
   --event_log_dir "$HOME/var/lib/roq/data" \
-  --event_log_symlink \
+  --event_log_symlink true \
   --client_listen_address "$HOME/run/$NAME.sock" \
-  --metrics_listen_address "$HOME/run/${NAME}_metrics.sock" \
+  --metrics_listen_address "$HOME/run/metrics/${NAME}.sock" \
   --ws_public_uri "$WS_URI/public" \
   --ws_private_uri "$WS_URI/private" \
   $@
