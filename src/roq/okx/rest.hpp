@@ -58,6 +58,9 @@ class Rest final : public web::rest::Client::Handler {
   void get_orders_ack(Trace<web::rest::Response> const &);
   void operator()(Trace<json::Orders> const &);
 
+  template <typename SuccessHandler, typename ErrorHandler>
+  void process_response(web::rest::Response const &, SuccessHandler, ErrorHandler);
+
  private:
   Handler &handler_;
   // config

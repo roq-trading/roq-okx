@@ -37,7 +37,7 @@ namespace okx {
 namespace {
 auto const NAME = "ex"sv;
 
-Mask const SUPPORTS{
+auto const SUPPORTS = Mask{
     SupportType::CREATE_ORDER,
     SupportType::MODIFY_ORDER,
     SupportType::CANCEL_ORDER,
@@ -369,7 +369,7 @@ void OrderEntry::operator()(web::socket::Client::Close const &) {
 
 void OrderEntry::operator()(web::socket::Client::Latency const &latency) {
   auto trace_info = server::create_trace_info();
-  const ExternalLatency external_latency{
+  ExternalLatency external_latency{
       .stream_id = stream_id_,
       .account = security_.get_account(),
       .latency = latency.sample,
@@ -389,7 +389,7 @@ void OrderEntry::operator()(web::socket::Client::Binary const &) {
 void OrderEntry::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
     auto trace_info = server::create_trace_info();
-    const StreamStatus stream_status{
+    StreamStatus stream_status{
         .stream_id = stream_id_,
         .account = security_.get_account(),
         .supports = SUPPORTS,
@@ -593,7 +593,7 @@ void OrderEntry::operator()(Trace<json::Account> const &event) {
     log::info<1>("event={{account={}, trace_info={}}}"sv, account, trace_info);
     // log::debug("account={}"sv, account);
     for (auto &item : account.details) {
-      const FundsUpdate funds_update{
+      FundsUpdate funds_update{
           .stream_id = stream_id_,
           .account = security_.get_account(),
           .currency = item.ccy,
@@ -622,7 +622,7 @@ void OrderEntry::operator()(Trace<json::Positions> const &event) {
     for (auto &item : positions.data) {
       auto long_quantity = std::max(0.0, item.pos);
       auto short_quantity = std::max(0.0, -item.pos);
-      const PositionUpdate position_update{
+      PositionUpdate position_update{
           .stream_id = stream_id_,
           .account = security_.get_account(),
           .exchange = Flags::exchange(),

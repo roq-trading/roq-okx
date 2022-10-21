@@ -8,9 +8,9 @@ else
   PREFIX=
 fi
 
-NAME="rencap"
+NAME="okx"
 
-CONFIG_FILE="$CWD/config/$NAME.toml"
+CONFIG_FILE="$CWD/config/rencap.toml"
 
 URI="okx.com"
 

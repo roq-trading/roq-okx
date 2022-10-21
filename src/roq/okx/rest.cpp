@@ -29,7 +29,7 @@ namespace okx {
 namespace {
 auto const NAME = "dc"sv;
 
-Mask<SupportType> const SUPPORTS;
+auto const SUPPORTS = Mask<SupportType>{};
 }  // namespace
 
 // === HELPERS ===
@@ -180,40 +180,19 @@ void Rest::get_orders() {
 
 void Rest::get_orders_ack(Trace<web::rest::Response> const &event) {
   profile_.orders_ack([&]() {
-    auto &[trace_info, response] = event;
-    try {
-      auto [status, category, body] = response.result();
-      // log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
-      switch (category) {
-        using enum web::http::Category;
-        case UNKNOWN:
-          log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
-          break;
-        case INFORMATIONAL_RESPONSE:
-          log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
-          break;
-        case SUCCESS:
-          break;
-        case REDIRECTION:
-          log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
-          break;
-        case CLIENT_ERROR:
-          log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
-          break;
-        case SERVER_ERROR:
-          log::fatal(R"(Unexpected: status={}, body="{}")"sv, status, body);
-          break;
-      }
-      // log::debug(R"(body="{}")"sv, body);
+    auto handle_success = [&](auto &body) {
       core::json::Buffer buffer{decode_buffer_};
       auto orders = core::json::Parser::create<json::Orders>(body, buffer);
-      Trace event{trace_info, orders};
-      (*this)(event);
+      Trace event_2{event, orders};
+      (*this)(event_2);
       download_orders_ = false;
-      request_.respond_orders = core::clock::GetSystem();
-    } catch (NetworkError &e) {
-      log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
-    }
+      request_.respond_orders = core::clock::GetSystem();  // ack
+    };
+    auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
+      log::warn(R"(error={}, text="{}")"sv, error, text);
+      // XXX WHAT ???
+    };
+    process_response(event, handle_success, handle_error);
   });
 }
 
@@ -259,5 +238,33 @@ void Rest::operator()(Trace<json::Orders> const &event) {
   }
 }
 
+template <typename SuccessHandler, typename ErrorHandler>
+void Rest::process_response(
+    web::rest::Response const &response, SuccessHandler success_handler, ErrorHandler error_handler) {
+  try {
+    auto [status, category, body] = response.result();
+    log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
+    switch (category) {
+      using enum web::http::Category;
+      case SUCCESS:  // 2xx
+        success_handler(body);
+        break;
+      case CLIENT_ERROR:  // 4xx
+        error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, Error::UNKNOWN, magic_enum::enum_name(status));
+        break;
+      case SERVER_ERROR:  // 5xx
+        error_handler(Origin::EXCHANGE, RequestStatus::ERROR, Error::UNKNOWN, magic_enum::enum_name(status));
+        break;
+      default:
+        response.expect(web::http::Status::OK);  // throws
+    }
+  } catch (NetworkError &e) {
+    log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
+    error_handler(Origin::GATEWAY, e.request_status(), e.error(), e.what());
+  } catch (std::exception &e) {
+    log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
+    error_handler(Origin::EXCHANGE, RequestStatus::ERROR, Error::UNKNOWN, e.what());
+  }
+}
 }  // namespace okx
 }  // namespace roq
