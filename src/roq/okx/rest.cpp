@@ -181,8 +181,7 @@ void Rest::get_orders() {
 void Rest::get_orders_ack(Trace<web::rest::Response> const &event) {
   profile_.orders_ack([&]() {
     auto handle_success = [&](auto &body) {
-      core::json::Buffer buffer{decode_buffer_};
-      auto orders = core::json::Parser::create<json::Orders>(body, buffer);
+      json::Orders orders{body, decode_buffer_};
       Trace event_2{event, orders};
       (*this)(event_2);
       download_orders_ = false;
