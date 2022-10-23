@@ -368,7 +368,7 @@ void OrderEntry::operator()(web::socket::Client::Close const &) {
 }
 
 void OrderEntry::operator()(web::socket::Client::Latency const &latency) {
-  auto trace_info = server::create_trace_info();
+  TraceInfo trace_info;
   ExternalLatency external_latency{
       .stream_id = stream_id_,
       .account = security_.get_account(),
@@ -388,7 +388,7 @@ void OrderEntry::operator()(web::socket::Client::Binary const &) {
 
 void OrderEntry::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
-    auto trace_info = server::create_trace_info();
+    TraceInfo trace_info;
     StreamStatus stream_status{
         .stream_id = stream_id_,
         .account = security_.get_account(),
@@ -428,7 +428,7 @@ uint32_t OrderEntry::download(OrderEntryState state) {
 }
 
 void OrderEntry::login() {
-  auto now = core::clock::GetRealTime<std::chrono::seconds>();
+  auto now = clock::get_realtime<std::chrono::seconds>();
   auto timestamp = fmt::format("{}"sv, now.count());
   auto sign = security_.create_sign(timestamp);
   auto message = fmt::format(
@@ -494,7 +494,7 @@ void OrderEntry::parse(std::string_view const &message) {
   profile_.parse([&]() {
     try {
       // log::debug(R"(message="{}")"sv, message);
-      auto trace_info = server::create_trace_info();
+      TraceInfo trace_info;
       core::json::Buffer buffer{decode_buffer_};
       if (json::Parser::dispatch(*this, message, buffer, trace_info)) {
       } else {
@@ -791,7 +791,7 @@ void OrderEntry::cancel_all_orders(
 
 void OrderEntry::request_orders() {
   log::info("Requesting order download..."sv);
-  request_.request_orders = core::clock::GetSystem();
+  request_.request_orders = clock::get_system();
 }
 
 void OrderEntry::check_response_orders() {

@@ -14,16 +14,6 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-namespace {
-auto create_trace_info() {
-  return TraceInfo{
-      .source_receive_time = {},
-      .origin_create_time = {},
-      .origin_create_time_utc = {},
-  };
-}
-}  // namespace
-
 TEST_CASE("json_orders_download_empty", "[json_orders]") {
   auto message = R"({)"
                  R"("code":"0",)"
@@ -235,7 +225,7 @@ TEST_CASE("json_orders_parser", "[json_orders]") {
   } handler;
   core::Buffer buffer(8192);
   core::json::Buffer buffer_(buffer);
-  auto trace_info = create_trace_info();
+  TraceInfo trace_info;
   auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
   CHECK(res == true);
   CHECK(handler.get_count() == 1);

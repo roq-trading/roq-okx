@@ -115,7 +115,7 @@ void Rest::operator()(metrics::Writer &writer) {
 
 void Rest::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
-    auto trace_info = server::create_trace_info();
+    TraceInfo trace_info;
     StreamStatus stream_status{
         .stream_id = stream_id_,
         .account = {},
@@ -142,7 +142,7 @@ void Rest::operator()(web::rest::Client::Disconnected const &) {
 }
 
 void Rest::operator()(web::rest::Client::Latency const &latency) {
-  auto trace_info = server::create_trace_info();
+  TraceInfo trace_info;
   ExternalLatency external_latency{
       .stream_id = stream_id_,
       .account = {},
@@ -170,7 +170,7 @@ void Rest::get_orders() {
         .quality_of_service = {},
     };
     auto callback = [this]([[maybe_unused]] auto &request_id, auto &response) {
-      auto trace_info = server::create_trace_info();
+      TraceInfo trace_info;
       Trace event{trace_info, response};
       get_orders_ack(event);
     };
@@ -185,7 +185,7 @@ void Rest::get_orders_ack(Trace<web::rest::Response> const &event) {
       Trace event_2{event, orders};
       (*this)(event_2);
       download_orders_ = false;
-      request_.respond_orders = core::clock::GetSystem();  // ack
+      request_.respond_orders = clock::get_system();  // ack
     };
     auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
       log::warn(R"(error={}, text="{}")"sv, error, text);
