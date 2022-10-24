@@ -67,8 +67,8 @@ struct create_metrics final : public core::metrics::Factory {
 
 Rest::Rest(
     Handler &handler, io::Context &context, uint16_t stream_id, Security &security, Shared &shared, Request &request)
-    : handler_(handler), stream_id_(stream_id), name_(create_name(stream_id_)),
-      connection_(create_connection(*this, context)), decode_buffer_(Flags::decode_buffer_size()),
+    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)},
+      connection_{create_connection(*this, context)}, decode_buffer_{Flags::decode_buffer_size()},
       counter_{
           .disconnect = create_metrics(name_, "disconnect"sv),
       },
@@ -79,7 +79,7 @@ Rest::Rest(
       latency_{
           .ping = create_metrics(name_, "ping"sv),
       },
-      security_(security), shared_(shared), request_(request) {
+      security_{security}, shared_{shared}, request_{request} {
 }
 
 void Rest::operator()(Event<Start> const &) {

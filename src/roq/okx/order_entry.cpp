@@ -81,9 +81,9 @@ struct create_metrics final : public core::metrics::Factory {
 
 OrderEntry::OrderEntry(
     Handler &handler, io::Context &context, uint16_t stream_id, Security &security, Shared &shared, Request &request)
-    : handler_(handler), stream_id_(stream_id), name_(create_name(stream_id_, security.get_account())),
-      connection_(create_connection(*this, context)), decode_buffer_(Flags::decode_buffer_size()),
-      request_id_(static_cast<uint64_t>(stream_id_) * 1000000),  // scale (debugging)
+    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, security.get_account())},
+      connection_{create_connection(*this, context)}, decode_buffer_{Flags::decode_buffer_size()},
+      request_id_{static_cast<uint64_t>(stream_id_) * 1000000},  // scale (debugging)
       counter_{
           .disconnect = create_metrics(name_, "disconnect"sv),
       },
@@ -108,8 +108,8 @@ OrderEntry::OrderEntry(
           .ping = create_metrics(name_, "ping"sv),
           .heartbeat = create_metrics(name_, "heartbeat"sv),
       },
-      security_(security), shared_(shared), request_(request),
-      download_({}, [this](auto state) { return download(state); }), trade_mode_(flags::Flags::trade_mode()) {
+      security_{security}, shared_{shared}, request_{request},
+      download_{{}, [this](auto state) { return download(state); }}, trade_mode_{flags::Flags::trade_mode()} {
 }
 
 bool OrderEntry::ready() const {

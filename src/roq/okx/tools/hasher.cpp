@@ -29,7 +29,7 @@ auto create_hmac(auto const &secret) {
 
 // === IMPLEMENTATION ===
 
-Hasher::Hasher() : hmac_(create_hmac(""sv)) {
+Hasher::Hasher() : hmac_{create_hmac(""sv)} {
 }
 
 Hasher::Hasher(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase)

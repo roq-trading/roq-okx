@@ -8,8 +8,8 @@
 
 #include "roq/logging.hpp"
 
-#include "roq/core/charconv.hpp"
 #include "roq/clock.hpp"
+#include "roq/core/charconv.hpp"
 #include "roq/core/utils.hpp"
 
 #include "roq/okx/flags.hpp"
@@ -96,14 +96,14 @@ auto create_market_data(
 // === IMPLEMENTATION ===
 
 Gateway::Gateway(server::Dispatcher &dispatcher, Config const &config, io::Context &context)
-    : dispatcher_(dispatcher), master_account_(config.get_master_account()),
-      security_(create_security<decltype(security_)>(config)), context_(context), shared_(dispatcher),
-      request_(create_request<decltype(request_)>(config)),
-      rest_(create_rest<decltype(rest_)>(*this, context_, ++stream_id_, security_, shared_, request_)),
-      order_entry_(
-          create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, security_, shared_, request_)),
-      market_data_(create_market_data<decltype(market_data_)>(
-          *this, context_, stream_id_, security_, master_account_, shared_)) {
+    : dispatcher_{dispatcher},
+      master_account_{config.get_master_account()}, security_{create_security<decltype(security_)>(config)},
+      context_{context}, shared_{dispatcher}, request_{create_request<decltype(request_)>(config)},
+      rest_{create_rest<decltype(rest_)>(*this, context_, ++stream_id_, security_, shared_, request_)},
+      order_entry_{
+          create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, security_, shared_, request_)},
+      market_data_{create_market_data<decltype(market_data_)>(
+          *this, context_, stream_id_, security_, master_account_, shared_)} {
 }
 
 void Gateway::operator()(Event<Start> const &event) {
