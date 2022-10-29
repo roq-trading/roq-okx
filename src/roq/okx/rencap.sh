@@ -23,7 +23,7 @@ $PREFIX ./roq-okx \
   --event_log_dir "$HOME/var/lib/roq/data" \
   --event_log_symlink true \
   --client_listen_address "$HOME/run/$NAME.sock" \
-  --metrics_listen_address "$HOME/run/metrics/${NAME}.sock" \
+  --service_listen_address "$HOME/run/metrics/${NAME}.sock" \
   --ws_public_uri "$WS_URI/public" \
   --ws_private_uri "$WS_URI/private" \
   --ws_books_use_public true \
