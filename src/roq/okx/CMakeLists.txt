@@ -52,10 +52,11 @@ target_link_libraries(
           roq-core::roq-core
           roq-logging::roq-logging
           roq-api::roq-api
-          fmt::fmt
           absl::flags
           absl::flat_hash_map
           absl::flat_hash_set
+          aklomp::base64
+          fmt::fmt
           ${UUID_LIBRARIES}
           ${RT_LIBRARIES})
 

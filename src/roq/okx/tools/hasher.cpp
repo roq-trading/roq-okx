@@ -41,10 +41,11 @@ std::string Hasher::create_sign(std::string_view const &timestamp) {
   hmac_.clear();
   hmac_.update(timestamp);
   hmac_.update("GET/users/self/verify"sv);
-  std::array<char, 32> buffer;
+  std::array<std::byte, 32> buffer;
   auto length = hmac_.digest(buffer);
   assert(length == std::size(buffer));
-  auto result = core::binascii::Base64::encode(buffer, false);
+  std::string result;
+  core::binascii::Base64::encode(result, buffer, false);
   return result;
 }
 
@@ -60,10 +61,11 @@ std::string Hasher::create_headers(
   hmac_.update(tmp_2);
   hmac_.update(path);
   hmac_.update(body);
-  std::array<char, 32> buffer;
+  std::array<std::byte, 32> buffer;
   auto length = hmac_.digest(buffer);
   assert(length == std::size(buffer));
-  auto signature = core::binascii::Base64::encode(buffer, false);
+  std::string signature;
+  core::binascii::Base64::encode(signature, buffer, false);
   auto result = fmt::format(
       "OK-ACCESS-KEY: {}\r\n"
       "OK-ACCESS-SIGN: {}\r\n"
