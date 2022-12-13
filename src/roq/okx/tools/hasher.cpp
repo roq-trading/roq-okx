@@ -19,33 +19,23 @@ namespace roq {
 namespace okx {
 namespace tools {
 
-// === HELPERS ===
-
-namespace {
-auto create_hmac(auto const &secret) {
-  return core::mac::HMAC_SHA256{secret};
-}
-}  // namespace
-
 // === IMPLEMENTATION ===
 
-Hasher::Hasher() : hmac_{create_hmac(""sv)} {
+Hasher::Hasher() : mac_{""sv} {
 }
 
 Hasher::Hasher(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase)
-    : key_(key), hmac_(create_hmac(secret)), passphrase_(passphrase), secret_(secret) {
+    : key_(key), mac_(secret), passphrase_(passphrase), secret_(secret) {
 }
 
 std::string Hasher::create_sign(std::string_view const &timestamp) {
   log::debug(R"(timestamp="{}", secret="{}")"sv, timestamp, secret_);
-  hmac_.clear();
-  hmac_.update(timestamp);
-  hmac_.update("GET/users/self/verify"sv);
-  std::array<std::byte, 32> buffer;
-  auto length = hmac_.digest(buffer);
-  assert(length == std::size(buffer));
+  mac_.clear();
+  mac_.update(timestamp);
+  mac_.update("GET/users/self/verify"sv);
+  auto digest = mac_.final(digest_);
   std::string result;
-  core::binascii::Base64::encode(result, buffer, false);
+  core::binascii::Base64::encode(result, digest, false);
   return result;
 }
 
@@ -57,15 +47,13 @@ std::string Hasher::create_headers(
   assert(!std::empty(path));
   auto tmp = fmt::format("{}"sv, utils::DateTime_iso8601{timestamp});
   auto tmp_2 = fmt::format("{}{}"sv, tmp, method);
-  hmac_.clear();
-  hmac_.update(tmp_2);
-  hmac_.update(path);
-  hmac_.update(body);
-  std::array<std::byte, 32> buffer;
-  auto length = hmac_.digest(buffer);
-  assert(length == std::size(buffer));
+  mac_.clear();
+  mac_.update(tmp_2);
+  mac_.update(path);
+  mac_.update(body);
+  auto digest = mac_.final(digest_);
   std::string signature;
-  core::binascii::Base64::encode(signature, buffer, false);
+  core::binascii::Base64::encode(signature, digest, false);
   auto result = fmt::format(
       "OK-ACCESS-KEY: {}\r\n"
       "OK-ACCESS-SIGN: {}\r\n"
