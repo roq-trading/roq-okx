@@ -23,7 +23,7 @@ namespace tools {
 
 namespace {
 auto create_hmac(auto const &secret) {
-  return core::crypto::HMAC_SHA256{secret};
+  return core::mac::HMAC_SHA256{secret};
 }
 }  // namespace
 
