@@ -11,7 +11,7 @@
 #include "roq/utils/chrono.hpp"
 #include "roq/utils/datetime.hpp"
 
-#include "roq/core/binascii/base64.hpp"
+#include "roq/core/codec/base64.hpp"
 
 using namespace std::literals;
 
@@ -35,7 +35,7 @@ std::string Hasher::create_sign(std::string_view const &timestamp) {
   mac_.update("GET/users/self/verify"sv);
   auto digest = mac_.final(digest_);
   std::string result;
-  core::binascii::Base64::encode(result, digest, false, false);
+  core::codec::Base64::encode(result, digest, false, false);
   return result;
 }
 
@@ -53,7 +53,7 @@ std::string Hasher::create_headers(
   mac_.update(body);
   auto digest = mac_.final(digest_);
   std::string signature;
-  core::binascii::Base64::encode(signature, digest, false, false);
+  core::codec::Base64::encode(signature, digest, false, false);
   auto result = fmt::format(
       "OK-ACCESS-KEY: {}\r\n"
       "OK-ACCESS-SIGN: {}\r\n"
