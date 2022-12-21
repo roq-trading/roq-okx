@@ -153,6 +153,8 @@ inline roq::TradingStatus map(json::InstrumentState value) {
       break;
     case EXPIRED:
       break;
+    case TEST:
+      break;
   }
   return {};
 }
