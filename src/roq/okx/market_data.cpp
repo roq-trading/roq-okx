@@ -76,7 +76,6 @@ MarketData::MarketData(
     Handler &handler, io::Context &context, uint16_t stream_id, Security &security, Shared &shared, size_t index)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, index_{index},
       connection_{create_connection(*this, context)}, decode_buffer_{Flags::decode_buffer_size()},
-      request_id_{static_cast<uint64_t>(stream_id_) * 1000000},  // scale (debugging)
       counter_{
           .disconnect = create_metrics(name_, "disconnect"sv),
       },

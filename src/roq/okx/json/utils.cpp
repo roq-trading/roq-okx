@@ -8,7 +8,7 @@ namespace roq {
 namespace okx {
 namespace json {
 
-roq::Error guess_error(int32_t code) {
+roq::Error guess_error([[maybe_unused]] int32_t code) {
   return Error::UNKNOWN;
 }
 
