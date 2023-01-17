@@ -24,11 +24,10 @@
 namespace roq {
 namespace okx {
 
-class Gateway final : public server::Handler,
-                      public Rest::Handler,
-                      public OrderEntry::Handler,
-                      public MarketData::Handler {
- public:
+struct Gateway final : public server::Handler,
+                       public Rest::Handler,
+                       public OrderEntry::Handler,
+                       public MarketData::Handler {
   Gateway(server::Dispatcher &, Config const &, io::Context &);
 
  protected:

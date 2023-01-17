@@ -29,8 +29,7 @@
 namespace roq {
 namespace okx {
 
-class MarketData final : public web::socket::Client::Handler, public json::Parser::Handler {
- public:
+struct MarketData final : public web::socket::Client::Handler, public json::Parser::Handler {
   struct SymbolsUpdate final {
     std::vector<Symbol> &symbols;
   };

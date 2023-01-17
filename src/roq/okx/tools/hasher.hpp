@@ -15,8 +15,7 @@ namespace roq {
 namespace okx {
 namespace tools {
 
-class Hasher final {
- public:
+struct Hasher final {
   Hasher();
   Hasher(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase);
 

@@ -14,8 +14,7 @@
 namespace roq {
 namespace okx {
 
-class Security final {
- public:
+struct Security final {
   Security() {}
   Security(Config const &, std::string_view const &account);
 

@@ -29,8 +29,7 @@
 namespace roq {
 namespace okx {
 
-class OrderEntry final : public web::socket::Client::Handler, json::Parser::Handler {
- public:
+struct OrderEntry final : public web::socket::Client::Handler, json::Parser::Handler {
   struct Handler {
     virtual void operator()(Trace<StreamStatus> const &) = 0;
     virtual void operator()(Trace<ExternalLatency> const &) = 0;
