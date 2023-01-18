@@ -57,7 +57,7 @@ auto create_name(auto stream_id, auto const &account) {
 
 auto create_connection(auto &handler, auto &context) {
   auto uri = Flags::ws_private_uri();
-  web::socket::Client::Config config{
+  auto config = web::socket::Client::Config{
       .always_reconnect = true,
       .connection_timeout = server::Flags::net_connection_timeout(),
       .disconnect_on_idle_timeout = {},
@@ -369,7 +369,7 @@ void OrderEntry::operator()(web::socket::Client::Close const &) {
 
 void OrderEntry::operator()(web::socket::Client::Latency const &latency) {
   TraceInfo trace_info;
-  ExternalLatency external_latency{
+  auto external_latency = ExternalLatency{
       .stream_id = stream_id_,
       .account = security_.get_account(),
       .latency = latency.sample,
@@ -389,7 +389,7 @@ void OrderEntry::operator()(web::socket::Client::Binary const &) {
 void OrderEntry::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
     TraceInfo trace_info;
-    StreamStatus stream_status{
+    auto stream_status = StreamStatus{
         .stream_id = stream_id_,
         .account = security_.get_account(),
         .supports = SUPPORTS,
@@ -593,7 +593,7 @@ void OrderEntry::operator()(Trace<json::Account> const &event) {
     log::info<1>("event={{account={}, trace_info={}}}"sv, account, trace_info);
     // log::debug("account={}"sv, account);
     for (auto &item : account.details) {
-      FundsUpdate funds_update{
+      auto funds_update = FundsUpdate{
           .stream_id = stream_id_,
           .account = security_.get_account(),
           .currency = item.ccy,
@@ -622,7 +622,7 @@ void OrderEntry::operator()(Trace<json::Positions> const &event) {
     for (auto &item : positions.data) {
       auto long_quantity = std::max(0.0, item.pos);
       auto short_quantity = std::max(0.0, -item.pos);
-      PositionUpdate position_update{
+      auto position_update = PositionUpdate{
           .stream_id = stream_id_,
           .account = security_.get_account(),
           .exchange = Flags::exchange(),
@@ -650,7 +650,7 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
         log::warn<1>(R"(*** ERROR CODE={}, MSG="{}" ***)"sv, item.code, item.msg);
       auto side = json::map(item.side);
       auto order_status = json::map(item.state);
-      oms::OrderUpdate order_update{
+      auto order_update = oms::OrderUpdate{
           .account = security_.get_account(),
           .exchange = Flags::exchange(),
           .symbol = item.inst_id,
@@ -695,7 +695,7 @@ void OrderEntry::operator()(Trace<json::OrderAck> const &event) {
     auto order_status = order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : order_ack.data) {
       auto error = json::guess_error(item.s_code);
-      oms::Response response{
+      auto response = oms::Response{
           .type = RequestType::CREATE_ORDER,
           .origin = Origin::EXCHANGE,
           .status = order_status,
@@ -722,7 +722,7 @@ void OrderEntry::operator()(Trace<json::AmendOrderAck> const &event) {
     auto order_status = amend_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : amend_order_ack.data) {
       auto error = json::guess_error(item.s_code);
-      oms::Response response{
+      auto response = oms::Response{
           .type = RequestType::MODIFY_ORDER,
           .origin = Origin::EXCHANGE,
           .status = order_status,
@@ -749,7 +749,7 @@ void OrderEntry::operator()(Trace<json::CancelOrderAck> const &event) {
     auto order_status = cancel_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : cancel_order_ack.data) {
       auto error = json::guess_error(item.s_code);
-      oms::Response response{
+      auto response = oms::Response{
           .type = RequestType::CANCEL_ORDER,
           .origin = Origin::EXCHANGE,
           .status = order_status,

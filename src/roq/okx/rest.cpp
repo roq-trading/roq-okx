@@ -41,7 +41,7 @@ auto create_name(auto stream_id) {
 
 auto create_connection(auto &handler, auto &context) {
   auto uri = Flags::rest_uri();
-  web::rest::Client::Config config{
+  auto config = web::rest::Client::Config{
       .decode_buffer_size = Flags::decode_buffer_size(),
       .encode_buffer_size = Flags::encode_buffer_size(),
       .validate_certificate = server::Flags::net_tls_validate_certificate(),
@@ -116,7 +116,7 @@ void Rest::operator()(metrics::Writer &writer) {
 void Rest::operator()(ConnectionStatus status) {
   if (utils::update(status_, status)) {
     TraceInfo trace_info;
-    StreamStatus stream_status{
+    auto stream_status = StreamStatus{
         .stream_id = stream_id_,
         .account = {},
         .supports = SUPPORTS,
@@ -143,7 +143,7 @@ void Rest::operator()(web::rest::Client::Disconnected const &) {
 
 void Rest::operator()(web::rest::Client::Latency const &latency) {
   TraceInfo trace_info;
-  ExternalLatency external_latency{
+  auto external_latency = ExternalLatency{
       .stream_id = stream_id_,
       .account = {},
       .latency = latency.sample,
@@ -159,7 +159,7 @@ void Rest::get_orders() {
     auto method = web::http::Method::GET;
     auto path = "/api/v5/trade/orders-pending"sv;
     auto headers = security_.create_headers(method, path, {});
-    web::rest::Request request{
+    auto request = web::rest::Request{
         .method = method,
         .path = path,
         .query = {},
@@ -201,7 +201,7 @@ void Rest::operator()(Trace<json::Orders> const &event) {
   for (auto &item : orders.data) {
     auto side = json::map(item.side);
     auto order_status = json::map(item.state);
-    oms::OrderUpdate order_update{
+    auto order_update = oms::OrderUpdate{
         .account = security_.get_account(),
         .exchange = Flags::exchange(),
         .symbol = item.inst_id,
