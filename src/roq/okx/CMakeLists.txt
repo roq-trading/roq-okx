@@ -4,13 +4,13 @@ add_subdirectory(flags)
 
 set(SOURCES
     application.cpp
+    authenticator.cpp
     config.cpp
     flags.cpp
     gateway.cpp
     market_data.cpp
     order_entry.cpp
     rest.cpp
-    security.cpp
     shared.cpp
     main.cpp)
 

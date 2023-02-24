@@ -13,12 +13,12 @@
 
 #include "roq/io/context.hpp"
 
+#include "roq/okx/authenticator.hpp"
 #include "roq/okx/config.hpp"
 #include "roq/okx/market_data.hpp"
 #include "roq/okx/order_entry.hpp"
 #include "roq/okx/request.hpp"
 #include "roq/okx/rest.hpp"
-#include "roq/okx/security.hpp"
 #include "roq/okx/shared.hpp"
 
 namespace roq {
@@ -79,8 +79,8 @@ struct Gateway final : public server::Handler,
   server::Dispatcher &dispatcher_;
   // config
   const std::string master_account_;
-  // security
-  absl::flat_hash_map<Account, std::unique_ptr<Security>> security_;
+  // authenticator
+  absl::flat_hash_map<Account, std::unique_ptr<Authenticator>> authenticator_;
   // io
   io::Context &context_;
   // shared

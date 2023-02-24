@@ -80,8 +80,13 @@ struct create_metrics final : public core::metrics::Factory {
 // === IMPLEMENTATION ===
 
 OrderEntry::OrderEntry(
-    Handler &handler, io::Context &context, uint16_t stream_id, Security &security, Shared &shared, Request &request)
-    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, security.get_account())},
+    Handler &handler,
+    io::Context &context,
+    uint16_t stream_id,
+    Authenticator &authenticator,
+    Shared &shared,
+    Request &request)
+    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, authenticator.get_account())},
       connection_{create_connection(*this, context)}, decode_buffer_{Flags::decode_buffer_size()},
       request_id_{static_cast<uint64_t>(stream_id_) * 1000000},  // scale (debugging)
       counter_{
@@ -108,7 +113,7 @@ OrderEntry::OrderEntry(
           .ping = create_metrics(name_, "ping"sv),
           .heartbeat = create_metrics(name_, "heartbeat"sv),
       },
-      security_{security}, shared_{shared}, request_{request},
+      authenticator_{authenticator}, shared_{shared}, request_{request},
       download_{{}, [this](auto state) { return download(state); }}, trade_mode_{flags::Flags::trade_mode()} {
 }
 
@@ -342,7 +347,7 @@ uint16_t OrderEntry::operator()(Event<CancelAllOrders> const &, [[maybe_unused]]
             log::debug("order={}"sv, order);
             symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id);
           },
-          security_.get_account())) {
+          authenticator_.get_account())) {
   } else {
     log::info<1>("No orders"sv);
   }
@@ -371,7 +376,7 @@ void OrderEntry::operator()(web::socket::Client::Latency const &latency) {
   TraceInfo trace_info;
   auto external_latency = ExternalLatency{
       .stream_id = stream_id_,
-      .account = security_.get_account(),
+      .account = authenticator_.get_account(),
       .latency = latency.sample,
   };
   create_trace_and_dispatch(handler_, trace_info, external_latency);
@@ -391,7 +396,7 @@ void OrderEntry::operator()(ConnectionStatus status) {
     TraceInfo trace_info;
     auto stream_status = StreamStatus{
         .stream_id = stream_id_,
-        .account = security_.get_account(),
+        .account = authenticator_.get_account(),
         .supports = SUPPORTS,
         .transport = Transport::TCP,
         .protocol = Protocol::WS,
@@ -430,7 +435,7 @@ uint32_t OrderEntry::download(OrderEntryState state) {
 void OrderEntry::login() {
   auto now = clock::get_realtime<std::chrono::seconds>();
   auto timestamp = fmt::format("{}"sv, now.count());
-  auto sign = security_.create_sign(timestamp);
+  auto sign = authenticator_.create_sign(timestamp);
   auto message = fmt::format(
       R"({{)"
       R"("op":"login",)"
@@ -442,8 +447,8 @@ void OrderEntry::login() {
       R"(}})"
       R"(])"
       R"(}})"sv,
-      security_.get_key(),
-      security_.get_passphrase(),
+      authenticator_.get_key(),
+      authenticator_.get_passphrase(),
       timestamp,
       sign);
   log::debug("message={}"sv, message);
@@ -595,7 +600,7 @@ void OrderEntry::operator()(Trace<json::Account> const &event) {
     for (auto &item : account.details) {
       auto funds_update = FundsUpdate{
           .stream_id = stream_id_,
-          .account = security_.get_account(),
+          .account = authenticator_.get_account(),
           .currency = item.ccy,
           .balance = item.cash_bal,
           .hold = item.frozen_bal,
@@ -624,7 +629,7 @@ void OrderEntry::operator()(Trace<json::Positions> const &event) {
       auto short_quantity = std::max(0.0, -item.pos);
       auto position_update = PositionUpdate{
           .stream_id = stream_id_,
-          .account = security_.get_account(),
+          .account = authenticator_.get_account(),
           .exchange = Flags::exchange(),
           .symbol = item.inst_id,
           .external_account = {},
@@ -651,7 +656,7 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
       auto side = json::map(item.side);
       auto order_status = json::map(item.state);
       auto order_update = oms::OrderUpdate{
-          .account = security_.get_account(),
+          .account = authenticator_.get_account(),
           .exchange = Flags::exchange(),
           .symbol = item.inst_id,
           .side = side,

@@ -15,12 +15,12 @@ namespace roq {
 namespace okx {
 namespace tools {
 
-struct Hasher final {
-  Hasher();
-  Hasher(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase);
+struct Crypto final {
+  Crypto();
+  Crypto(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase);
 
-  Hasher(Hasher &&) = delete;
-  Hasher(Hasher const &) = delete;
+  Crypto(Crypto &&) = delete;
+  Crypto(Crypto const &) = delete;
 
   std::string_view get_key() const { return key_; }
   std::string_view get_passphrase() const { return passphrase_; }

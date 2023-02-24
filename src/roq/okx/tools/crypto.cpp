@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2023, Hans Erik Thrane */
 
-#include "roq/okx/tools/hasher.hpp"
+#include "roq/okx/tools/crypto.hpp"
 
 #include <fmt/format.h>
 
@@ -21,14 +21,14 @@ namespace tools {
 
 // === IMPLEMENTATION ===
 
-Hasher::Hasher() : mac_{""sv} {
+Crypto::Crypto() : mac_{""sv} {
 }
 
-Hasher::Hasher(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase)
+Crypto::Crypto(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase)
     : key_(key), mac_(secret), passphrase_(passphrase), secret_(secret) {
 }
 
-std::string Hasher::create_sign(std::string_view const &timestamp) {
+std::string Crypto::create_sign(std::string_view const &timestamp) {
   log::debug(R"(timestamp="{}", secret="{}")"sv, timestamp, secret_);
   mac_.clear();
   mac_.update(timestamp);
@@ -39,7 +39,7 @@ std::string Hasher::create_sign(std::string_view const &timestamp) {
   return result;
 }
 
-std::string Hasher::create_headers(
+std::string Crypto::create_headers(
     web::http::Method method,
     std::string_view const &path,
     std::string_view const &body,

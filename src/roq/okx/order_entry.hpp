@@ -18,9 +18,9 @@
 
 #include "roq/server.hpp"
 
+#include "roq/okx/authenticator.hpp"
 #include "roq/okx/order_entry_state.hpp"
 #include "roq/okx/request.hpp"
-#include "roq/okx/security.hpp"
 #include "roq/okx/shared.hpp"
 
 #include "roq/okx/json/parser.hpp"
@@ -38,7 +38,7 @@ struct OrderEntry final : public web::socket::Client::Handler, json::Parser::Han
     virtual void operator()(Trace<PositionUpdate> const &, bool is_last) = 0;
   };
 
-  OrderEntry(Handler &, io::Context &, uint16_t stream_id, Security &, Shared &, Request &);
+  OrderEntry(Handler &, io::Context &, uint16_t stream_id, Authenticator &, Shared &, Request &);
 
   OrderEntry(OrderEntry &&) = delete;
   OrderEntry(OrderEntry const &) = delete;
@@ -139,8 +139,8 @@ struct OrderEntry final : public web::socket::Client::Handler, json::Parser::Han
   struct {
     core::metrics::Latency ping, heartbeat;
   } latency_;
-  // security
-  Security &security_;
+  // authenticator
+  Authenticator &authenticator_;
   // shared
   Shared &shared_;
   Request &request_;

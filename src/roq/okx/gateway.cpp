@@ -24,26 +24,26 @@ namespace okx {
 // === CONSTANTS ===
 
 namespace {
-Security NO_SECURITY;  // XXX not const...
+Authenticator NO_SECURITY;  // XXX not const...
 }
 
 // === HELPERS ===
 
 namespace {
 template <typename R>
-auto create_security(auto const &config) {
+auto create_authenticator(auto const &config) {
   R result;
   for (auto &[_, account] : config.accounts)
-    result.try_emplace(account.name, std::make_unique<Security>(config, account.name));
+    result.try_emplace(account.name, std::make_unique<Authenticator>(config, account.name));
   return result;
 }
 
-auto &get_security(auto &security_by_account, auto const &master_account) {
-  if (std::empty(security_by_account) && std::empty(master_account))
+auto &get_authenticator(auto &authenticator_by_account, auto const &master_account) {
+  if (std::empty(authenticator_by_account) && std::empty(master_account))
     return NO_SECURITY;
   assert(!std::empty(master_account));
-  auto iter = security_by_account.find(master_account);
-  if (iter == std::end(security_by_account))
+  auto iter = authenticator_by_account.find(master_account);
+  if (iter == std::end(authenticator_by_account))
     log::fatal("Unexpected"sv);
   return *(*iter).second;
 }
@@ -58,36 +58,46 @@ auto create_request(auto const &config) {
 
 template <typename R>
 auto create_rest(
-    auto &gateway, auto &context, auto &stream_id, auto &security_by_account, auto &shared, auto &request_by_account) {
+    auto &gateway,
+    auto &context,
+    auto &stream_id,
+    auto &authenticator_by_account,
+    auto &shared,
+    auto &request_by_account) {
   R result;
-  for (auto &[account, security] : security_by_account) {
+  for (auto &[account, authenticator] : authenticator_by_account) {
     auto &request = request_by_account[account];
-    result.try_emplace(account, std::make_unique<Rest>(gateway, context, ++stream_id, *security, shared, request));
+    result.try_emplace(account, std::make_unique<Rest>(gateway, context, ++stream_id, *authenticator, shared, request));
   }
   return result;
 }
 
 template <typename R>
 auto create_order_entry(
-    auto &gateway, auto &context, auto &stream_id, auto &security_by_account, auto &shared, auto &request_by_account) {
+    auto &gateway,
+    auto &context,
+    auto &stream_id,
+    auto &authenticator_by_account,
+    auto &shared,
+    auto &request_by_account) {
   R result;
-  for (auto &[account, security] : security_by_account) {
+  for (auto &[account, authenticator] : authenticator_by_account) {
     auto &request = request_by_account[account];
     result.try_emplace(
-        account, std::make_unique<OrderEntry>(gateway, context, ++stream_id, *security, shared, request));
+        account, std::make_unique<OrderEntry>(gateway, context, ++stream_id, *authenticator, shared, request));
   }
   return result;
 }
 
 template <typename R>
 auto create_market_data(
-    auto &gateway, auto &context, auto &stream_id, auto &security_by_account, auto &master_account, auto &shared) {
+    auto &gateway, auto &context, auto &stream_id, auto &authenticator_by_account, auto &master_account, auto &shared) {
   R result;
   ++stream_id;
   auto index = std::size(result);
   log::debug("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
   auto market_data = std::make_unique<MarketData>(
-      gateway, context, stream_id, get_security(security_by_account, master_account), shared, index);
+      gateway, context, stream_id, get_authenticator(authenticator_by_account, master_account), shared, index);
   result.emplace_back(std::move(market_data));
   return result;
 }
@@ -96,14 +106,14 @@ auto create_market_data(
 // === IMPLEMENTATION ===
 
 Gateway::Gateway(server::Dispatcher &dispatcher, Config const &config, io::Context &context)
-    : dispatcher_{dispatcher},
-      master_account_{config.get_master_account()}, security_{create_security<decltype(security_)>(config)},
-      context_{context}, shared_{dispatcher}, request_{create_request<decltype(request_)>(config)},
-      rest_{create_rest<decltype(rest_)>(*this, context_, ++stream_id_, security_, shared_, request_)},
+    : dispatcher_{dispatcher}, master_account_{config.get_master_account()},
+      authenticator_{create_authenticator<decltype(authenticator_)>(config)}, context_{context}, shared_{dispatcher},
+      request_{create_request<decltype(request_)>(config)},
+      rest_{create_rest<decltype(rest_)>(*this, context_, ++stream_id_, authenticator_, shared_, request_)},
       order_entry_{
-          create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, security_, shared_, request_)},
+          create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, authenticator_, shared_, request_)},
       market_data_{create_market_data<decltype(market_data_)>(
-          *this, context_, stream_id_, security_, master_account_, shared_)} {
+          *this, context_, stream_id_, authenticator_, master_account_, shared_)} {
 }
 
 void Gateway::operator()(Event<Start> const &event) {
@@ -227,7 +237,7 @@ void Gateway::ensure_symbol_slices(size_t size) {
     auto index = std::size(market_data_);
     log::debug("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
     auto market_data = std::make_unique<MarketData>(
-        *this, context_, stream_id, get_security(security_, master_account_), shared_, index);
+        *this, context_, stream_id, get_authenticator(authenticator_, master_account_), shared_, index);
     MessageInfo message_info;
     Start start;
     create_event_and_dispatch(*market_data, message_info, start);
