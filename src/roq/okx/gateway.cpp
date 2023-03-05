@@ -212,10 +212,6 @@ void Gateway::operator()(Trace<StatisticsUpdate> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Trace<TradeUpdate> const &event, bool is_last, uint8_t user_id) {
-  dispatcher_(event, is_last, user_id);
-}
-
 void Gateway::operator()(Trace<FundsUpdate> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }

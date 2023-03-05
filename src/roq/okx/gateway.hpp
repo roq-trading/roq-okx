@@ -63,7 +63,6 @@ struct Gateway final : public server::Handler,
   void operator()(Trace<MarketByPriceUpdate> const &, bool is_last) override;
   void operator()(Trace<TradeSummary> const &, bool is_last) override;
   void operator()(Trace<StatisticsUpdate> const &, bool is_last) override;
-  void operator()(Trace<TradeUpdate> const &, bool is_last, uint8_t user_id) override;
   void operator()(Trace<FundsUpdate> const &, bool is_last) override;
   void operator()(Trace<PositionUpdate> const &, bool is_last) override;
 
