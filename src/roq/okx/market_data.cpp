@@ -566,7 +566,9 @@ void MarketData::operator()(Trace<json::Tickers> const &event) {
           .symbol = item.inst_id,
           .statistics = statistics,
           .update_type = UpdateType::INCREMENTAL,
-          .exchange_time_utc = utils::safe_cast(item.ts),
+          .exchange_time_utc = item.ts,
+          .exchange_sequence = {},
+          .sending_time_utc = {},
       };
       create_trace_and_dispatch(handler_, trace_info, statistics_update, true);
     }
@@ -602,6 +604,7 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
             .trades = shared_.trades,
             .exchange_time_utc = exchange_time_utc,
             .exchange_sequence = {},
+            .sending_time_utc = {},
         };
         create_trace_and_dispatch(handler_, trace_info, trade_summary, false);
         shared_.trades.clear();
@@ -619,6 +622,7 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
           .trades = shared_.trades,
           .exchange_time_utc = exchange_time_utc,
           .exchange_sequence = {},
+          .sending_time_utc = {},
       };
       create_trace_and_dispatch(handler_, trace_info, trade_summary, true);
     }
@@ -645,8 +649,9 @@ void MarketData::operator()(Trace<json::BboTbt> const &event, std::string_view c
             .ask_quantity = std::empty(asks) ? NaN : asks[0].size,
         },
         .update_type = UpdateType::INCREMENTAL,
-        .exchange_time_utc = utils::safe_cast(bbo_tbt.ts),
+        .exchange_time_utc = bbo_tbt.ts,
         .exchange_sequence = {},
+        .sending_time_utc = {},
     };
     create_trace_and_dispatch(handler_, trace_info, top_of_book, true);
   });
@@ -685,8 +690,9 @@ void MarketData::operator()(
         .bids = shared_.bids,
         .asks = shared_.asks,
         .update_type = update_type,
-        .exchange_time_utc = utils::safe_cast(books_l2_tbt.ts),
+        .exchange_time_utc = books_l2_tbt.ts,
         .exchange_sequence = {},
+        .sending_time_utc = {},
         .price_decimals = {},
         .quantity_decimals = {},
         .checksum = {},
@@ -719,6 +725,8 @@ void MarketData::operator()(Trace<json::IndexTickers> const &event) {
           .statistics = {&statistics, 1u},
           .update_type = UpdateType::INCREMENTAL,
           .exchange_time_utc = {},
+          .exchange_sequence = {},
+          .sending_time_utc = {},
       };
       create_trace_and_dispatch(handler_, trace_info, statistics_update, true);
     }
@@ -752,6 +760,8 @@ void MarketData::operator()(Trace<json::FundingRate> const &event) {
           .statistics = statistics,
           .update_type = UpdateType::INCREMENTAL,
           .exchange_time_utc = {},
+          .exchange_sequence = {},
+          .sending_time_utc = {},
       };
       create_trace_and_dispatch(handler_, trace_info, statistics_update, true);
     }
