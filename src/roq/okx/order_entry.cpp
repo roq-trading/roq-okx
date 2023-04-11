@@ -618,6 +618,9 @@ void OrderEntry::operator()(Trace<json::Account> const &event) {
           .balance = item.cash_bal,
           .hold = item.frozen_bal,
           .external_account = {},
+          .update_type = {},
+          .exchange_time_utc = {},
+          .sending_time_utc = {},
       };
       create_trace_and_dispatch(handler_, trace_info, funds_update, true);
     }
@@ -648,8 +651,9 @@ void OrderEntry::operator()(Trace<json::Positions> const &event) {
           .external_account = {},
           .long_quantity = long_quantity,
           .short_quantity = short_quantity,
-          .long_quantity_begin = NaN,
-          .short_quantity_begin = NaN,
+          .update_type = {},
+          .exchange_time_utc = {},
+          .sending_time_utc = {},
       };
       create_trace_and_dispatch(handler_, trace_info, position_update, true);
     }
@@ -693,6 +697,7 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
           .last_traded_price = item.fill_px,
           .last_liquidity = {},
           .update_type = {},
+          .sending_time_utc = {},
       };
       if (shared_.update_order(
               item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {

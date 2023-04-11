@@ -248,6 +248,7 @@ void Rest::operator()(Trace<json::Orders> const &event) {
         .last_traded_price = item.fill_px,
         .last_liquidity = {},
         .update_type = UpdateType::SNAPSHOT,
+        .sending_time_utc = {},
     };
     if (shared_.update_order(
             item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
