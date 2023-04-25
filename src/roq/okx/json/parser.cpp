@@ -23,15 +23,15 @@ bool Parser::dispatch(
   auto frame = core::json::Parser::create<Frame>(message, buffer);
   switch (frame.op) {
     using enum Operation::type_t;
-    case UNDEFINED:
+    case UNDEFINED__:
       switch (frame.event) {
         using enum EventType::type_t;
-        case UNDEFINED:
+        case UNDEFINED__:
           switch (frame.arg.channel) {
             using enum Channel::type_t;
-            case UNDEFINED:
+            case UNDEFINED__:
               break;
-            case UNKNOWN:
+            case UNKNOWN__:
               assert(false);
               break;
             case STATUS:
@@ -88,7 +88,7 @@ bool Parser::dispatch(
               return true;
           }
           break;
-        case UNKNOWN:
+        case UNKNOWN__:
           assert(false);
           break;
         case ERROR: {
@@ -121,7 +121,7 @@ bool Parser::dispatch(
         }
       }
       break;
-    case UNKNOWN:
+    case UNKNOWN__:
       assert(false);
       break;
     case ORDER:

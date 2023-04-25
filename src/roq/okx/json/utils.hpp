@@ -67,9 +67,8 @@ inline std::string_view strip_symbol_from_topic(std::string_view const &topic) {
 inline roq::Side map(json::Side value) {
   switch (value) {
     using enum json::Side::type_t;
-    case UNDEFINED:
-      break;
-    case UNKNOWN:
+    case UNDEFINED__:
+    case UNKNOWN__:
       break;
     case BUY:
       return roq::Side::BUY;
@@ -97,9 +96,8 @@ inline json::Side map(roq::Side value) {
 inline roq::SecurityType map(json::InstrumentType value) {
   switch (value) {
     using enum json::InstrumentType::type_t;
-    case UNDEFINED:
-      break;
-    case UNKNOWN:
+    case UNDEFINED__:
+    case UNKNOWN__:
       break;
     case SPOT:
       return roq::SecurityType::SPOT;
@@ -120,9 +118,8 @@ inline roq::SecurityType map(json::InstrumentType value) {
 inline roq::OptionType map(json::OptionType value) {
   switch (value) {
     using enum json::OptionType::type_t;
-    case UNDEFINED:
-      break;
-    case UNKNOWN:
+    case UNDEFINED__:
+    case UNKNOWN__:
       break;
     case CALL:
       return roq::OptionType::CALL;
@@ -137,9 +134,8 @@ inline roq::OptionType map(json::OptionType value) {
 inline roq::TradingStatus map(json::InstrumentState value) {
   switch (value) {
     using enum json::InstrumentState::type_t;
-    case UNDEFINED:
-      break;
-    case UNKNOWN:
+    case UNDEFINED__:
+    case UNKNOWN__:
       break;
     case LIVE:
       return roq::TradingStatus::OPEN;
@@ -162,9 +158,8 @@ inline roq::TradingStatus map(json::InstrumentState value) {
 inline roq::OrderStatus map(json::OrderState value) {
   switch (value) {
     using enum json::OrderState::type_t;
-    case UNDEFINED:
-      break;
-    case UNKNOWN:
+    case UNDEFINED__:
+    case UNKNOWN__:
       break;
     case CANCELED:
       return roq::OrderStatus::CANCELED;
@@ -184,9 +179,8 @@ inline roq::OrderStatus map(json::OrderState value) {
 inline roq::OrderType map(json::OrdType value) {
   switch (value) {
     using enum json::OrdType::type_t;
-    case UNDEFINED:
-      break;
-    case UNKNOWN:
+    case UNDEFINED__:
+    case UNKNOWN__:
       break;
     case MARKET:
       return roq::OrderType::MARKET;

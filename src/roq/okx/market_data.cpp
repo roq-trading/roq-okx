@@ -487,8 +487,8 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
       // but still avoid not reducing too much
       switch (item.inst_type) {
         using enum json::InstrumentType::type_t;
-        case UNDEFINED:
-        case UNKNOWN:
+        case UNDEFINED__:
+        case UNKNOWN__:
         case SPOT:
         case MARGIN:
           break;
