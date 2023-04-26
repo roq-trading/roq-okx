@@ -41,6 +41,14 @@
     {
       "name": "preOpenBegin",
       "type": "std::string_view"
+    },
+    {
+      "name": "env",
+      "type": "int32_t"
+    },
+    {
+      "name": "maintType",
+      "type": "int32_t"
     }
   ]
 }

@@ -118,34 +118,16 @@ Gateway::Gateway(server::Dispatcher &dispatcher, Config const &config, io::Conte
 
 void Gateway::operator()(Event<Start> const &event) {
   log::info("Starting..."sv);
-  for (auto &[_, rest] : rest_)
-    (*rest)(event);
-  for (auto &[_, order_entry] : order_entry_)
-    if (static_cast<bool>(order_entry))
-      (*order_entry)(event);
-  for (auto &market_data : market_data_)
-    (*market_data)(event);
+  dispatch(event);
 }
 
 void Gateway::operator()(Event<Stop> const &event) {
   log::info("Stopping..."sv);
-  for (auto &market_data : market_data_)
-    (*market_data)(event);
-  for (auto &[_, order_entry] : order_entry_)
-    if (static_cast<bool>(order_entry))
-      (*order_entry)(event);
-  for (auto &[_, rest] : rest_)
-    (*rest)(event);
+  dispatch(event);
 }
 
 void Gateway::operator()(Event<Timer> const &event) {
-  for (auto &[_, rest] : rest_)
-    (*rest)(event);
-  for (auto &[_, order_entry] : order_entry_)
-    if (static_cast<bool>(order_entry))
-      (*order_entry)(event);
-  for (auto &market_data : market_data_)
-    (*market_data)(event);
+  dispatch(event);
 }
 
 void Gateway::operator()(Event<Connected> const &) {
@@ -169,7 +151,7 @@ void Gateway::operator()(Event<Disconnected> const &event) {
       for (auto &[account, order_entry] : order_entry_) {
         if (dispatcher_.can_user_trade_account(account, message_info.source)) {
           log::warn(R"(- account="{}")"sv, account);
-          CancelAllOrders cancel_all_orders{
+          auto cancel_all_orders = CancelAllOrders{
               .account = account,
           };
           Event event{message_info, cancel_all_orders};
@@ -273,13 +255,18 @@ uint16_t Gateway::operator()(Event<CancelAllOrders> const &event, std::string_vi
 }
 
 void Gateway::operator()(metrics::Writer &writer) {
-  for (auto &iter : rest_)
-    (*iter.second)(writer);
-  for (auto &[_, order_entry] : order_entry_)
-    if (static_cast<bool>(order_entry))
-      (*order_entry)(writer);
-  for (auto &iter : market_data_)
-    (*iter)(writer);
+  dispatch(writer);
+}
+
+template <typename... Args>
+void Gateway::dispatch(Args &&...args) {
+  for (auto &[_, item] : rest_)
+    (*item)(std::forward<Args>(args)...);
+  for (auto &[_, item] : order_entry_)
+    if (static_cast<bool>(item))
+      (*item)(std::forward<Args>(args)...);
+  for (auto &item : market_data_)
+    (*item)(std::forward<Args>(args)...);
 }
 
 OrderEntry &Gateway::get_order_entry(std::string_view const &account) {

@@ -20,7 +20,7 @@ namespace json {
 
 bool Parser::dispatch(
     Handler &handler, std::string_view const &message, core::json::Buffer &buffer, TraceInfo const &trace_info) {
-  auto frame = core::json::Parser::create<Frame>(message, buffer);
+  Frame frame{message, buffer};
   switch (frame.op) {
     using enum Operation::type_t;
     case UNDEFINED__:
@@ -148,13 +148,13 @@ void Parser::dispatch_event(
     core::json::Buffer &buffer,
     TraceInfo const &trace_info,
     Args &&...args) {
-  core::json::Parser parser(message);
+  core::json::Parser parser{message};
   auto root = parser.root();
   for (auto [key, value] : std::get<core::json::Object>(root)) {
     if (key.compare("data"sv) != 0)
       continue;
     for (auto item : std::get<core::json::Array>(value)) {
-      const T obj{item, buffer};
+      T obj{item, buffer};
       create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
     }
     break;
@@ -169,12 +169,12 @@ void Parser::dispatch_event_array(
     core::json::Buffer &buffer,
     TraceInfo const &trace_info,
     Args &&...args) {
-  core::json::Parser parser(message);
+  core::json::Parser parser{message};
   auto root = parser.root();
   for (auto [key, value] : std::get<core::json::Object>(root)) {
     if (key.compare("data"sv) != 0)
       continue;
-    const T obj{value, buffer};
+    T obj{value, buffer};
     create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
     break;
   }
@@ -188,7 +188,7 @@ void Parser::dispatch_event_frame(
     core::json::Buffer &buffer,
     TraceInfo const &trace_info,
     Args &&...args) {
-  auto const obj = core::json::Parser::create<T>(message, buffer);
+  T obj{message, buffer};
   create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
 }
 
