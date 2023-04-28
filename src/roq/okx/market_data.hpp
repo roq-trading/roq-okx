@@ -20,7 +20,7 @@
 
 #include "roq/server.hpp"
 
-#include "roq/okx/authenticator.hpp"
+#include "roq/okx/account.hpp"
 #include "roq/okx/market_data_state.hpp"
 #include "roq/okx/shared.hpp"
 
@@ -47,7 +47,7 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
     virtual void operator()(SymbolsUpdate &) = 0;
   };
 
-  MarketData(Handler &, io::Context &, uint16_t stream_id, Authenticator &, Shared &, size_t index);
+  MarketData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, size_t index);
 
   MarketData(MarketData &&) = delete;
   MarketData(MarketData const &) = delete;
@@ -121,11 +121,11 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
  private:
   Handler &handler_;
   // config
-  const uint16_t stream_id_;
-  const std::string name_;
-  const size_t index_;
+  uint16_t const stream_id_;
+  std::string const name_;
+  size_t const index_;
   // web socket
-  std::unique_ptr<web::socket::Client> connection_;
+  std::unique_ptr<web::socket::Client> const connection_;
   // buffers
   core::Buffer decode_buffer_;
   // metrics
@@ -139,8 +139,8 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
   struct {
     core::metrics::Latency ping, heartbeat;
   } latency_;
-  // authenticator
-  Authenticator &authenticator_;
+  // account
+  Account &account_;
   // cache
   Shared &shared_;
   absl::flat_hash_set<Symbol> all_symbols_;  // only master (index 0)

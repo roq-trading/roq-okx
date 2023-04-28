@@ -82,12 +82,7 @@ struct create_metrics final : public core::metrics::Factory {
 // === IMPLEMENTATION ===
 
 MarketData::MarketData(
-    Handler &handler,
-    io::Context &context,
-    uint16_t stream_id,
-    Authenticator &authenticator,
-    Shared &shared,
-    size_t index)
+    Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, size_t index)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, index_{index},
       connection_{create_connection(*this, context)}, decode_buffer_{Flags::decode_buffer_size()},
       counter_{
@@ -115,7 +110,7 @@ MarketData::MarketData(
           .ping = create_metrics(name_, "ping"sv),
           .heartbeat = create_metrics(name_, "heartbeat"sv),
       },
-      authenticator_{authenticator}, shared_{shared}, download_{{}, [this](auto state) { return download(state); }} {
+      account_{account}, shared_{shared}, download_{{}, [this](auto state) { return download(state); }} {
 }
 
 void MarketData::operator()(Event<Start> const &) {
@@ -230,7 +225,7 @@ uint32_t MarketData::download(MarketDataState state) {
       assert(false);
       break;
     case LOGIN:
-      if (std::empty(authenticator_)) {
+      if (std::empty(account_)) {
         log::info("Using public channels (no authentication)"sv);
         return 0;
       } else {
@@ -250,7 +245,7 @@ uint32_t MarketData::download(MarketDataState state) {
 void MarketData::login() {
   auto now = clock::get_realtime<std::chrono::seconds>();
   auto timestamp = fmt::format("{}"sv, now.count());
-  auto sign = authenticator_.create_sign(timestamp);
+  auto sign = account_.create_sign(timestamp);
   auto message = fmt::format(
       R"({{)"
       R"("op":"login",)"
@@ -262,8 +257,8 @@ void MarketData::login() {
       R"(}})"
       R"(])"
       R"(}})"sv,
-      authenticator_.get_key(),
-      authenticator_.get_passphrase(),
+      account_.get_key(),
+      account_.get_passphrase(),
       timestamp,
       sign);
   log::debug("message={}"sv, message);
@@ -291,9 +286,9 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols) {
   subscribe("tickers"sv, "instId"sv, symbols);
   subscribe("trades"sv, "instId"sv, symbols);
   subscribe("bbo-tbt"sv, "instId"sv, symbols);
-  auto get_books_channel = [](auto authenticator) {
+  auto get_books_channel = [](auto account) {
     std::string_view result;
-    auto vip = authenticator && !flags::Flags::ws_books_use_public();
+    auto vip = account && !flags::Flags::ws_books_use_public();
     switch (flags::Flags::ws_books_depth()) {
       case 5:
         result = "books5"sv;
@@ -312,7 +307,7 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols) {
     log::info(R"(DEBUG: using channel="{}")"sv, result);
     return result;
   };
-  subscribe(get_books_channel(!std::empty(authenticator_)), "instId"sv, symbols);
+  subscribe(get_books_channel(!std::empty(account_)), "instId"sv, symbols);
   for (auto &symbol : symbols) {
     if (flags::Flags::include_bad_subscriptions() ||
         shared_.extended_symbols.find(symbol) != shared_.extended_symbols.end()) {

@@ -24,80 +24,73 @@ namespace okx {
 // === CONSTANTS ===
 
 namespace {
-Authenticator NO_SECURITY;  // XXX not const...
+Account NO_SECURITY;  // XXX not const...
 }
 
 // === HELPERS ===
 
 namespace {
 template <typename R>
-auto create_authenticator(auto const &config) {
-  R result;
+R create_accounts(auto &config) {
+  using result_type = std::remove_cvref<R>::type;
+  result_type result;
   for (auto &[_, account] : config.accounts)
-    result.try_emplace(account.name, std::make_unique<Authenticator>(config, account.name));
+    result.try_emplace(account.name, std::make_unique<Account>(config, account.name));
   return result;
 }
 
-auto &get_authenticator(auto &authenticator_by_account, auto const &master_account) {
-  if (std::empty(authenticator_by_account) && std::empty(master_account))
+auto &get_account(auto &accounts, auto const &master_account) {
+  if (std::empty(accounts) && std::empty(master_account))
     return NO_SECURITY;
   assert(!std::empty(master_account));
-  auto iter = authenticator_by_account.find(master_account);
-  if (iter == std::end(authenticator_by_account))
+  auto iter = accounts.find(master_account);
+  if (iter == std::end(accounts))
     log::fatal("Unexpected"sv);
   return *(*iter).second;
 }
 
 template <typename R>
-auto create_request(auto const &config) {
-  R result;
+R create_request(auto &config) {
+  using result_type = std::remove_cvref<R>::type;
+  result_type result;
   for (auto &[_, account] : config.accounts)
     result.try_emplace(account.name, Request{});
   return result;
 }
 
 template <typename R>
-auto create_rest(
-    auto &gateway,
-    auto &context,
-    auto &stream_id,
-    auto &authenticator_by_account,
-    auto &shared,
-    auto &request_by_account) {
-  R result;
-  for (auto &[account, authenticator] : authenticator_by_account) {
-    auto &request = request_by_account[account];
-    result.try_emplace(account, std::make_unique<Rest>(gateway, context, ++stream_id, *authenticator, shared, request));
+R create_rest(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &request_by_account) {
+  using result_type = std::remove_cvref<R>::type;
+  result_type result;
+  for (auto &[name, account] : accounts) {
+    auto &request = request_by_account[name];
+    result.try_emplace(name, std::make_unique<Rest>(gateway, context, ++stream_id, *account, shared, request));
   }
   return result;
 }
 
 template <typename R>
-auto create_order_entry(
-    auto &gateway,
-    auto &context,
-    auto &stream_id,
-    auto &authenticator_by_account,
-    auto &shared,
-    auto &request_by_account) {
-  R result;
-  for (auto &[account, authenticator] : authenticator_by_account) {
-    auto &request = request_by_account[account];
-    result.try_emplace(
-        account, std::make_unique<OrderEntry>(gateway, context, ++stream_id, *authenticator, shared, request));
+R create_order_entry(
+    auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &request_by_account) {
+  using result_type = std::remove_cvref<R>::type;
+  result_type result;
+  for (auto &[name, account] : accounts) {
+    auto &request = request_by_account[name];
+    result.try_emplace(name, std::make_unique<OrderEntry>(gateway, context, ++stream_id, *account, shared, request));
   }
   return result;
 }
 
 template <typename R>
-auto create_market_data(
-    auto &gateway, auto &context, auto &stream_id, auto &authenticator_by_account, auto &master_account, auto &shared) {
-  R result;
+R create_market_data(
+    auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &master_account, auto &shared) {
+  using result_type = std::remove_cvref<R>::type;
+  result_type result;
   ++stream_id;
   auto index = std::size(result);
   log::debug("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
-  auto market_data = std::make_unique<MarketData>(
-      gateway, context, stream_id, get_authenticator(authenticator_by_account, master_account), shared, index);
+  auto market_data =
+      std::make_unique<MarketData>(gateway, context, stream_id, get_account(accounts, master_account), shared, index);
   result.emplace_back(std::move(market_data));
   return result;
 }
@@ -106,14 +99,14 @@ auto create_market_data(
 // === IMPLEMENTATION ===
 
 Gateway::Gateway(server::Dispatcher &dispatcher, Config const &config, io::Context &context)
-    : dispatcher_{dispatcher}, master_account_{config.get_master_account()},
-      authenticator_{create_authenticator<decltype(authenticator_)>(config)}, context_{context}, shared_{dispatcher},
+    : dispatcher_{dispatcher}, accounts_{create_accounts<decltype(accounts_)>(config)},
+      master_account_{config.get_master_account()}, context_{context}, shared_{dispatcher},
       request_{create_request<decltype(request_)>(config)},
-      rest_{create_rest<decltype(rest_)>(*this, context_, ++stream_id_, authenticator_, shared_, request_)},
+      rest_{create_rest<decltype(rest_)>(*this, context_, ++stream_id_, accounts_, shared_, request_)},
       order_entry_{
-          create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, authenticator_, shared_, request_)},
+          create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, accounts_, shared_, request_)},
       market_data_{create_market_data<decltype(market_data_)>(
-          *this, context_, stream_id_, authenticator_, master_account_, shared_)} {
+          *this, context_, stream_id_, accounts_, master_account_, shared_)} {
 }
 
 void Gateway::operator()(Event<Start> const &event) {
@@ -215,7 +208,7 @@ void Gateway::ensure_symbol_slices(size_t size) {
     auto index = std::size(market_data_);
     log::debug("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
     auto market_data = std::make_unique<MarketData>(
-        *this, context_, stream_id, get_authenticator(authenticator_, master_account_), shared_, index);
+        *this, context_, stream_id, get_account(accounts_, master_account_), shared_, index);
     MessageInfo message_info;
     Start start;
     create_event_and_dispatch(*market_data, message_info, start);
@@ -260,13 +253,14 @@ void Gateway::operator()(metrics::Writer &writer) {
 
 template <typename... Args>
 void Gateway::dispatch(Args &&...args) {
+  auto helper = [&](auto &target) { target(std::forward<Args>(args)...); };
   for (auto &[_, item] : rest_)
-    (*item)(std::forward<Args>(args)...);
+    helper(*item);
   for (auto &[_, item] : order_entry_)
     if (static_cast<bool>(item))
-      (*item)(std::forward<Args>(args)...);
+      helper(*item);
   for (auto &item : market_data_)
-    (*item)(std::forward<Args>(args)...);
+    helper(*item);
 }
 
 OrderEntry &Gateway::get_order_entry(std::string_view const &account) {

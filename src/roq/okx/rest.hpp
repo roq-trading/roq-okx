@@ -18,7 +18,7 @@
 
 #include "roq/server.hpp"
 
-#include "roq/okx/authenticator.hpp"
+#include "roq/okx/account.hpp"
 #include "roq/okx/request.hpp"
 #include "roq/okx/shared.hpp"
 
@@ -33,7 +33,7 @@ struct Rest final : public web::rest::Client::Handler {
     virtual void operator()(Trace<ExternalLatency> const &) = 0;
   };
 
-  Rest(Handler &, io::Context &context, uint16_t stream_id, Authenticator &, Shared &, Request &);
+  Rest(Handler &, io::Context &context, uint16_t stream_id, Account &, Shared &, Request &);
 
   Rest(Rest &&) = delete;
   Rest(Rest const &) = delete;
@@ -64,10 +64,10 @@ struct Rest final : public web::rest::Client::Handler {
  private:
   Handler &handler_;
   // config
-  const uint16_t stream_id_;
-  const std::string name_;
+  uint16_t const stream_id_;
+  std::string const name_;
   // connection
-  std::unique_ptr<web::rest::Client> connection_;
+  std::unique_ptr<web::rest::Client> const connection_;
   // buffers
   core::Buffer decode_buffer_;
   // metrics
@@ -80,8 +80,8 @@ struct Rest final : public web::rest::Client::Handler {
   struct {
     core::metrics::Latency ping;
   } latency_;
-  // authenticator
-  Authenticator &authenticator_;
+  // account
+  Account &account_;
   // shared
   Shared &shared_;
   Request &request_;

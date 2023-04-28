@@ -14,16 +14,16 @@
 namespace roq {
 namespace okx {
 
-struct Authenticator final {
-  Authenticator() {}
-  Authenticator(Config const &, std::string_view const &account);
+struct Account final {
+  Account() {}
+  Account(Config const &, std::string_view const &name);
 
-  Authenticator(Authenticator &&) = delete;
-  Authenticator(Authenticator const &) = delete;
+  Account(Account &&) = delete;
+  Account(Account const &) = delete;
 
-  bool empty() const { return std::empty(account_); }
+  bool empty() const { return std::empty(name_); }
 
-  std::string_view get_account() const { return account_; }
+  std::string_view get_name() const { return name_; }
 
   std::string_view get_key() const { return crypto_.get_key(); }
   std::string_view get_passphrase() const { return crypto_.get_passphrase(); }
@@ -33,7 +33,7 @@ struct Authenticator final {
   std::string create_headers(web::http::Method, std::string_view const &path, std::string_view const &body);
 
  private:
-  const std::string account_;
+  std::string const name_;
   tools::Crypto crypto_;
 };
 

@@ -75,12 +75,7 @@ struct create_metrics final : public core::metrics::Factory {
 // === IMPLEMENTATION ===
 
 Rest::Rest(
-    Handler &handler,
-    io::Context &context,
-    uint16_t stream_id,
-    Authenticator &authenticator,
-    Shared &shared,
-    Request &request)
+    Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)},
       connection_{create_connection(*this, context)}, decode_buffer_{Flags::decode_buffer_size()},
       counter_{
@@ -93,7 +88,7 @@ Rest::Rest(
       latency_{
           .ping = create_metrics(name_, "ping"sv),
       },
-      authenticator_{authenticator}, shared_{shared}, request_{request} {
+      account_{account}, shared_{shared}, request_{request} {
 }
 
 void Rest::operator()(Event<Start> const &) {
@@ -180,7 +175,7 @@ void Rest::get_orders() {
   profile_.orders([&]() {
     auto method = web::http::Method::GET;
     auto path = "/api/v5/trade/orders-pending"sv;
-    auto headers = authenticator_.create_headers(method, path, {});
+    auto headers = account_.create_headers(method, path, {});
     auto request = web::rest::Request{
         .method = method,
         .path = path,
@@ -224,7 +219,7 @@ void Rest::operator()(Trace<json::Orders> const &event) {
     auto side = json::map(item.side);
     auto order_status = json::map(item.state);
     auto order_update = oms::OrderUpdate{
-        .account = authenticator_.get_account(),
+        .account = account_.get_name(),
         .exchange = Flags::exchange(),
         .symbol = item.inst_id,
         .side = side,

@@ -13,7 +13,7 @@
 
 #include "roq/io/context.hpp"
 
-#include "roq/okx/authenticator.hpp"
+#include "roq/okx/account.hpp"
 #include "roq/okx/config.hpp"
 #include "roq/okx/market_data.hpp"
 #include "roq/okx/order_entry.hpp"
@@ -79,20 +79,19 @@ struct Gateway final : public server::Handler,
 
  private:
   server::Dispatcher &dispatcher_;
-  // config
-  const std::string master_account_;
-  // authenticator
-  absl::flat_hash_map<Account, std::unique_ptr<Authenticator>> authenticator_;
+  // accounts
+  absl::flat_hash_map<std::string, std::unique_ptr<Account>> const accounts_;
+  std::string const master_account_;
   // io
   io::Context &context_;
   // shared
   Shared shared_;
-  absl::flat_hash_map<Account, Request> request_;
+  absl::flat_hash_map<std::string, Request> request_;
   // seed
   uint16_t stream_id_ = {};
   // streams
-  absl::flat_hash_map<Account, std::unique_ptr<Rest>> rest_;
-  absl::flat_hash_map<Account, std::unique_ptr<OrderEntry>> order_entry_;
+  absl::flat_hash_map<std::string, std::unique_ptr<Rest>> rest_;
+  absl::flat_hash_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
   std::vector<std::unique_ptr<MarketData>> market_data_;
   // cache
   std::vector<MBPUpdate> bids_, asks_;

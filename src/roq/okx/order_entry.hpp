@@ -18,7 +18,7 @@
 
 #include "roq/server.hpp"
 
-#include "roq/okx/authenticator.hpp"
+#include "roq/okx/account.hpp"
 #include "roq/okx/order_entry_state.hpp"
 #include "roq/okx/request.hpp"
 #include "roq/okx/shared.hpp"
@@ -37,7 +37,7 @@ struct OrderEntry final : public web::socket::Client::Handler, json::Parser::Han
     virtual void operator()(Trace<PositionUpdate> const &, bool is_last) = 0;
   };
 
-  OrderEntry(Handler &, io::Context &, uint16_t stream_id, Authenticator &, Shared &, Request &);
+  OrderEntry(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request &);
 
   OrderEntry(OrderEntry &&) = delete;
   OrderEntry(OrderEntry const &) = delete;
@@ -119,10 +119,10 @@ struct OrderEntry final : public web::socket::Client::Handler, json::Parser::Han
  private:
   Handler &handler_;
   // config
-  const uint16_t stream_id_;
-  const std::string name_;
+  uint16_t const stream_id_;
+  std::string const name_;
   // web socket
-  std::unique_ptr<web::socket::Client> connection_;
+  std::unique_ptr<web::socket::Client> const connection_;
   // buffers
   core::Buffer decode_buffer_;
   // session
@@ -138,8 +138,8 @@ struct OrderEntry final : public web::socket::Client::Handler, json::Parser::Han
   struct {
     core::metrics::Latency ping, heartbeat;
   } latency_;
-  // authenticator
-  Authenticator &authenticator_;
+  // account
+  Account &account_;
   // shared
   Shared &shared_;
   Request &request_;
