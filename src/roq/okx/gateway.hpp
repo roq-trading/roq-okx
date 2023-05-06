@@ -19,6 +19,7 @@
 #include "roq/okx/order_entry.hpp"
 #include "roq/okx/request.hpp"
 #include "roq/okx/rest.hpp"
+#include "roq/okx/settings.hpp"
 #include "roq/okx/shared.hpp"
 
 namespace roq {
@@ -28,7 +29,7 @@ struct Gateway final : public server::Handler,
                        public Rest::Handler,
                        public OrderEntry::Handler,
                        public MarketData::Handler {
-  Gateway(server::Dispatcher &, Config const &, io::Context &);
+  Gateway(server::Dispatcher &, Settings const &, Config const &, io::Context &);
 
  protected:
   void operator()(Event<Start> const &) override;
