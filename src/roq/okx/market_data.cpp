@@ -48,16 +48,16 @@ auto create_name(auto stream_id) {
   return fmt::format("{}:{}"sv, stream_id, NAME);
 }
 
-auto create_connection(auto &handler, auto &context) {
+auto create_connection(auto &handler, auto &settings, auto &context) {
   auto uri = Flags::ws_public_uri();
   auto config = web::socket::Client::Config{
       // connection
       .interface = {},
       .uris = {&uri, 1},
-      .validate_certificate = server::Flags::net_tls_validate_certificate(),
+      .validate_certificate = settings.net.tls_validate_certificate,
       // connection manager
-      .connection_timeout = server::Flags::net_connection_timeout(),
-      .disconnect_on_idle_timeout = server::Flags::net_disconnect_on_idle_timeout(),
+      .connection_timeout = settings.net.connection_timeout,
+      .disconnect_on_idle_timeout = settings.net.disconnect_on_idle_timeout,
       .always_reconnect = true,
       // proxy
       .proxy = {},
@@ -74,8 +74,8 @@ auto create_connection(auto &handler, auto &context) {
 }
 
 struct create_metrics final : public core::metrics::Factory {
-  explicit create_metrics(auto const &group, auto const &function)
-      : core::metrics::Factory(server::Flags::name(), group, function) {}
+  explicit create_metrics(auto &settings, auto const &group, auto const &function)
+      : core::metrics::Factory(settings.app.name, group, function) {}
 };
 }  // namespace
 
@@ -84,31 +84,31 @@ struct create_metrics final : public core::metrics::Factory {
 MarketData::MarketData(
     Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, size_t index)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, index_{index},
-      connection_{create_connection(*this, context)}, decode_buffer_{Flags::decode_buffer_size()},
+      connection_{create_connection(*this, shared.settings, context)}, decode_buffer_{Flags::decode_buffer_size()},
       counter_{
-          .disconnect = create_metrics(name_, "disconnect"sv),
+          .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
       profile_{
-          .parse = create_metrics(name_, "parse"sv),
-          .error = create_metrics(name_, "error"sv),
-          .subscribe = create_metrics(name_, "subscribe"sv),
-          .unsubscribe = create_metrics(name_, "unsubscribe"sv),
-          .login = create_metrics(name_, "login"sv),
-          .status = create_metrics(name_, "status"sv),
-          .instruments = create_metrics(name_, "instruments"sv),
-          .estimated_price = create_metrics(name_, "estimated_price"sv),
-          .price_limit = create_metrics(name_, "price_limit"sv),
-          .mark_price = create_metrics(name_, "mark_price"sv),
-          .tickers = create_metrics(name_, "tickers"sv),
-          .trades = create_metrics(name_, "trades"sv),
-          .bbo_tbt = create_metrics(name_, "bbo_tbt"sv),
-          .books_l2_tbt = create_metrics(name_, "books_l2_tbt"sv),
-          .index_tickers = create_metrics(name_, "index_tickers"sv),
-          .funding_rate = create_metrics(name_, "funding_rate"sv),
+          .parse = create_metrics(shared.settings, name_, "parse"sv),
+          .error = create_metrics(shared.settings, name_, "error"sv),
+          .subscribe = create_metrics(shared.settings, name_, "subscribe"sv),
+          .unsubscribe = create_metrics(shared.settings, name_, "unsubscribe"sv),
+          .login = create_metrics(shared.settings, name_, "login"sv),
+          .status = create_metrics(shared.settings, name_, "status"sv),
+          .instruments = create_metrics(shared.settings, name_, "instruments"sv),
+          .estimated_price = create_metrics(shared.settings, name_, "estimated_price"sv),
+          .price_limit = create_metrics(shared.settings, name_, "price_limit"sv),
+          .mark_price = create_metrics(shared.settings, name_, "mark_price"sv),
+          .tickers = create_metrics(shared.settings, name_, "tickers"sv),
+          .trades = create_metrics(shared.settings, name_, "trades"sv),
+          .bbo_tbt = create_metrics(shared.settings, name_, "bbo_tbt"sv),
+          .books_l2_tbt = create_metrics(shared.settings, name_, "books_l2_tbt"sv),
+          .index_tickers = create_metrics(shared.settings, name_, "index_tickers"sv),
+          .funding_rate = create_metrics(shared.settings, name_, "funding_rate"sv),
       },
       latency_{
-          .ping = create_metrics(name_, "ping"sv),
-          .heartbeat = create_metrics(name_, "heartbeat"sv),
+          .ping = create_metrics(shared.settings, name_, "ping"sv),
+          .heartbeat = create_metrics(shared.settings, name_, "heartbeat"sv),
       },
       account_{account}, shared_{shared}, download_{{}, [this](auto state) { return download(state); }} {
 }

@@ -98,9 +98,9 @@ R create_market_data(
 
 // === IMPLEMENTATION ===
 
-Gateway::Gateway(server::Dispatcher &dispatcher, Settings const &, Config const &config, io::Context &context)
+Gateway::Gateway(server::Dispatcher &dispatcher, Settings const &settings, Config const &config, io::Context &context)
     : dispatcher_{dispatcher}, accounts_{create_accounts<decltype(accounts_)>(config)},
-      master_account_{config.get_master_account()}, context_{context}, shared_{dispatcher},
+      master_account_{config.get_master_account()}, context_{context}, shared_{dispatcher, settings},
       request_{create_request<decltype(request_)>(config)},
       rest_{create_rest<decltype(rest_)>(*this, context_, ++stream_id_, accounts_, shared_, request_)},
       order_entry_{
