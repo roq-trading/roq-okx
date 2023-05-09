@@ -6,7 +6,6 @@ set(SOURCES
     account.cpp
     application.cpp
     config.cpp
-    flags.cpp
     gateway.cpp
     market_data.cpp
     order_entry.cpp

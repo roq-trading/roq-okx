@@ -15,8 +15,6 @@
 
 #include "roq/web/rest/client_factory.hpp"
 
-#include "roq/okx/flags.hpp"
-
 #include "roq/okx/json/utils.hpp"
 
 using namespace std::literals;
@@ -40,7 +38,7 @@ auto create_name(auto stream_id) {
 }
 
 auto create_connection(auto &handler, auto &settings, auto &context) {
-  auto uri = Flags::rest_uri();
+  auto uri = settings.rest.uri;
   auto config = web::rest::Client::Config{
       // connection
       .interface = {},
@@ -51,16 +49,16 @@ auto create_connection(auto &handler, auto &settings, auto &context) {
       .disconnect_on_idle_timeout = {},
       .connection = web::http::Connection::KEEP_ALIVE,
       // proxy
-      .proxy = Flags::rest_proxy(),
+      .proxy = settings.rest.proxy,
       // http
       .query = {},
       .user_agent = ROQ_PACKAGE_NAME,
-      .request_timeout = Flags::rest_request_timeout(),
-      .ping_frequency = Flags::rest_ping_freq(),
-      .ping_path = Flags::rest_ping_path(),
+      .request_timeout = settings.rest.request_timeout,
+      .ping_frequency = settings.rest.ping_freq,
+      .ping_path = settings.rest.ping_path,
       // implementation
-      .decode_buffer_size = Flags::decode_buffer_size(),
-      .encode_buffer_size = Flags::encode_buffer_size(),
+      .decode_buffer_size = settings.common.decode_buffer_size,
+      .encode_buffer_size = settings.common.encode_buffer_size,
       .allow_pipelining = true,
   };
   return web::rest::ClientFactory::create(handler, context, config);
@@ -77,7 +75,8 @@ struct create_metrics final : public core::metrics::Factory {
 Rest::Rest(
     Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)},
-      connection_{create_connection(*this, shared.settings, context)}, decode_buffer_{Flags::decode_buffer_size()},
+      connection_{create_connection(*this, shared.settings, context)},
+      decode_buffer_{shared.settings.common.decode_buffer_size},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
@@ -220,7 +219,7 @@ void Rest::operator()(Trace<json::Orders> const &event) {
     auto order_status = json::map(item.state);
     auto order_update = oms::OrderUpdate{
         .account = account_.get_name(),
-        .exchange = Flags::exchange(),
+        .exchange = shared_.settings.exchange,
         .symbol = item.inst_id,
         .side = side,
         .position_effect = {},

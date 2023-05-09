@@ -20,8 +20,6 @@
 
 #include "roq/server.hpp"
 
-#include "roq/okx/flags.hpp"
-
 #include "roq/okx/json/order_type.hpp"
 #include "roq/okx/json/position_side.hpp"
 #include "roq/okx/json/trade_mode.hpp"
@@ -56,7 +54,7 @@ auto create_name(auto stream_id, auto const &account) {
 }
 
 auto create_connection(auto &handler, auto &settings, auto &context) {
-  auto uri = Flags::ws_private_uri();
+  auto uri = settings.ws.private_uri;
   auto config = web::socket::Client::Config{
       // connection
       .interface = {},
@@ -72,10 +70,10 @@ auto create_connection(auto &handler, auto &settings, auto &context) {
       .query = {},
       .user_agent = ROQ_PACKAGE_NAME,
       .request_timeout = {},
-      .ping_frequency = Flags::ws_ping_freq(),
+      .ping_frequency = settings.ws.ping_freq,
       // implementation
-      .decode_buffer_size = Flags::decode_buffer_size(),
-      .encode_buffer_size = Flags::encode_buffer_size(),
+      .decode_buffer_size = settings.common.decode_buffer_size,
+      .encode_buffer_size = settings.common.encode_buffer_size,
   };
   return web::socket::ClientFactory::create(handler, context, config, []() { return std::string(); });
 }
@@ -91,7 +89,8 @@ struct create_metrics final : public core::metrics::Factory {
 OrderEntry::OrderEntry(
     Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account.get_name())},
-      connection_{create_connection(*this, shared.settings, context)}, decode_buffer_{Flags::decode_buffer_size()},
+      connection_{create_connection(*this, shared.settings, context)},
+      decode_buffer_{shared.settings.common.decode_buffer_size},
       request_id_{static_cast<uint64_t>(stream_id_) * 1000000},  // scale (debugging)
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
@@ -118,7 +117,7 @@ OrderEntry::OrderEntry(
           .heartbeat = create_metrics(shared.settings, name_, "heartbeat"sv),
       },
       account_{account}, shared_{shared}, request_{request},
-      download_{{}, [this](auto state) { return download(state); }}, trade_mode_{flags::Flags::trade_mode()} {
+      download_{{}, [this](auto state) { return download(state); }}, trade_mode_{shared.settings.common.trade_mode} {
 }
 
 bool OrderEntry::ready() const {
@@ -641,7 +640,7 @@ void OrderEntry::operator()(Trace<json::Positions> const &event) {
       auto position_update = PositionUpdate{
           .stream_id = stream_id_,
           .account = account_.get_name(),
-          .exchange = Flags::exchange(),
+          .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
           .external_account = {},
           .long_quantity = long_quantity,
@@ -669,7 +668,7 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
       auto order_status = json::map(item.state);
       auto order_update = oms::OrderUpdate{
           .account = account_.get_name(),
-          .exchange = Flags::exchange(),
+          .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
           .side = side,
           .position_effect = {},

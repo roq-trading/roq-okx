@@ -2,8 +2,6 @@
 
 #include "roq/okx/shared.hpp"
 
-#include "roq/okx/flags.hpp"
-
 namespace roq {
 namespace okx {
 
@@ -11,8 +9,8 @@ namespace okx {
 
 Shared::Shared(server::Dispatcher &dispatcher, Settings const &settings)
     : dispatcher_{dispatcher}, settings{settings},
-      rate_limiter{Flags::request_limit(), Flags::request_limit_interval()},
-      symbols{Flags::ws_max_subscriptions_per_stream()} {
+      rate_limiter{settings.common.request_limit, settings.common.request_limit_interval},
+      symbols{settings.ws.max_subscriptions_per_stream} {
 }
 
 }  // namespace okx
