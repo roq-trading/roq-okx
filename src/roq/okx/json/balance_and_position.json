@@ -12,11 +12,11 @@
     },
     {
       "name": "balData",
-      "type": "std::span<BalanceAndPositionBalanceItem>"
+      "type": "std::span<BalanceAndPositionBalanceItem const>"
     },
     {
       "name": "posData",
-      "type": "std::span<BalanceAndPositionPositionItem>"
+      "type": "std::span<BalanceAndPositionPositionItem const>"
     }
   ]
 }

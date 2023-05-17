@@ -8,7 +8,7 @@
     },
     {
       "name": "data",
-      "type": "std::span<OrderAckItem>"
+      "type": "std::span<OrderAckItem const>"
     },
     {
       "name": "id",

@@ -4,7 +4,7 @@
   "values": [
     {
       "name": "data",
-      "type": "std::span<IndexTickersItem>"
+      "type": "std::span<IndexTickersItem const>"
     }
   ]
 }

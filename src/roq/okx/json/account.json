@@ -8,7 +8,7 @@
     },
     {
       "name": "details",
-      "type": "std::span<AccountItem>"
+      "type": "std::span<AccountItem const>"
     },
     {
       "name": "imr",

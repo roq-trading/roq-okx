@@ -8,7 +8,7 @@
     },
     {
       "name": "data",
-      "type": "std::span<AmendOrderAckItem>"
+      "type": "std::span<AmendOrderAckItem const>"
     },
     {
       "name": "id",
