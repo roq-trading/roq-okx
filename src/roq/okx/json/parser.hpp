@@ -4,10 +4,7 @@
 
 #include <string_view>
 
-#include "roq/core/json/buffer.hpp"
-#include "roq/core/json/parser.hpp"
-
-#include "roq/server.hpp"
+#include "roq/trace_info.hpp"
 
 #include "roq/okx/json/arg.hpp"
 
@@ -75,20 +72,17 @@ struct Parser final {
     virtual void operator()(Trace<json::CancelOrderAck> const &) = 0;
   };
 
-  static bool dispatch(Handler &, std::string_view const &message, core::json::Buffer &, TraceInfo const &);
+  static bool dispatch(Handler &, std::string_view const &message, std::span<std::byte> const &, TraceInfo const &);
 
  private:
   template <typename T, typename... Args>
-  static void dispatch_event(
-      Handler &, std::string_view const &message, core::json::Buffer &, TraceInfo const &, Args &&...);
+  static void dispatch_event(auto &handler, auto &message, auto &buffer, auto &trace_info, Args &&...);
 
   template <typename T, typename... Args>
-  static void dispatch_event_array(
-      Handler &, std::string_view const &message, core::json::Buffer &, TraceInfo const &, Args &&...args);
+  static void dispatch_event_array(auto &handler, auto &message, auto &buffer, auto &trace_info, Args &&...);
 
   template <typename T, typename... Args>
-  static void dispatch_event_frame(
-      Handler &, std::string_view const &message, core::json::Buffer &, TraceInfo const &, Args &&...args);
+  static void dispatch_event_frame(auto &handler, auto &message, auto &buffer, auto &trace_info, Args &&...);
 };
 
 }  // namespace json

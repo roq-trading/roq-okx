@@ -124,7 +124,7 @@ struct OrderEntry final : public web::socket::Client::Handler, json::Parser::Han
   // web socket
   std::unique_ptr<web::socket::Client> const connection_;
   // buffers
-  core::Buffer decode_buffer_;
+  std::vector<std::byte> decode_buffer_;
   // session
   uint64_t request_id_ = {};
   // metrics

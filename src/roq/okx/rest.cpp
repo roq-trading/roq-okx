@@ -76,7 +76,7 @@ Rest::Rest(
     Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)},
       connection_{create_connection(*this, shared.settings, context)},
-      decode_buffer_{shared.settings.common.decode_buffer_size},
+      decode_buffer_(shared.settings.common.decode_buffer_size),
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
@@ -197,7 +197,7 @@ void Rest::get_orders() {
 void Rest::get_orders_ack(Trace<web::rest::Response> const &event) {
   profile_.orders_ack([&]() {
     auto handle_success = [&](auto &body) {
-      json::Orders orders{body, decode_buffer_};
+      auto orders = json::Orders::create(body, decode_buffer_);
       Trace event_2{event, orders};
       (*this)(event_2);
       download_orders_ = false;

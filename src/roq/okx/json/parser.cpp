@@ -18,9 +18,14 @@ namespace roq {
 namespace okx {
 namespace json {
 
+// === IMPLEMENTATION ===
+
 bool Parser::dispatch(
-    Handler &handler, std::string_view const &message, core::json::Buffer &buffer, TraceInfo const &trace_info) {
-  Frame frame{message, buffer};
+    Handler &handler,
+    std::string_view const &message,
+    std::span<std::byte> const &buffer,
+    TraceInfo const &trace_info) {
+  auto frame = Frame::create(message, buffer);
   switch (frame.op) {
     using enum Operation::type_t;
     case UNDEFINED__:
@@ -142,19 +147,14 @@ bool Parser::dispatch(
 
 // note! each item of data dispatched independently
 template <typename T, typename... Args>
-void Parser::dispatch_event(
-    Handler &handler,
-    std::string_view const &message,
-    core::json::Buffer &buffer,
-    TraceInfo const &trace_info,
-    Args &&...args) {
+void Parser::dispatch_event(auto &handler, auto &message, auto &buffer, auto &trace_info, Args &&...args) {
   core::json::Parser parser{message};
   auto root = parser.root();
   for (auto [key, value] : std::get<core::json::Object>(root)) {
     if (key.compare("data"sv) != 0)
       continue;
     for (auto item : std::get<core::json::Array>(value)) {
-      T obj{item, buffer};
+      auto obj = T::create(item, buffer);
       create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
     }
     break;
@@ -163,18 +163,13 @@ void Parser::dispatch_event(
 
 // note! data as an array -- can *not* be nested
 template <typename T, typename... Args>
-void Parser::dispatch_event_array(
-    Handler &handler,
-    std::string_view const &message,
-    core::json::Buffer &buffer,
-    TraceInfo const &trace_info,
-    Args &&...args) {
+void Parser::dispatch_event_array(auto &handler, auto &message, auto &buffer, auto &trace_info, Args &&...args) {
   core::json::Parser parser{message};
   auto root = parser.root();
   for (auto [key, value] : std::get<core::json::Object>(root)) {
     if (key.compare("data"sv) != 0)
       continue;
-    T obj{value, buffer};
+    auto obj = T::create(value, buffer);
     create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
     break;
   }
@@ -182,13 +177,8 @@ void Parser::dispatch_event_array(
 
 // note! the entire message
 template <typename T, typename... Args>
-void Parser::dispatch_event_frame(
-    Handler &handler,
-    std::string_view const &message,
-    core::json::Buffer &buffer,
-    TraceInfo const &trace_info,
-    Args &&...args) {
-  T obj{message, buffer};
+void Parser::dispatch_event_frame(auto &handler, auto &message, auto &buffer, auto &trace_info, Args &&...args) {
+  auto obj = T::create(message, buffer);
   create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
 }
 

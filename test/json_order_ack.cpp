@@ -2,8 +2,6 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/core/json/parser.hpp"
-
 #include "roq/okx/json/parser.hpp"
 
 using namespace roq;
@@ -77,10 +75,9 @@ TEST_CASE("json_order_ack_parser_success", "[json_order_ack]") {
    private:
     size_t count_ = {};
   } handler;
-  core::Buffer buffer(8192);
-  core::json::Buffer buffer_(buffer);
+  std::vector<std::byte> buffer(8192);
   TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
+  auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
   CHECK(res == true);
   CHECK(handler.get_count() == 1);
 }
@@ -148,10 +145,9 @@ TEST_CASE("json_order_ack_parser_failure", "[json_order_ack]") {
    private:
     size_t count_ = {};
   } handler;
-  core::Buffer buffer(8192);
-  core::json::Buffer buffer_(buffer);
+  std::vector<std::byte> buffer(8192);
   TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer_, trace_info);
+  auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
   CHECK(res == true);
   CHECK(handler.get_count() == 1);
 }
