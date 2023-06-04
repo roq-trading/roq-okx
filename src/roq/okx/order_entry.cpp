@@ -679,6 +679,7 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
           .update_time_utc = utils::safe_cast(item.u_time),
           .external_account = {},
           .external_order_id = item.ord_id,
+          .client_order_id = {},
           .status = order_status,
           .quantity = item.sz,
           .price = item.px,
