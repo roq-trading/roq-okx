@@ -15,7 +15,7 @@ namespace roq {
 namespace okx {
 
 struct Settings final : public server::flags::Settings {
-  explicit Settings(args::Parser const &, server::Type);
+  explicit Settings(args::Parser const &);
 
   std::string_view exchange;
 
