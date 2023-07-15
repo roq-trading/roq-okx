@@ -27,14 +27,14 @@
     {
       "name": "max_subscriptions_per_stream",
       "type": "uint32_t",
-      "validator": "roq::flags::validators::NonZero<uint32_t>",
+      "required": true,
       "default": 32,
       "description": "max symbols per connection (count)"
     },
     {
       "name": "books_depth",
       "type": "uint16_t",
-      "validator": "roq::flags::validators::NonZero<uint16_t>",
+      "required": true,
       "default": 400,
       "description": "defines what 'books' channel to subscribe to (some require authentication)"
     },
