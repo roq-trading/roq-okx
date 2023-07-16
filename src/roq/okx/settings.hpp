@@ -8,20 +8,19 @@
 #include "roq/server/flags/settings.hpp"
 
 #include "roq/okx/flags/common.hpp"
+#include "roq/okx/flags/flags.hpp"
 #include "roq/okx/flags/rest.hpp"
 #include "roq/okx/flags/ws.hpp"
 
 namespace roq {
 namespace okx {
 
-struct Settings final : public server::flags::Settings {
+struct Settings final : public server::flags::Settings, public flags::Flags {
   explicit Settings(args::Parser const &);
 
-  std::string_view exchange;
-
-  flags::Common__flags common;
-  flags::REST__flags rest;
-  flags::WS__flags ws;
+  flags::Common common;
+  flags::REST rest;
+  flags::WS ws;
 };
 
 }  // namespace okx
@@ -39,13 +38,11 @@ struct fmt::formatter<roq::okx::Settings> {
     return fmt::format_to(
         context.out(),
         R"({{)"
-        R"(exchange="{}", )"
         R"(common={}, )"
         R"(rest={}, )"
         R"(ws={}, )"
         R"(server={})"
         R"(}})"_cf,
-        value.exchange,
         value.common,
         value.rest,
         value.ws,
