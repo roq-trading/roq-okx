@@ -242,6 +242,7 @@ void Rest::operator()(Trace<json::Orders> const &event) {
         .last_traded_quantity = item.fill_sz,
         .last_traded_price = item.fill_px,
         .last_liquidity = {},
+        .routing_id = {},
         .update_type = UpdateType::SNAPSHOT,
         .sending_time_utc = {},
     };
