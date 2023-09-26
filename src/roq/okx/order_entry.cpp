@@ -691,6 +691,9 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
           .last_traded_price = item.fill_px,
           .last_liquidity = {},
           .routing_id = {},
+          .max_request_version = {},
+          .max_response_version = {},
+          .max_accepted_version = {},
           .update_type = {},
           .sending_time_utc = {},
       };
