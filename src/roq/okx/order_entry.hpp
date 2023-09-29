@@ -147,7 +147,7 @@ struct OrderEntry final : public web::socket::Client::Handler, json::Parser::Han
   ConnectionStatus status_ = {};
   core::Download<OrderEntryState> download_;
   // other
-  const json::TradeMode trade_mode_;
+  json::TradeMode const trade_mode_;
 };
 
 }  // namespace okx
