@@ -343,7 +343,7 @@ uint16_t OrderEntry::operator()(
   return stream_id_;
 }
 
-uint16_t OrderEntry::operator()(Event<CancelAllOrders> const &, [[maybe_unused]] std::string_view const &request_id) {
+uint16_t OrderEntry::operator()(Event<CancelAllOrders> const &, std::string_view const &request_id) {
   std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_ids;
   if (shared_.dispatcher_.get_all_orders(
           [&](auto &order) {
@@ -355,6 +355,7 @@ uint16_t OrderEntry::operator()(Event<CancelAllOrders> const &, [[maybe_unused]]
     log::info<1>("No orders"sv);
   }
   cancel_all_orders(symbol_and_external_order_ids);
+  // XXX FIXME TODO CancelAllOrdersAck
   return stream_id_;
 }
 
