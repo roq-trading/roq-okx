@@ -660,7 +660,7 @@ void MarketData::operator()(Trace<json::BboTbt> const &event, std::string_view c
         },
         .update_type = UpdateType::INCREMENTAL,
         .exchange_time_utc = bbo_tbt.ts,
-        .exchange_sequence = static_cast<int64_t>(bbo_tbt.seq_id),
+        .exchange_sequence = bbo_tbt.seq_id,
         .sending_time_utc = {},
     };
     create_trace_and_dispatch(handler_, trace_info, top_of_book, true);
@@ -701,7 +701,7 @@ void MarketData::operator()(
         .asks = shared_.asks,
         .update_type = update_type,
         .exchange_time_utc = books_l2_tbt.ts,
-        .exchange_sequence = static_cast<int64_t>(books_l2_tbt.seq_id),
+        .exchange_sequence = books_l2_tbt.seq_id,
         .sending_time_utc = {},
         .price_decimals = {},
         .quantity_decimals = {},
