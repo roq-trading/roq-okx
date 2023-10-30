@@ -9,6 +9,7 @@ arg.hpp
 balance_and_position_balance_item.hpp
 balance_and_position.hpp
 balance_and_position_position_item.hpp
+balance_and_position_trades_item.hpp
 bbo_tbt.hpp
 books_l2_item.hpp
 books_l2_tbt.hpp
@@ -68,6 +69,7 @@ arg.cpp
 balance_and_position_balance_item.cpp
 balance_and_position.cpp
 balance_and_position_position_item.cpp
+balance_and_position_trades_item.cpp
 bbo_tbt.cpp
 books_l2_item.cpp
 books_l2_tbt.cpp

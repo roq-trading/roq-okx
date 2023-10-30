@@ -1,0 +1,14 @@
+{
+  "name": "BalanceAndPositionTradesItem",
+  "type": "item",
+  "values": [
+    {
+      "name": "instId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "tradeId",
+      "type": "std::string_view"
+    }
+  ]
+}

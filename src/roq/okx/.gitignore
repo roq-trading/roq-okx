@@ -1,4 +1,4 @@
 !!! THIS FILE HAS BEEN AUTO-GENERATED !!!
 roq-okx
+drop_copy_state.hpp
 market_data_state.hpp
-order_entry_state.hpp

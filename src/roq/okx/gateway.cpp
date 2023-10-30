@@ -47,17 +47,6 @@ R create_request(auto &config) {
 }
 
 template <typename R>
-R create_rest(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &request_by_account) {
-  using result_type = std::remove_cvref<R>::type;
-  result_type result;
-  for (auto &[name, account] : accounts) {
-    auto &request = request_by_account[name];
-    result.try_emplace(name, std::make_unique<Rest>(gateway, context, ++stream_id, *account, shared, request));
-  }
-  return result;
-}
-
-template <typename R>
 R create_order_entry(
     auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &request_by_account) {
   using result_type = std::remove_cvref<R>::type;
@@ -65,6 +54,18 @@ R create_order_entry(
   for (auto &[name, account] : accounts) {
     auto &request = request_by_account[name];
     result.try_emplace(name, std::make_unique<OrderEntry>(gateway, context, ++stream_id, *account, shared, request));
+  }
+  return result;
+}
+
+template <typename R>
+R create_drop_copy(
+    auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &request_by_account) {
+  using result_type = std::remove_cvref<R>::type;
+  result_type result;
+  for (auto &[name, account] : accounts) {
+    auto &request = request_by_account[name];
+    result.try_emplace(name, std::make_unique<DropCopy>(gateway, context, ++stream_id, *account, shared, request));
   }
   return result;
 }
@@ -90,9 +91,9 @@ Gateway::Gateway(server::Dispatcher &dispatcher, Settings const &settings, Confi
     : dispatcher_{dispatcher}, accounts_{create_accounts<decltype(accounts_)>(config)},
       master_account_{config.get_master_account()}, context_{context}, shared_{dispatcher, settings},
       request_{create_request<decltype(request_)>(config)},
-      rest_{create_rest<decltype(rest_)>(*this, context_, ++stream_id_, accounts_, shared_, request_)},
       order_entry_{
-          create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, accounts_, shared_, request_)},
+          create_order_entry<decltype(order_entry_)>(*this, context_, ++stream_id_, accounts_, shared_, request_)},
+      drop_copy_{create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_, request_)},
       market_data_{create_market_data<decltype(market_data_)>(
           *this, context_, stream_id_, accounts_, master_account_, shared_)} {
 }
@@ -217,18 +218,18 @@ void Gateway::operator()(metrics::Writer &writer) {
 template <typename... Args>
 void Gateway::dispatch(Args &&...args) {
   auto helper = [&](auto &target) { target(std::forward<Args>(args)...); };
-  for (auto &[_, item] : rest_)
-    helper(*item);
   for (auto &[_, item] : order_entry_)
+    helper(*item);
+  for (auto &[_, item] : drop_copy_)
     if (static_cast<bool>(item))
       helper(*item);
   for (auto &item : market_data_)
     helper(*item);
 }
 
-OrderEntry &Gateway::get_order_entry(std::string_view const &account) {
-  auto iter = order_entry_.find(account);
-  if (iter != std::end(order_entry_))
+DropCopy &Gateway::get_order_entry(std::string_view const &account) {
+  auto iter = drop_copy_.find(account);
+  if (iter != std::end(drop_copy_))
     return *(*iter).second;
   throw RuntimeError{R"(Unknown account="{}")"sv, account};
 }

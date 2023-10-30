@@ -15,10 +15,10 @@
 
 #include "roq/okx/account.hpp"
 #include "roq/okx/config.hpp"
+#include "roq/okx/drop_copy.hpp"
 #include "roq/okx/market_data.hpp"
 #include "roq/okx/order_entry.hpp"
 #include "roq/okx/request.hpp"
-#include "roq/okx/rest.hpp"
 #include "roq/okx/settings.hpp"
 #include "roq/okx/shared.hpp"
 
@@ -26,8 +26,8 @@ namespace roq {
 namespace okx {
 
 struct Gateway final : public server::Handler,
-                       public Rest::Handler,
                        public OrderEntry::Handler,
+                       public DropCopy::Handler,
                        public MarketData::Handler {
   Gateway(server::Dispatcher &, Settings const &, Config const &, io::Context &);
 
@@ -76,7 +76,7 @@ struct Gateway final : public server::Handler,
   template <typename... Args>
   void dispatch(Args &&...);
 
-  OrderEntry &get_order_entry(std::string_view const &account);
+  DropCopy &get_order_entry(std::string_view const &account);
 
  private:
   server::Dispatcher &dispatcher_;
@@ -91,8 +91,8 @@ struct Gateway final : public server::Handler,
   // seed
   uint16_t stream_id_ = {};
   // streams
-  absl::flat_hash_map<std::string, std::unique_ptr<Rest>> rest_;
   absl::flat_hash_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
+  absl::flat_hash_map<std::string, std::unique_ptr<DropCopy>> drop_copy_;
   std::vector<std::unique_ptr<MarketData>> market_data_;
   // cache
   std::vector<MBPUpdate> bids_, asks_;

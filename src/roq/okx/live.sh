@@ -14,8 +14,6 @@ CONFIG_FILE="$ROQ_CONFIG_PATH/roq-okx/$CONFIG.toml"
 
 URI="okx.com"
 
-WS_URI="wss://ws.$URI:8443/ws/v5"
-
 $PREFIX ./roq-okx \
   --name "okx" \
   --config_file "$CONFIG_FILE" \
@@ -24,6 +22,7 @@ $PREFIX ./roq-okx \
   --event_log_symlink true \
   --client_listen_address "$HOME/run/$NAME.sock" \
   --service_listen_address "$HOME/run/metrics/${NAME}.sock" \
-  --ws_public_uri "$WS_URI/public" \
-  --ws_private_uri "$WS_URI/private" \
+  --rest_uri "https://www.$URI" \
+  --ws_public_uri "wss://ws.$URI:8443/ws/v5/public" \
+  --ws_private_uri "wss://ws.$URI:8443/ws/v5/private" \
   $@

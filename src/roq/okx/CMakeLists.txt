@@ -14,10 +14,10 @@ set(SOURCES
     account.cpp
     application.cpp
     config.cpp
+    drop_copy.cpp
     gateway.cpp
     market_data.cpp
     order_entry.cpp
-    rest.cpp
     settings.cpp
     shared.cpp
     main.cpp)
@@ -27,7 +27,7 @@ add_subdirectory(tools)
 
 include(RoqAutogen)
 
-set(AUTOGEN_SCHEMAS market_data_state.json order_entry_state.json)
+set(AUTOGEN_SCHEMAS drop_copy_state.json market_data_state.json)
 
 roq_autogen(
   OUTPUT

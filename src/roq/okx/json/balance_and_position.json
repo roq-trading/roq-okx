@@ -17,6 +17,10 @@
     {
       "name": "posData",
       "type": "std::span<BalanceAndPositionPositionItem const>"
+    },
+    {
+      "name": "trades",
+      "type": "std::span<BalanceAndPositionTradesItem const>"
     }
   ]
 }
