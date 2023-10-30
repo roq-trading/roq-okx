@@ -143,7 +143,6 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
   Account &account_;
   // cache
   Shared &shared_;
-  absl::flat_hash_set<Symbol> all_symbols_;  // only master (index 0)
   // state
   ConnectionStatus status_ = {};
   core::Download<MarketDataState> download_;

@@ -29,6 +29,7 @@ index_tickers_item.hpp
 index_tickers.hpp
 instruments_item.hpp
 instruments.hpp
+instruments_rest.hpp
 instrument_state.hpp
 instrument_type.hpp
 login.hpp
@@ -47,6 +48,7 @@ order_type.hpp
 position_side.hpp
 positions_item.hpp
 positions.hpp
+positions_rest.hpp
 price_limit_item.hpp
 price_limit.hpp
 side.hpp
@@ -89,6 +91,7 @@ index_tickers_item.cpp
 index_tickers.cpp
 instruments_item.cpp
 instruments.cpp
+instruments_rest.cpp
 instrument_state.cpp
 instrument_type.cpp
 login.cpp
@@ -107,6 +110,7 @@ order_type.cpp
 position_side.cpp
 positions_item.cpp
 positions.cpp
+positions_rest.cpp
 price_limit_item.cpp
 price_limit.cpp
 side.cpp

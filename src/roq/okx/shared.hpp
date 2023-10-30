@@ -50,6 +50,11 @@ struct Shared final {
   Settings const &settings;
   core::limit::RateLimiter rate_limiter;
   core::Symbols symbols;
+  absl::flat_hash_set<Symbol> all_symbols;
+  struct {
+    std::chrono::nanoseconds request = {};
+    std::chrono::nanoseconds response = {};
+  } instruments;
 
   // experimental
   absl::flat_hash_set<Symbol> extended_symbols;

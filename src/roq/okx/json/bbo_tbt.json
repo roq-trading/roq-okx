@@ -19,6 +19,10 @@
       "type": "std::chrono::milliseconds"
     },
     {
+      "name": "seqId",
+      "type": "uint64_t"
+    },
+    {
       "name": "checksum",
       "type": "int64_t"
     }

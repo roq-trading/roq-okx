@@ -26,6 +26,10 @@
     {
       "name": "ts",
       "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "count",
+      "type": "uint32_t"
     }
   ]
 }

@@ -134,6 +134,8 @@ void DropCopy::operator()(Event<Stop> const &) {
 
 void DropCopy::operator()(Event<Timer> const &event) {
   (*connection_).refresh(event.value.now);
+  check_response_balance();
+  check_response_positions();
   check_response_orders();
 }
 
@@ -427,6 +429,12 @@ uint32_t DropCopy::download(DropCopyState state) {
       return 1;
     case SUBSCRIBE:
       subscribe();
+      return 1;
+    case BALANCE:
+      request_balance();
+      return 1;
+    case POSITIONS:
+      request_positions();
       return 1;
     case ORDERS:
       request_orders();
@@ -806,6 +814,34 @@ void DropCopy::cancel_all_orders(
         external_order_id);
     log::debug("message={}"sv, message);
     (*connection_).send_text(message);
+  }
+}
+
+void DropCopy::request_balance() {
+  log::info("Requesting balance download..."sv);
+  request_.request_balance = clock::get_system();
+}
+
+void DropCopy::check_response_balance() {
+  if (download_.state() != DropCopyState::BALANCE)
+    return;
+  if (request_.request_balance < request_.respond_balance) {
+    log::info("Balance download has completed!"sv);
+    download_.check(DropCopyState::BALANCE);
+  }
+}
+
+void DropCopy::request_positions() {
+  log::info("Requesting positions download..."sv);
+  request_.request_positions = clock::get_system();
+}
+
+void DropCopy::check_response_positions() {
+  if (download_.state() != DropCopyState::POSITIONS)
+    return;
+  if (request_.request_positions < request_.respond_positions) {
+    log::info("Positions download has completed!"sv);
+    download_.check(DropCopyState::POSITIONS);
   }
 }
 

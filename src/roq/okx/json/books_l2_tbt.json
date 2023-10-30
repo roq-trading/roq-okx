@@ -19,6 +19,15 @@
       "type": "std::chrono::milliseconds"
     },
     {
+      "name": "seqId",
+      "type": "uint64_t"
+    },
+    {
+      "name": "prevSeqId",
+      "type": "int64_t",
+      "comment": "have seen -1"
+    },
+    {
       "name": "checksum",
       "type": "int64_t"
     }

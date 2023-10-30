@@ -81,6 +81,10 @@ OrderEntry::OrderEntry(
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
       profile_{
+          .balance = create_metrics(shared.settings, name_, "balance"sv),
+          .balance_ack = create_metrics(shared.settings, name_, "balance_ack"sv),
+          .positions = create_metrics(shared.settings, name_, "positions"sv),
+          .positions_ack = create_metrics(shared.settings, name_, "positions_ack"sv),
           .orders = create_metrics(shared.settings, name_, "orders"sv),
           .orders_ack = create_metrics(shared.settings, name_, "orders_ack"sv),
       },
@@ -101,6 +105,20 @@ void OrderEntry::operator()(Event<Stop> const &) {
 void OrderEntry::operator()(Event<Timer> const &event) {
   auto now = event.value.now;
   (*connection_).refresh(now);
+  if (ready() && !download_balance_) {
+    if (request_.respond_balance < request_.request_balance) {
+      log::info<1>("Download balance..."sv);
+      get_balance();
+      download_balance_ = true;
+    }
+  }
+  if (ready() && !download_positions_) {
+    if (request_.respond_positions < request_.request_positions) {
+      log::info<1>("Download positions..."sv);
+      get_positions();
+      download_positions_ = true;
+    }
+  }
   if (ready() && !download_orders_) {
     if (request_.respond_orders < request_.request_orders) {
       log::info<1>("Download orders..."sv);
@@ -115,6 +133,10 @@ void OrderEntry::operator()(metrics::Writer &writer) {
       // counter
       .write(counter_.disconnect, metrics::COUNTER)
       // profile
+      .write(profile_.balance, metrics::PROFILE)
+      .write(profile_.balance_ack, metrics::PROFILE)
+      .write(profile_.positions, metrics::PROFILE)
+      .write(profile_.positions_ack, metrics::PROFILE)
       .write(profile_.orders, metrics::PROFILE)
       .write(profile_.orders_ack, metrics::PROFILE)
       // latency
@@ -166,6 +188,165 @@ void OrderEntry::operator()(Trace<web::rest::Client::Latency> const &event) {
 
 void OrderEntry::operator()(
     Trace<web::rest::Response> const &, [[maybe_unused]] uint64_t request_id, [[maybe_unused]] uint64_t opaque) {
+}
+
+// balance
+
+void OrderEntry::get_balance() {
+  profile_.balance([&]() {
+    auto method = web::http::Method::GET;
+    auto path = "/api/v5/account/balance"sv;
+    auto headers = account_.create_headers(method, path, {});
+    auto request = web::rest::Request{
+        .method = method,
+        .path = path,
+        .query = {},
+        .accept = web::http::Accept::APPLICATION_JSON,
+        .content_type = {},
+        .headers = headers,
+        .body = {},
+        .quality_of_service = {},
+    };
+    auto callback = [this]([[maybe_unused]] auto &request_id, auto &response) {
+      TraceInfo trace_info;
+      Trace event{trace_info, response};
+      get_balance_ack(event);
+    };
+    (*connection_)("balance"sv, request, callback);
+  });
+}
+
+void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
+  profile_.balance_ack([&]() {
+    auto handle_success = [&](auto &body) {
+      /*
+      auto orders = json::Orders::create(body, decode_buffer_);
+      Trace event_2{event, orders};
+      (*this)(event_2);
+      */
+      download_balance_ = false;
+      request_.respond_balance = clock::get_system();  // ack
+    };
+    auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
+      log::warn(R"(error={}, text="{}")"sv, error, text);
+      // XXX WHAT ???
+    };
+    process_response(event, handle_success, handle_error);
+  });
+}
+
+/*
+void OrderEntry::operator()(Trace<json::Balance> const &event) {
+  auto &[trace_info, orders] = event;
+  log::info<4>("orders={}"sv, orders);
+  for (auto &item : orders.data) {
+    auto side = json::map(item.side);
+    auto order_status = json::map(item.state);
+    auto order_update = oms::OrderUpdate{
+        .account = account_.get_name(),
+        .exchange = shared_.settings.exchange,
+        .symbol = item.inst_id,
+        .side = side,
+        .position_effect = {},
+        .max_show_quantity = NaN,
+        .order_type = {},
+        .time_in_force = {},
+        .execution_instructions = {},
+        .create_time_utc = {},
+        .update_time_utc = utils::safe_cast(item.u_time),
+        .external_account = {},
+        .external_order_id = item.ord_id,
+        .client_order_id = {},
+        .status = order_status,
+        .quantity = item.sz,
+        .price = item.px,
+        .stop_price = NaN,
+        .remaining_quantity = NaN,
+        .traded_quantity = item.acc_fill_sz,
+        .average_traded_price = item.avg_px,
+        .last_traded_quantity = item.fill_sz,
+        .last_traded_price = item.fill_px,
+        .last_liquidity = {},
+        .routing_id = {},
+        .max_request_version = {},
+        .max_response_version = {},
+        .max_accepted_version = {},
+        .update_type = UpdateType::SNAPSHOT,
+        .sending_time_utc = {},
+    };
+    if (shared_.update_order(
+            item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
+    } else {
+      log::warn("*** EXTERNAL ORDER ***"sv);
+      log::warn("item={}"sv, item);
+    }
+  }
+}
+*/
+
+// positions
+
+void OrderEntry::get_positions() {
+  profile_.positions([&]() {
+    auto method = web::http::Method::GET;
+    auto path = "/api/v5/account/positions"sv;
+    auto headers = account_.create_headers(method, path, {});
+    auto request = web::rest::Request{
+        .method = method,
+        .path = path,
+        .query = {},
+        .accept = web::http::Accept::APPLICATION_JSON,
+        .content_type = {},
+        .headers = headers,
+        .body = {},
+        .quality_of_service = {},
+    };
+    auto callback = [this]([[maybe_unused]] auto &request_id, auto &response) {
+      TraceInfo trace_info;
+      Trace event{trace_info, response};
+      get_positions_ack(event);
+    };
+    (*connection_)("positions"sv, request, callback);
+  });
+}
+
+void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
+  profile_.positions_ack([&]() {
+    auto handle_success = [&](auto &body) {
+      auto positions = json::PositionsRest::create(body, decode_buffer_);
+      Trace event_2{event, positions};
+      (*this)(event_2);
+      download_positions_ = false;
+      request_.respond_positions = clock::get_system();  // ack
+    };
+    auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
+      log::warn(R"(error={}, text="{}")"sv, error, text);
+      // XXX WHAT ???
+    };
+    process_response(event, handle_success, handle_error);
+  });
+}
+
+void OrderEntry::operator()(Trace<json::PositionsRest> const &event) {
+  auto &[trace_info, positions] = event;
+  log::info<4>("positions={}"sv, positions);
+  for (auto &item : positions.data) {
+    auto long_quantity = std::max(0.0, item.pos);
+    auto short_quantity = std::max(0.0, -item.pos);
+    auto position_update = PositionUpdate{
+        .stream_id = stream_id_,
+        .account = account_.get_name(),
+        .exchange = shared_.settings.exchange,
+        .symbol = item.inst_id,
+        .external_account = {},
+        .long_quantity = long_quantity,
+        .short_quantity = short_quantity,
+        .update_type = {},
+        .exchange_time_utc = {},
+        .sending_time_utc = {},
+    };
+    create_trace_and_dispatch(handler_, trace_info, position_update, true);
+  }
 }
 
 // orders-pending

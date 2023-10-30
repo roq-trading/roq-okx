@@ -266,13 +266,13 @@ void MarketData::login() {
 }
 
 void MarketData::subscribe_static() {
-  if (index_ != 0)
+  if (index_ != 0)  // note! only subscribe instruments from the first connection
     return;
   subscribe("status"sv);
   subscribe("instruments"sv, "instType"sv, "SPOT"sv);
   subscribe("instruments"sv, "instType"sv, "SWAP"sv);
   subscribe("instruments"sv, "instType"sv, "FUTURES"sv);
-  subscribe("instruments"sv, "instType"sv, "OPTION"sv);
+  // subscribe("instruments"sv, "instType"sv, "OPTION"sv);
   // subscribe("estimated-price"sv, "instType"sv, "FUTURES"sv);
   // subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
 }
@@ -399,6 +399,10 @@ void MarketData::operator()(Trace<json::Subscribe> const &event) {
     auto &[trace_info, subscribe] = event;
     log::info<1>("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
     log::debug("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
+    if (subscribe.channel == json::Channel::INSTRUMENTS && subscribe.inst_type == "FUTURES"sv) {
+      log::info("Request instruments..."sv);
+      shared_.instruments.request = clock::get_system();
+    }
   });
 }
 
@@ -465,7 +469,7 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
       create_trace_and_dispatch(handler_, trace_info, reference_data, true);
       if (discard)
         continue;
-      if (all_symbols_.emplace(symbol).second)  // only include new
+      if (shared_.all_symbols.emplace(symbol).second)  // only include new
         symbols.emplace_back(symbol);
       ++counter;
       auto trading_status = json::map(item.state);
@@ -656,7 +660,7 @@ void MarketData::operator()(Trace<json::BboTbt> const &event, std::string_view c
         },
         .update_type = UpdateType::INCREMENTAL,
         .exchange_time_utc = bbo_tbt.ts,
-        .exchange_sequence = {},
+        .exchange_sequence = bbo_tbt.seq_id,
         .sending_time_utc = {},
     };
     create_trace_and_dispatch(handler_, trace_info, top_of_book, true);
@@ -697,7 +701,7 @@ void MarketData::operator()(
         .asks = shared_.asks,
         .update_type = update_type,
         .exchange_time_utc = books_l2_tbt.ts,
-        .exchange_sequence = {},
+        .exchange_sequence = books_l2_tbt.seq_id,
         .sending_time_utc = {},
         .price_decimals = {},
         .quantity_decimals = {},

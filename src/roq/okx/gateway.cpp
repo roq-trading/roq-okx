@@ -90,7 +90,7 @@ R create_market_data(
 Gateway::Gateway(server::Dispatcher &dispatcher, Settings const &settings, Config const &config, io::Context &context)
     : dispatcher_{dispatcher}, accounts_{create_accounts<decltype(accounts_)>(config)},
       master_account_{config.get_master_account()}, context_{context}, shared_{dispatcher, settings},
-      request_{create_request<decltype(request_)>(config)},
+      request_{create_request<decltype(request_)>(config)}, rest_{*this, context_, ++stream_id_, shared_},
       order_entry_{
           create_order_entry<decltype(order_entry_)>(*this, context_, ++stream_id_, accounts_, shared_, request_)},
       drop_copy_{create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_, request_)},
@@ -159,6 +159,13 @@ void Gateway::operator()(Trace<PositionUpdate> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
+void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
+  auto [size, start_from] = shared_.symbols(symbols_update.symbols);
+  ensure_symbol_slices(size);
+  for (auto &iter : market_data_)
+    (*iter).subscribe(start_from);
+}
+
 void Gateway::operator()(MarketData::SymbolsUpdate &symbols_update) {
   auto [size, start_from] = shared_.symbols(symbols_update.symbols);
   ensure_symbol_slices(size);
@@ -218,6 +225,7 @@ void Gateway::operator()(metrics::Writer &writer) {
 template <typename... Args>
 void Gateway::dispatch(Args &&...args) {
   auto helper = [&](auto &target) { target(std::forward<Args>(args)...); };
+  helper(rest_);
   for (auto &[_, item] : order_entry_)
     helper(*item);
   for (auto &[_, item] : drop_copy_)

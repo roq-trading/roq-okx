@@ -113,6 +113,7 @@ bool Parser::dispatch(
         case SUBSCRIBE: {
           Subscribe subscribe;
           subscribe.channel = frame.arg.channel;
+          subscribe.inst_type = frame.arg.inst_type;
           subscribe.inst_id = frame.arg.inst_id;
           create_trace_and_dispatch(handler, trace_info, std::as_const(subscribe));
           return true;
@@ -120,6 +121,7 @@ bool Parser::dispatch(
         case UNSUBSCRIBE: {
           Unsubscribe unsubscribe;
           unsubscribe.channel = frame.arg.channel;
+          unsubscribe.inst_type = frame.arg.inst_type;
           unsubscribe.inst_id = frame.arg.inst_id;
           create_trace_and_dispatch(handler, trace_info, std::as_const(unsubscribe));
           return true;

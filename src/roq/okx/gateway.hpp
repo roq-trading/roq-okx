@@ -19,6 +19,7 @@
 #include "roq/okx/market_data.hpp"
 #include "roq/okx/order_entry.hpp"
 #include "roq/okx/request.hpp"
+#include "roq/okx/rest.hpp"
 #include "roq/okx/settings.hpp"
 #include "roq/okx/shared.hpp"
 
@@ -26,6 +27,7 @@ namespace roq {
 namespace okx {
 
 struct Gateway final : public server::Handler,
+                       public Rest::Handler,
                        public OrderEntry::Handler,
                        public DropCopy::Handler,
                        public MarketData::Handler {
@@ -67,6 +69,7 @@ struct Gateway final : public server::Handler,
   void operator()(Trace<FundsUpdate> const &, bool is_last) override;
   void operator()(Trace<PositionUpdate> const &, bool is_last) override;
 
+  void operator()(Rest::SymbolsUpdate &) override;
   void operator()(MarketData::SymbolsUpdate &) override;
 
   void ensure_symbol_slices(size_t size);
@@ -91,6 +94,7 @@ struct Gateway final : public server::Handler,
   // seed
   uint16_t stream_id_ = {};
   // streams
+  Rest rest_;
   absl::flat_hash_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
   absl::flat_hash_map<std::string, std::unique_ptr<DropCopy>> drop_copy_;
   std::vector<std::unique_ptr<MarketData>> market_data_;

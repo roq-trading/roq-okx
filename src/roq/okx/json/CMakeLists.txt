@@ -34,6 +34,7 @@ set(AUTOGEN_SCHEMAS
     index_tickers.json
     instruments_item.json
     instruments.json
+    instruments_rest.json
     instrument_state.json
     instrument_type.json
     login.json
@@ -52,6 +53,7 @@ set(AUTOGEN_SCHEMAS
     position_side.json
     positions_item.json
     positions.json
+    positions_rest.json
     price_limit_item.json
     price_limit.json
     side.json
