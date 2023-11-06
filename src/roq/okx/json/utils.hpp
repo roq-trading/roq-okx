@@ -43,6 +43,23 @@ inline void update(std::chrono::milliseconds &result, core::json::Value const &v
 }
 
 template <>
+inline void update(std::chrono::microseconds &result, core::json::Value const &value) {
+  return std::visit(
+      utils::overloaded{
+          [&](core::json::Null const &) { result = std::chrono::microseconds{}; },
+          [](bool) { throw std::bad_cast{}; },
+          [&](int64_t value) { result = std::chrono::microseconds{value}; },
+          [&](double value) { result = std::chrono::microseconds{static_cast<int64_t>(value)}; },
+          [&](std::string_view const &value) {
+            result = core::charconv::datetime_from_string<std::remove_reference<decltype(result)>::type>(value);
+          },
+          [](core::json::Object const &) { throw std::bad_cast{}; },
+          [](core::json::Array const &) { throw std::bad_cast{}; },
+      },
+      value);
+}
+
+template <>
 inline void update(std::chrono::nanoseconds &result, core::json::Value const &value) {
   return std::visit(
       utils::overloaded{

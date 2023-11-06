@@ -47,6 +47,13 @@
       "required": true,
       "default": "cross",
       "description": "Trade mode (string)"
+    },
+    {
+      "name": "download_trades_lookback",
+      "type": "std::chrono::nanoseconds",
+      "validator": "roq::flags::validators::TimePeriod",
+      "default": "24h",
+      "description": "download trades lookback period"
     }
   ]
 }

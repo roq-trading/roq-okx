@@ -21,6 +21,14 @@
     {
       "name": "op",
       "type": "Operation"
+    },
+    {
+      "name": "inTime",
+      "type": "std::chrono::microseconds"
+    },
+    {
+      "name": "outTime",
+      "type": "std::chrono::microseconds"
     }
   ]
 }

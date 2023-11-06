@@ -36,6 +36,14 @@
     {
       "name": "connId",
       "type": "std::string_view"
+    },
+    {
+      "name": "inTime",
+      "type": "std::chrono::microseconds"
+    },
+    {
+      "name": "outTime",
+      "type": "std::chrono::microseconds"
     }
   ]
 }
