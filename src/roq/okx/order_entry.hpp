@@ -22,6 +22,7 @@
 #include "roq/okx/shared.hpp"
 
 // #include "roq/okx/json/balance.hpp"
+#include "roq/okx/json/fills.hpp"
 #include "roq/okx/json/orders.hpp"
 #include "roq/okx/json/positions_rest.hpp"
 
@@ -32,6 +33,8 @@ struct OrderEntry final : public web::rest::Client::Handler {
   struct Handler {
     virtual void operator()(Trace<StreamStatus> const &) = 0;
     virtual void operator()(Trace<ExternalLatency> const &) = 0;
+    virtual void operator()(
+        Trace<TradeUpdate> const &, bool is_last, uint8_t user_id, std::string_view const &request_id) = 0;
     virtual void operator()(Trace<FundsUpdate> const &, bool is_last) = 0;
     virtual void operator()(Trace<PositionUpdate> const &, bool is_last) = 0;
   };
@@ -69,6 +72,10 @@ struct OrderEntry final : public web::rest::Client::Handler {
   void get_orders_ack(Trace<web::rest::Response> const &);
   void operator()(Trace<json::Orders> const &);
 
+  void get_fills();
+  void get_fills_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<json::Fills> const &);
+
   template <typename SuccessHandler, typename ErrorHandler>
   void process_response(web::rest::Response const &, SuccessHandler, ErrorHandler);
 
@@ -86,7 +93,7 @@ struct OrderEntry final : public web::rest::Client::Handler {
     core::metrics::Counter disconnect;
   } counter_;
   struct {
-    core::metrics::Profile balance, balance_ack, positions, positions_ack, orders, orders_ack;
+    core::metrics::Profile balance, balance_ack, positions, positions_ack, orders, orders_ack, fills, fills_ack;
   } profile_;
   struct {
     core::metrics::Latency ping;

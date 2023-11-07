@@ -22,6 +22,8 @@ error.hpp
 estimated_price_item.hpp
 estimated_price.hpp
 event_type.hpp
+fills_item.hpp
+fills.hpp
 frame.hpp
 funding_rate_item.hpp
 funding_rate.hpp
@@ -84,6 +86,8 @@ error.cpp
 estimated_price_item.cpp
 estimated_price.cpp
 event_type.cpp
+fills_item.cpp
+fills.cpp
 frame.cpp
 funding_rate_item.cpp
 funding_rate.cpp

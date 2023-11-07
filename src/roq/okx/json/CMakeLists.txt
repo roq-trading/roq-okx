@@ -27,6 +27,8 @@ set(AUTOGEN_SCHEMAS
     estimated_price_item.json
     estimated_price.json
     event_type.json
+    fills_item.json
+    fills.json
     frame.json
     funding_rate_item.json
     funding_rate.json

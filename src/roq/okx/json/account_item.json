@@ -105,6 +105,18 @@
     {
       "name": "fixedBal",
       "type": "double"
+    },
+    {
+      "name": "borrowFroz",
+      "type": "double"
+    },
+    {
+      "name": "spotIsoBal",
+      "type": "double"
+    },
+    {
+      "name": "uplLiab",
+      "type": "double"
     }
   ]
 }

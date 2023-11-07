@@ -87,6 +87,8 @@ OrderEntry::OrderEntry(
           .positions_ack = create_metrics(shared.settings, name_, "positions_ack"sv),
           .orders = create_metrics(shared.settings, name_, "orders"sv),
           .orders_ack = create_metrics(shared.settings, name_, "orders_ack"sv),
+          .fills = create_metrics(shared.settings, name_, "fills"sv),
+          .fills_ack = create_metrics(shared.settings, name_, "fills_ack"sv),
       },
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
@@ -123,6 +125,7 @@ void OrderEntry::operator()(Event<Timer> const &event) {
     if (request_.respond_orders < request_.request_orders) {
       log::info<1>("Download orders..."sv);
       get_orders();
+      get_fills();
       download_orders_ = true;
     }
   }
@@ -139,6 +142,8 @@ void OrderEntry::operator()(metrics::Writer &writer) {
       .write(profile_.positions_ack, metrics::PROFILE)
       .write(profile_.orders, metrics::PROFILE)
       .write(profile_.orders_ack, metrics::PROFILE)
+      .write(profile_.fills, metrics::PROFILE)
+      .write(profile_.fills_ack, metrics::PROFILE)
       // latency
       .write(latency_.ping, metrics::LATENCY);
 }
@@ -436,6 +441,101 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
       log::warn("*** EXTERNAL ORDER ***"sv);
       log::warn("item={}"sv, item);
     }
+  }
+}
+
+// trade fills
+
+void OrderEntry::get_fills() {
+  profile_.fills([&]() {
+    auto method = web::http::Method::GET;
+    auto path = "/api/v5/trade/fills"sv;
+    auto now = clock::get_realtime<std::chrono::milliseconds>();
+    auto begin =
+        std::chrono::duration_cast<std::chrono::milliseconds>(now - shared_.settings.common.download_trades_lookback);
+    // XXX FIXME doesn't look like begin/end is actually being used
+    auto body = fmt::format(
+        R"({{)"
+        R"("begin":{},)"
+        R"("end":{},)"
+        R"("limit":{})"
+        R"(}})"sv,
+        begin.count(),
+        now.count(),
+        shared_.settings.common.download_trades_limit);
+    log::debug(R"(body="{}")"sv, body);
+    auto headers = account_.create_headers(method, path, body);
+    auto request = web::rest::Request{
+        .method = method,
+        .path = path,
+        .query = {},
+        .accept = web::http::Accept::APPLICATION_JSON,
+        .content_type = web::http::ContentType::APPLICATION_JSON,
+        .headers = headers,
+        .body = body,
+        .quality_of_service = {},
+    };
+    auto callback = [this]([[maybe_unused]] auto &request_id, auto &response) {
+      TraceInfo trace_info;
+      Trace event{trace_info, response};
+      get_fills_ack(event);
+    };
+    (*connection_)("fills"sv, request, callback);
+  });
+}
+
+void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
+  profile_.fills_ack([&]() {
+    auto handle_success = [&](auto &body) {
+      auto fills = json::Fills::create(body, decode_buffer_);
+      Trace event_2{event, fills};
+      (*this)(event_2);
+      // download_orders_ = false;
+      // request_.respond_orders = clock::get_system();  // ack
+    };
+    auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
+      log::warn(R"(error={}, text="{}")"sv, error, text);
+      // XXX WHAT ???
+    };
+    process_response(event, handle_success, handle_error);
+  });
+}
+
+void OrderEntry::operator()(Trace<json::Fills> const &event) {
+  auto &[trace_info, fills] = event;
+  log::info<4>("fills={}"sv, fills);
+  for (auto &item : fills.data) {
+    auto side = json::map(item.side);
+    auto liquidity = json::map(item.exec_type);
+    auto fill = Fill{
+        .exchange_time_utc = utils::safe_cast(item.fill_time),
+        .external_trade_id = {},
+        .quantity = item.fill_sz,
+        .price = item.fill_px,
+        .liquidity = liquidity,
+    };
+    fmt::format_to(std::back_inserter(fill.external_trade_id), "{}"sv, item.trade_id);
+    auto trade_update = TradeUpdate{
+        .stream_id = stream_id_,
+        .account = account_.get_name(),
+        .order_id = {},
+        .exchange = shared_.settings.exchange,
+        .symbol = item.inst_id,
+        .side = side,
+        .position_effect = {},
+        .create_time_utc = utils::safe_cast(item.fill_time),
+        .update_time_utc = utils::safe_cast(item.fill_time),
+        .external_account = {},
+        .external_order_id = item.ord_id,
+        .client_order_id = {},
+        .fills = {&fill, 1},
+        .routing_id = {},
+        .update_type = UpdateType::SNAPSHOT,
+        .sending_time_utc = {},
+        .user = {},
+        .strategy_id = {},
+    };
+    create_trace_and_dispatch(handler_, trace_info, trade_update, true, SOURCE_NONE, item.cl_ord_id);
   }
 }
 

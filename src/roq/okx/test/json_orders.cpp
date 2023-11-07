@@ -226,6 +226,121 @@ TEST_CASE("json_orders_parser", "[json_orders]") {
   CHECK(handler.get_count() == 1);
 }
 
+TEST_CASE("json_orders_parser_2", "[json_orders]") {
+  auto message = R"({)"
+                 R"("arg":{)"
+                 R"("channel":"orders",)"
+                 R"("instType":"ANY",)"
+                 R"("uid":"474527194543234199")"
+                 R"(},)"
+                 R"("data":[{)"
+                 R"("accFillSz":"0",)"
+                 R"("algoClOrdId":"",)"
+                 R"("algoId":"",)"
+                 R"("amendResult":"",)"
+                 R"("amendSource":"",)"
+                 R"("attachAlgoClOrdId":"",)"
+                 R"("avgPx":"0",)"
+                 R"("cTime":"1699330197524",)"
+                 R"("cancelSource":"",)"
+                 R"("category":"normal",)"
+                 R"("ccy":"",)"
+                 R"("clOrdId":"X4BAEA772BXLWAABAAAAAAAA",)"
+                 R"("code":"0",)"
+                 R"("execType":"",)"
+                 R"("fee":"0",)"
+                 R"("feeCcy":"BTC",)"
+                 R"("fillFee":"0",)"
+                 R"("fillFeeCcy":"",)"
+                 R"("fillFwdPx":"",)"
+                 R"("fillMarkPx":"",)"
+                 R"("fillMarkVol":"",)"
+                 R"("fillNotionalUsd":"",)"
+                 R"("fillPnl":"0",)"
+                 R"("fillPx":"",)"
+                 R"("fillPxUsd":"",)"
+                 R"("fillPxVol":"",)"
+                 R"("fillSz":"0",)"
+                 R"("fillTime":"",)"
+                 R"("instId":"BTC-USDT",)"
+                 R"("instType":"SPOT",)"
+                 R"("lastPx":"34910",)"
+                 R"("lever":"5",)"
+                 R"("msg":"",)"
+                 R"("notionalUsd":"3.4517940000000005",)"
+                 R"("ordId":"641972610108518410",)"
+                 R"("ordType":"limit",)"
+                 R"("pnl":"0",)"
+                 R"("posSide":"",)"
+                 R"("px":"34500",)"
+                 R"("pxType":"",)"
+                 R"("pxUsd":"",)"
+                 R"("pxVol":"",)"
+                 R"("quickMgnType":"",)"
+                 R"("rebate":"0",)"
+                 R"("rebateCcy":"USDT",)"
+                 R"("reduceOnly":"false",)"
+                 R"("reqId":"",)"
+                 R"("side":"buy",)"
+                 R"("slOrdPx":"",)"
+                 R"("slTriggerPx":"",)"
+                 R"("slTriggerPxType":"",)"
+                 R"("source":"",)"
+                 R"("state":"live",)"
+                 R"("stpId":"",)"
+                 R"("stpMode":"",)"
+                 R"("sz":"0.0001",)"
+                 R"("tag":"",)"
+                 R"("tdMode":"cross",)"
+                 R"("tgtCcy":"",)"
+                 R"("tpOrdPx":"",)"
+                 R"("tpTriggerPx":"",)"
+                 R"("tpTriggerPxType":"",)"
+                 R"("tradeId":"",)"
+                 R"("uTime":"1699330197524")"
+                 R"(})"
+                 R"(])"
+                 R"(})";
+  struct MyHandler final : public json::Parser::Handler {
+    auto get_count() const { return count_; }
+
+   protected:
+    void operator()(Trace<json::Error> const &) override { FAIL(); }
+    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
+    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
+    void operator()(Trace<json::Status> const &) override { FAIL(); }
+    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
+    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
+    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
+    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
+    void operator()(Trace<json::Tickers> const &) override { FAIL(); }
+    void operator()(Trace<json::Trades> const &) override { FAIL(); }
+    void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
+    void operator()(
+        Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override {
+      FAIL();
+    }
+    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
+    void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
+    void operator()(Trace<json::Login> const &) override { FAIL(); }
+    void operator()(Trace<json::Account> const &) override { FAIL(); }
+    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
+    void operator()(Trace<json::Positions> const &) override { FAIL(); }
+    void operator()(Trace<json::Orders> const &event) override { ++count_; }
+    void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
+
+   private:
+    size_t count_ = {};
+  } handler;
+  std::vector<std::byte> buffer(8192);
+  TraceInfo trace_info;
+  auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
+  CHECK(res == true);
+  CHECK(handler.get_count() == 1);
+}
+
 /*
 create order
 {"arg":{"channel":"orders","instType":"ANY","uid":"33594834598109184"},"data":[{"accFillSz":"0","amendResult":"","avgPx":"0","cTime":"1640194677237","category":"normal","ccy":"","clOrdId":"3MAAF2IDAAAQAAGSKMZCT5A3","code":"0","execType":"","fee":"0","feeCcy":"BTC","fillFee":"0","fillFeeCcy":"","fillNotionalUsd":"","fillPx":"","fillSz":"0","fillTime":"","instId":"BTC-USD-220325","instType":"FUTURES","lever":"10","msg":"","notionalUsd":"100.0","ordId":"393940260828377089","ordType":"limit","pnl":"0","posSide":"long","px":"40030.2","rebate":"0","rebateCcy":"BTC","reduceOnly":"false","reqId":"","side":"buy","slOrdPx":"","slTriggerPx":"","slTriggerPxType":"","source":"","state":"live","sz":"1","tag":"","tdMode":"isolated","tgtCcy":"","tpOrdPx":"","tpTriggerPx":"","tpTriggerPxType":"","tradeId":"","uTime":"1640194677237"}]}

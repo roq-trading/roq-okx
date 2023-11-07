@@ -185,6 +185,62 @@
     {
       "name": "uTime",
       "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "algoClOrdId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "algoId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "amendSource",
+      "type": "std::string_view"
+    },
+    {
+      "name": "attachAlgoClOrdId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "cancelSource",
+      "type": "std::string_view"
+    },
+    {
+      "name": "fillFwdPx",
+      "type": "double"
+    },
+    {
+      "name": "fillMarkPx",
+      "type": "double"
+    },
+    {
+      "name": "fillMarkVol",
+      "type": "double"
+    },
+    {
+      "name": "fillPnl",
+      "type": "double"
+    },
+    {
+      "name": "lastPx",
+      "type": "double"
+    },
+    {
+      "name": "quickMgnType",
+      "type": "std::string_view"
+    },
+    {
+      "name": "stpId",
+      "type": "uint32_t"
+    },
+    {
+      "name": "stpMode",
+      "type": "std::string_view"
+    },
+    {
+      "name": "cancelSourceReason",
+      "type": "std::string_view"
     }
   ]
 }

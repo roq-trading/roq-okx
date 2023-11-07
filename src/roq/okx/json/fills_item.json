@@ -1,0 +1,102 @@
+{
+  "name": "FillsItem",
+  "type": "item",
+  "values": [
+    {
+      "name": "instType",
+      "type": "std::string_view"
+    },
+    {
+      "name": "instId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "tradeId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "ordId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "clOrdId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "billId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "tag",
+      "type": "std::string_view"
+    },
+    {
+      "name": "fillPx",
+      "type": "double"
+    },
+    {
+      "name": "fillSz",
+      "type": "double"
+    },
+    {
+      "name": "fillIdxPx",
+      "type": "double"
+    },
+    {
+      "name": "fillPnl",
+      "type": "double"
+    },
+    {
+      "name": "fillPxVol",
+      "type": "double"
+    },
+    {
+      "name": "fillPxUsd",
+      "type": "double"
+    },
+    {
+      "name": "fillMarkVol",
+      "type": "double"
+    },
+    {
+      "name": "fillFwdPx",
+      "type": "double"
+    },
+    {
+      "name": "fillMarkPx",
+      "type": "double"
+    },
+    {
+      "name": "side",
+      "type": "Side"
+    },
+    {
+      "name": "posSide",
+      "type": "PositionSide"
+    },
+    {
+      "name": "execType",
+      "type": "OrderFlowType"
+    },
+    {
+      "name": "feeCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "fee",
+      "type": "double"
+    },
+    {
+      "name": "ts",
+      "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "fillTime",
+      "type": "std::chrono::milliseconds"
+    },
+    {
+      "name": "feeRate",
+      "type": "double"
+    }
+  ]
+}

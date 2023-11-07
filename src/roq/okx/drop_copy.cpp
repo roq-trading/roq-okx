@@ -683,7 +683,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
           .order_type = {},
           .time_in_force = {},
           .execution_instructions = {},
-          .create_time_utc = {},
+          .create_time_utc = utils::safe_cast(item.c_time),
           .update_time_utc = utils::safe_cast(item.u_time),
           .external_account = {},
           .external_order_id = item.ord_id,
@@ -702,11 +702,43 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
           .max_request_version = {},
           .max_response_version = {},
           .max_accepted_version = {},
-          .update_type = {},
-          .sending_time_utc = {},
+          .update_type = UpdateType::INCREMENTAL,
+          .sending_time_utc = utils::safe_cast(item.u_time),
       };
       if (shared_.update_order(
               item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
+        if (item.exec_type != json::OrderFlowType{}) {
+          auto liquidity = json::map(item.exec_type);
+          auto fill = Fill{
+              .exchange_time_utc = utils::safe_cast(item.c_time),
+              .external_trade_id = {},
+              .quantity = item.fill_sz,
+              .price = item.fill_px,
+              .liquidity = liquidity,
+          };
+          fmt::format_to(std::back_inserter(fill.external_trade_id), "{}"sv, item.trade_id);
+          auto trade_update = TradeUpdate{
+              .stream_id = stream_id_,
+              .account = account_.get_name(),
+              .order_id = {},
+              .exchange = shared_.settings.exchange,
+              .symbol = item.inst_id,
+              .side = side,
+              .position_effect = {},
+              .create_time_utc = utils::safe_cast(item.c_time),
+              .update_time_utc = utils::safe_cast(item.u_time),
+              .external_account = {},
+              .external_order_id = item.ord_id,
+              .client_order_id = {},
+              .fills = {&fill, 1},
+              .routing_id = {},
+              .update_type = UpdateType::INCREMENTAL,
+              .sending_time_utc = utils::safe_cast(item.u_time),
+              .user = {},
+              .strategy_id = {},
+          };
+          create_trace_and_dispatch(handler_, trace_info, trade_update, true, SOURCE_NONE, item.cl_ord_id);
+        }
       } else {
         log::warn("*** EXTERNAL ORDER ***"sv);
         log::warn("item={}"sv, item);

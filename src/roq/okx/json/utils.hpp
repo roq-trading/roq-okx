@@ -13,6 +13,7 @@
 #include "roq/okx/json/instrument_state.hpp"
 #include "roq/okx/json/instrument_type.hpp"
 #include "roq/okx/json/option_type.hpp"
+#include "roq/okx/json/order_flow_type.hpp"
 #include "roq/okx/json/order_state.hpp"
 #include "roq/okx/json/side.hpp"
 
@@ -192,23 +193,21 @@ inline roq::OrderStatus map(json::OrderState value) {
   return {};
 }
 
-/*
-// ord type
+// order flow type
 
-inline roq::OrderType map(json::OrdType value) {
+inline roq::Liquidity map(json::OrderFlowType value) {
   switch (value) {
-    using enum json::OrdType::type_t;
+    using enum json::OrderFlowType::type_t;
     case UNDEFINED__:
     case UNKNOWN__:
       break;
-    case MARKET:
-      return roq::OrderType::MARKET;
-    case LIMIT:
-      return roq::OrderType::LIMIT;
+    case MAKER:
+      return roq::Liquidity::MAKER;
+    case TAKER:
+      return roq::Liquidity::TAKER;
   }
   return {};
 }
-*/
 
 // error
 
