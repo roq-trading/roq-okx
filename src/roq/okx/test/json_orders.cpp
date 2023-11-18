@@ -326,7 +326,10 @@ TEST_CASE("json_orders_parser_2", "[json_orders]") {
     void operator()(Trace<json::Account> const &) override { FAIL(); }
     void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
     void operator()(Trace<json::Positions> const &) override { FAIL(); }
-    void operator()(Trace<json::Orders> const &event) override { ++count_; }
+    void operator()(Trace<json::Orders> const &) override {
+      ++count_;
+      // XXX TODO check fields
+    }
     void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
