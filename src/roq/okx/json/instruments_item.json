@@ -113,6 +113,14 @@
     {
       "name": "instFamily",
       "type": "std::string_view"
+    },
+    {
+      "name": "maxLmtAmt",
+      "type": "double"
+    },
+    {
+      "name": "maxMktAmt",
+      "type": "double"
     }
   ]
 }
