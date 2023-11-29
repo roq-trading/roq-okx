@@ -351,10 +351,9 @@ uint16_t DropCopy::operator()(
   if (shared_.dispatcher_.get_all_orders(
           [&](auto &order) {
             log::debug("order={}"sv, order);
-            if (std::empty(cancel_all_orders_2.symbol) || order.symbol == cancel_all_orders_2.symbol)
-              symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id);
+            symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id);
           },
-          account_.get_name())) {
+          cancel_all_orders_2)) {
   } else {
     log::info<1>("No orders"sv);
   }
