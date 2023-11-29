@@ -344,12 +344,15 @@ uint16_t DropCopy::operator()(
   return stream_id_;
 }
 
-uint16_t DropCopy::operator()(Event<CancelAllOrders> const &, [[maybe_unused]] std::string_view const &request_id) {
+uint16_t DropCopy::operator()(
+    Event<CancelAllOrders> const &event, [[maybe_unused]] std::string_view const &request_id) {
+  auto &cancel_all_orders_2 = event.value;
   std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_ids;
   if (shared_.dispatcher_.get_all_orders(
           [&](auto &order) {
             log::debug("order={}"sv, order);
-            symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id);
+            if (std::empty(cancel_all_orders_2.symbol) || order.symbol == cancel_all_orders_2.symbol)
+              symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id);
           },
           account_.get_name())) {
   } else {
