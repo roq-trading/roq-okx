@@ -464,6 +464,9 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
           .settlement_date = {},
           .expiry_datetime = utils::safe_cast(item.exp_time),
           .expiry_datetime_utc = utils::safe_cast(item.exp_time),
+          .exchange_time_utc = {},
+          .exchange_sequence = {},
+          .sending_time_utc = {},
           .discard = discard,
       };
       create_trace_and_dispatch(handler_, trace_info, reference_data, true);
@@ -478,6 +481,9 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
           .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
           .trading_status = trading_status,
+          .exchange_time_utc = {},
+          .exchange_sequence = {},
+          .sending_time_utc = {},
       };
       create_trace_and_dispatch(handler_, trace_info, market_status, true);
       // trying to reduce the number of symbols where we next extra subscriptions
