@@ -108,6 +108,7 @@ struct OrderEntry final : public web::rest::Client::Handler {
   bool download_balance_ = false;
   bool download_positions_ = false;
   bool download_orders_ = false;
+  bool download_trades_is_first_ = true;
 };
 
 }  // namespace okx

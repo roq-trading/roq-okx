@@ -68,6 +68,13 @@ struct create_metrics final : public core::metrics::Factory {
   explicit create_metrics(auto &settings, auto const &group, auto const &function)
       : core::metrics::Factory(settings.app.name, group, function) {}
 };
+
+auto get_download_trades_lookback(auto const &settings, auto download_trades_is_first) {
+  if (download_trades_is_first)
+    if (!settings.common.download_trades_lookback_on_restart.count())
+      return settings.common.download_trades_lookback_on_restart;
+  return settings.common.download_trades_lookback;
+}
 }  // namespace
 
 // === IMPLEMENTATION ===
@@ -451,8 +458,9 @@ void OrderEntry::get_fills() {
     auto method = web::http::Method::GET;
     auto path = "/api/v5/trade/fills"sv;
     auto now = clock::get_realtime<std::chrono::milliseconds>();
-    auto begin =
-        std::chrono::duration_cast<std::chrono::milliseconds>(now - shared_.settings.common.download_trades_lookback);
+    auto lookback = get_download_trades_lookback(shared_.settings, download_trades_is_first_);
+    log::info<1>("Download trades: lookback={}"sv, lookback);
+    auto begin = std::chrono::duration_cast<std::chrono::milliseconds>(now - lookback);
     // XXX FIXME doesn't look like begin/end is actually being used
     auto body = fmt::format(
         R"({{)"
@@ -492,6 +500,7 @@ void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
       (*this)(event_2);
       // download_orders_ = false;
       // request_.respond_orders = clock::get_system();  // ack
+      download_trades_is_first_ = false;
     };
     auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
       log::warn(R"(error={}, text="{}")"sv, error, text);
