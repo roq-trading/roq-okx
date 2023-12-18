@@ -348,9 +348,9 @@ void OrderEntry::operator()(Trace<json::PositionsRest> const &event) {
     auto position_update = PositionUpdate{
         .stream_id = stream_id_,
         .account = account_.get_name(),
-        .margin_mode = {},
         .exchange = shared_.settings.exchange,
         .symbol = item.inst_id,
+        .margin_mode = {},
         .external_account = {},
         .long_quantity = long_quantity,
         .short_quantity = short_quantity,
