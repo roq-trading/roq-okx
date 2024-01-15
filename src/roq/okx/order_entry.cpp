@@ -230,7 +230,7 @@ void OrderEntry::get_balance() {
 
 void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
   profile_.balance_ack([&]() {
-    auto handle_success = [&](auto &body) {
+    auto handle_success = [&]([[maybe_unused]] auto &body) {
       /*
       auto orders = json::Orders::create(body, decode_buffer_);
       Trace event_2{event, orders};
