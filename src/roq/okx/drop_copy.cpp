@@ -693,7 +693,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
           .external_account = {},
           .external_order_id = item.ord_id,
           .client_order_id = {},
-          .status = order_status,
+          .order_status = order_status,
           .quantity = item.sz,
           .price = item.px,
           .stop_price = NaN,
@@ -762,9 +762,9 @@ void DropCopy::operator()(Trace<json::OrderAck> const &event) {
     for (auto &item : order_ack.data) {
       auto error = json::guess_error(item.s_code);
       auto response = oms::Response{
-          .type = RequestType::CREATE_ORDER,
+          .request_type = RequestType::CREATE_ORDER,
           .origin = Origin::EXCHANGE,
-          .status = order_status,
+          .request_status = order_status,
           .error = error,
           .text = item.s_msg,
           .version = {},
@@ -789,9 +789,9 @@ void DropCopy::operator()(Trace<json::AmendOrderAck> const &event) {
     for (auto &item : amend_order_ack.data) {
       auto error = json::guess_error(item.s_code);
       auto response = oms::Response{
-          .type = RequestType::MODIFY_ORDER,
+          .request_type = RequestType::MODIFY_ORDER,
           .origin = Origin::EXCHANGE,
-          .status = order_status,
+          .request_status = order_status,
           .error = error,
           .text = item.s_msg,
           .version = {},
@@ -816,9 +816,9 @@ void DropCopy::operator()(Trace<json::CancelOrderAck> const &event) {
     for (auto &item : cancel_order_ack.data) {
       auto error = json::guess_error(item.s_code);
       auto response = oms::Response{
-          .type = RequestType::CANCEL_ORDER,
+          .request_type = RequestType::CANCEL_ORDER,
           .origin = Origin::EXCHANGE,
-          .status = order_status,
+          .request_status = order_status,
           .error = error,
           .text = item.s_msg,
           .version = {},
