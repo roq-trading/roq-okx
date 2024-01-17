@@ -117,6 +117,14 @@
     {
       "name": "uplLiab",
       "type": "double"
+    },
+    {
+      "name": "imr",
+      "type": "double"
+    },
+    {
+      "name": "mmr",
+      "type": "double"
     }
   ]
 }

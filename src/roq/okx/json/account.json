@@ -45,6 +45,10 @@
     {
       "name": "borrowFroz",
       "type": "double"
+    },
+    {
+      "name": "upl",
+      "type": "double"
     }
   ]
 }
