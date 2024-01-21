@@ -6,8 +6,11 @@
 #include <utility>
 
 #include "roq/mask.hpp"
+
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
+
+#include "roq/utils/metrics/const.hpp"
 
 #include "roq/core/json/parser.hpp"
 
@@ -107,12 +110,12 @@ void Rest::operator()(Event<Timer> const &event) {
 void Rest::operator()(metrics::Writer &writer) {
   writer
       // counter
-      .write(counter_.disconnect, metrics::COUNTER)
+      .write(counter_.disconnect, utils::metrics::COUNTER)
       // profile
-      .write(profile_.instruments, metrics::PROFILE)
-      .write(profile_.instruments_ack, metrics::PROFILE)
+      .write(profile_.instruments, utils::metrics::PROFILE)
+      .write(profile_.instruments_ack, utils::metrics::PROFILE)
       // latency
-      .write(latency_.ping, metrics::LATENCY);
+      .write(latency_.ping, utils::metrics::LATENCY);
 }
 
 void Rest::operator()(ConnectionStatus status) {

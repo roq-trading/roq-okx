@@ -6,8 +6,11 @@
 #include <utility>
 
 #include "roq/mask.hpp"
+
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
+
+#include "roq/utils/metrics/const.hpp"
 
 #include "roq/core/json/parser.hpp"
 
@@ -141,18 +144,18 @@ void OrderEntry::operator()(Event<Timer> const &event) {
 void OrderEntry::operator()(metrics::Writer &writer) {
   writer
       // counter
-      .write(counter_.disconnect, metrics::COUNTER)
+      .write(counter_.disconnect, utils::metrics::COUNTER)
       // profile
-      .write(profile_.balance, metrics::PROFILE)
-      .write(profile_.balance_ack, metrics::PROFILE)
-      .write(profile_.positions, metrics::PROFILE)
-      .write(profile_.positions_ack, metrics::PROFILE)
-      .write(profile_.orders, metrics::PROFILE)
-      .write(profile_.orders_ack, metrics::PROFILE)
-      .write(profile_.fills, metrics::PROFILE)
-      .write(profile_.fills_ack, metrics::PROFILE)
+      .write(profile_.balance, utils::metrics::PROFILE)
+      .write(profile_.balance_ack, utils::metrics::PROFILE)
+      .write(profile_.positions, utils::metrics::PROFILE)
+      .write(profile_.positions_ack, utils::metrics::PROFILE)
+      .write(profile_.orders, utils::metrics::PROFILE)
+      .write(profile_.orders_ack, utils::metrics::PROFILE)
+      .write(profile_.fills, utils::metrics::PROFILE)
+      .write(profile_.fills_ack, utils::metrics::PROFILE)
       // latency
-      .write(latency_.ping, metrics::LATENCY);
+      .write(latency_.ping, utils::metrics::LATENCY);
 }
 
 void OrderEntry::operator()(ConnectionStatus status) {

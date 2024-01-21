@@ -7,8 +7,11 @@
 #include <vector>
 
 #include "roq/mask.hpp"
+
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
+
+#include "roq/utils/metrics/const.hpp"
 
 #include "roq/oms/exceptions.hpp"
 
@@ -142,26 +145,26 @@ void DropCopy::operator()(Event<Timer> const &event) {
 void DropCopy::operator()(metrics::Writer &writer) {
   writer
       // counter
-      .write(counter_.disconnect, metrics::COUNTER)
+      .write(counter_.disconnect, utils::metrics::COUNTER)
       // profile
-      .write(profile_.parse, metrics::PROFILE)
-      .write(profile_.error, metrics::PROFILE)
-      .write(profile_.subscribe, metrics::PROFILE)
-      .write(profile_.unsubscribe, metrics::PROFILE)
-      .write(profile_.login, metrics::PROFILE)
-      .write(profile_.account, metrics::PROFILE)
-      .write(profile_.balance_and_position, metrics::PROFILE)
-      .write(profile_.positions, metrics::PROFILE)
-      .write(profile_.orders, metrics::PROFILE)
-      .write(profile_.create_order, metrics::PROFILE)
-      .write(profile_.modify_order, metrics::PROFILE)
-      .write(profile_.cancel_order, metrics::PROFILE)
-      .write(profile_.order_ack, metrics::PROFILE)
-      .write(profile_.amend_order_ack, metrics::PROFILE)
-      .write(profile_.cancel_order_ack, metrics::PROFILE)
+      .write(profile_.parse, utils::metrics::PROFILE)
+      .write(profile_.error, utils::metrics::PROFILE)
+      .write(profile_.subscribe, utils::metrics::PROFILE)
+      .write(profile_.unsubscribe, utils::metrics::PROFILE)
+      .write(profile_.login, utils::metrics::PROFILE)
+      .write(profile_.account, utils::metrics::PROFILE)
+      .write(profile_.balance_and_position, utils::metrics::PROFILE)
+      .write(profile_.positions, utils::metrics::PROFILE)
+      .write(profile_.orders, utils::metrics::PROFILE)
+      .write(profile_.create_order, utils::metrics::PROFILE)
+      .write(profile_.modify_order, utils::metrics::PROFILE)
+      .write(profile_.cancel_order, utils::metrics::PROFILE)
+      .write(profile_.order_ack, utils::metrics::PROFILE)
+      .write(profile_.amend_order_ack, utils::metrics::PROFILE)
+      .write(profile_.cancel_order_ack, utils::metrics::PROFILE)
       // latency
-      .write(latency_.ping, metrics::LATENCY)
-      .write(latency_.heartbeat, metrics::LATENCY);
+      .write(latency_.ping, utils::metrics::LATENCY)
+      .write(latency_.heartbeat, utils::metrics::LATENCY);
 }
 
 namespace {
