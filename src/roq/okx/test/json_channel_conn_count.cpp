@@ -12,23 +12,12 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-TEST_CASE("json_index_tickers_parser", "[json_index_tickers]") {
+TEST_CASE("json_channel_conn_count_parser", "[json_channel_conn_count]") {
   auto message = R"({)"
-                 R"("arg":{)"
-                 R"("channel":"index-tickers",)"
-                 R"("instId":"BTC-USDT")"
-                 R"(},)"
-                 R"("data":[{)"
-                 R"("instId":"BTC-USDT",)"
-                 R"("idxPx":"41756.7",)"
-                 R"("open24h":"42427.3",)"
-                 R"("high24h":"42560.7",)"
-                 R"("low24h":"41147.5",)"
-                 R"("sodUtc0":"41663.1",)"
-                 R"("sodUtc8":"41984.2",)"
-                 R"("ts":"1642643951284")"
-                 R"(})"
-                 R"(])"
+                 R"("event":"channel-conn-count",)"
+                 R"("channel":"account",)"
+                 R"("connCount":"1",)"
+                 R"("connId":"4adc328c")"
                  R"(})";
   struct MyHandler final : public json::Parser::Handler {
     auto get_count() const { return count_; }
@@ -49,23 +38,15 @@ TEST_CASE("json_index_tickers_parser", "[json_index_tickers]") {
         Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override {
       FAIL();
     }
-    void operator()(Trace<json::IndexTickers> const &event) override {
-      ++count_;
-      auto &[trace_info, trades] = event;
-      auto &data = trades.data;
-      REQUIRE(std::size(data) == 1);
-      auto &d0 = data[0];
-      CHECK(d0.inst_id == "BTC-USDT"sv);
-      CHECK(d0.idx_px == 41756.7_a);
-      CHECK(d0.open24h == 42427.3_a);
-      CHECK(d0.high24h == 42560.7_a);
-      CHECK(d0.low24h == 41147.5_a);
-      CHECK(d0.sod_utc0 == 41663.1_a);
-      CHECK(d0.sod_utc8 == 41984.2_a);
-      CHECK(d0.ts == 1642643951284ms);
-    }
+    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
     void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
-    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
+    void operator()(Trace<json::ChannelConnCount> const &event) override {
+      ++count_;
+      auto &[trace_info, channel_conn_count] = event;
+      CHECK(channel_conn_count.channel == json::Channel::ACCOUNT);
+      CHECK(channel_conn_count.conn_count == 1);
+      CHECK(channel_conn_count.conn_id == "4adc328c"sv);
+    }
     void operator()(Trace<json::Login> const &) override { FAIL(); }
     void operator()(Trace<json::Account> const &) override { FAIL(); }
     void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }

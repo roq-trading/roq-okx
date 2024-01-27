@@ -73,6 +73,7 @@ TEST_CASE("json_books_l2_tbt_parser", "[json_books_l2_tbt]") {
     }
     void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
     void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
+    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
     void operator()(Trace<json::Login> const &) override { FAIL(); }
     void operator()(Trace<json::Account> const &) override { FAIL(); }
     void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
@@ -160,6 +161,7 @@ TEST_CASE("json_books_l2_tbt_parser_books5", "[json_books_l2_tbt]") {
     }
     void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
     void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
+    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
     void operator()(Trace<json::Login> const &) override { FAIL(); }
     void operator()(Trace<json::Account> const &) override { FAIL(); }
     void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }

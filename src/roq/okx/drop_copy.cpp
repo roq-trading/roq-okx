@@ -101,6 +101,7 @@ DropCopy::DropCopy(
           .error = create_metrics(shared.settings, name_, "error"sv),
           .subscribe = create_metrics(shared.settings, name_, "subscribe"sv),
           .unsubscribe = create_metrics(shared.settings, name_, "unsubscribe"sv),
+          .channel_conn_count = create_metrics(shared.settings, name_, "channel_conn_count"sv),
           .login = create_metrics(shared.settings, name_, "login"sv),
           .account = create_metrics(shared.settings, name_, "account"sv),
           .balance_and_position = create_metrics(shared.settings, name_, "balance_and_position"sv),
@@ -149,6 +150,7 @@ void DropCopy::operator()(metrics::Writer &writer) {
       .write(profile_.error, metrics::Type::PROFILE)
       .write(profile_.subscribe, metrics::Type::PROFILE)
       .write(profile_.unsubscribe, metrics::Type::PROFILE)
+      .write(profile_.channel_conn_count, metrics::Type::PROFILE)
       .write(profile_.login, metrics::Type::PROFILE)
       .write(profile_.account, metrics::Type::PROFILE)
       .write(profile_.balance_and_position, metrics::Type::PROFILE)
@@ -597,6 +599,14 @@ void DropCopy::operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::str
 void DropCopy::operator()(
     Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) {
   log::fatal("Unexpected"sv);
+}
+
+void DropCopy::operator()(Trace<json::ChannelConnCount> const &event) {
+  profile_.channel_conn_count([&]() {
+    auto &[trace_info, channel_conn_count] = event;
+    log::info<1>("event={{channel_conn_count={}, trace_info={}}}"sv, channel_conn_count, trace_info);
+    log::debug("channel_conn_count={}"sv, channel_conn_count);
+  });
 }
 
 void DropCopy::operator()(Trace<json::Login> const &event) {

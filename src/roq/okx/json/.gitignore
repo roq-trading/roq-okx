@@ -17,6 +17,7 @@ cancel_order_ack_item.hpp
 cancel_order_ack.hpp
 category.hpp
 channel.hpp
+channel_conn_count.hpp
 contract_type.hpp
 error.hpp
 estimated_price_item.hpp
@@ -81,6 +82,7 @@ cancel_order_ack_item.cpp
 cancel_order_ack.cpp
 category.cpp
 channel.cpp
+channel_conn_count.cpp
 contract_type.cpp
 error.cpp
 estimated_price_item.cpp

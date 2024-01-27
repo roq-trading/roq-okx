@@ -59,6 +59,7 @@ TEST_CASE("json_funding_rate_parser", "[json_funding_rate]") {
       CHECK(d0.inst_type == json::InstrumentType::SWAP);
       CHECK(d0.next_funding_rate == -0.00005_a);
     }
+    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
     void operator()(Trace<json::Login> const &) override { FAIL(); }
     void operator()(Trace<json::Account> const &) override { FAIL(); }
     void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }

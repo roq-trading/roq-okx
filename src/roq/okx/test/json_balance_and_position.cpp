@@ -59,6 +59,7 @@ TEST_CASE("json_balance_and_position_parser", "[json_balance_and_position]") {
     }
     void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
     void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
+    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
     void operator()(Trace<json::Login> const &) override { FAIL(); }
     void operator()(Trace<json::Account> const &) override { FAIL(); }
     void operator()(Trace<json::BalanceAndPosition> const &event) override {
@@ -154,6 +155,7 @@ TEST_CASE("json_balance_and_position_sample_2", "[json_balance_and_position]") {
     }
     void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
     void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
+    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
     void operator()(Trace<json::Login> const &) override { FAIL(); }
     void operator()(Trace<json::Account> const &) override { FAIL(); }
     void operator()(Trace<json::BalanceAndPosition> const &event) override {

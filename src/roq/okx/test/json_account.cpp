@@ -125,6 +125,7 @@ TEST_CASE("json_account_parser", "[json_account]") {
     }
     void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
     void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
+    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
     void operator()(Trace<json::Login> const &) override { FAIL(); }
     void operator()(Trace<json::Account> const &event) override {
       ++count_;

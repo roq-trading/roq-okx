@@ -1,0 +1,18 @@
+{
+  "name": "ChannelConnCount",
+  "type": "item",
+  "values": [
+    {
+      "name": "channel",
+      "type": "Channel"
+    },
+    {
+      "name": "connCount",
+      "type": "uint32_t"
+    },
+    {
+      "name": "connId",
+      "type": "std::string_view"
+    }
+  ]
+}

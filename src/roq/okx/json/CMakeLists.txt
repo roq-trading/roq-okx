@@ -22,6 +22,7 @@ set(AUTOGEN_SCHEMAS
     cancel_order_ack.json
     category.json
     channel.json
+    channel_conn_count.json
     contract_type.json
     error.json
     estimated_price_item.json

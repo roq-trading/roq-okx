@@ -785,6 +785,10 @@ void MarketData::operator()(Trace<json::FundingRate> const &event) {
   });
 }
 
+void MarketData::operator()(Trace<json::ChannelConnCount> const &) {
+  log::fatal("Unexpected"sv);
+}
+
 void MarketData::operator()(Trace<json::Login> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;

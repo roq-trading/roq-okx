@@ -126,6 +126,14 @@ bool Parser::dispatch(
           create_trace_and_dispatch(handler, trace_info, std::as_const(unsubscribe));
           return true;
         }
+        case CHANNEL_CONN_COUNT: {
+          ChannelConnCount channel_conn_count;
+          channel_conn_count.channel = frame.channel;
+          channel_conn_count.conn_count = frame.conn_count;
+          channel_conn_count.conn_id = frame.conn_id;
+          create_trace_and_dispatch(handler, trace_info, std::as_const(channel_conn_count));
+          return true;
+        }
       }
       break;
     case UNKNOWN__:

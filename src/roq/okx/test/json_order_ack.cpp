@@ -48,6 +48,7 @@ TEST_CASE("json_order_ack_parser_success", "[json_order_ack]") {
     }
     void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
     void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
+    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
     void operator()(Trace<json::Login> const &) override { FAIL(); }
     void operator()(Trace<json::Account> const &) override { FAIL(); }
     void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
@@ -118,6 +119,7 @@ TEST_CASE("json_order_ack_parser_failure", "[json_order_ack]") {
     }
     void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
     void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
+    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
     void operator()(Trace<json::Login> const &) override { FAIL(); }
     void operator()(Trace<json::Account> const &) override { FAIL(); }
     void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }

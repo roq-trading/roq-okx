@@ -28,6 +28,7 @@
 
 #include "roq/okx/json/account.hpp"
 #include "roq/okx/json/balance_and_position.hpp"
+#include "roq/okx/json/channel_conn_count.hpp"
 #include "roq/okx/json/login.hpp"
 #include "roq/okx/json/orders.hpp"
 #include "roq/okx/json/positions.hpp"
@@ -60,6 +61,8 @@ struct Parser final {
     virtual void operator()(Trace<json::IndexTickers> const &) = 0;
     virtual void operator()(Trace<json::FundingRate> const &) = 0;
     // - private
+    // -- admin
+    virtual void operator()(Trace<json::ChannelConnCount> const &) = 0;
     // -- event
     virtual void operator()(Trace<json::Login> const &) = 0;
     virtual void operator()(Trace<json::Account> const &) = 0;

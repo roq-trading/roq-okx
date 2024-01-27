@@ -44,6 +44,14 @@
     {
       "name": "outTime",
       "type": "std::chrono::microseconds"
+    },
+    {
+      "name": "channel",
+      "type": "Channel"
+    },
+    {
+      "name": "connCount",
+      "type": "uint32_t"
     }
   ]
 }
