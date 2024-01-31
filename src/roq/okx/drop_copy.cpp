@@ -217,6 +217,20 @@ uint16_t DropCopy::operator()(Event<CreateOrder> const &event, oms::Order const 
   auto side = json::map(create_order.side);
   auto [order_type, reduce_only] = compute_order_attributes(
       create_order.order_type, create_order.time_in_force, create_order.execution_instructions);
+  auto trade_mode = [&]() -> json::TradeMode {
+    switch (create_order.margin_mode) {
+      using enum MarginMode;
+      case UNDEFINED:
+        break;
+      case ISOLATED:
+        return json::TradeMode::type_t::ISOLATED;
+      case CROSS:
+        return json::TradeMode::type_t::CROSS;
+      case PORTFOLIO:
+        throw oms::Rejected{Origin::GATEWAY, Error::INVALID_REQUEST_ARGS, "margin_mode"sv};
+    }
+    return trade_mode_;
+  }();
   switch (order_type) {
     using enum json::OrderType::type_t;
     case MARKET: {
@@ -238,7 +252,7 @@ uint16_t DropCopy::operator()(Event<CreateOrder> const &event, oms::Order const 
           R"(}})"sv,
           ++request_id_,
           request_id,
-          trade_mode_.as_raw_text(),
+          trade_mode.as_raw_text(),
           position_side.as_raw_text(),
           create_order.symbol,
           side.as_raw_text(),
@@ -269,7 +283,7 @@ uint16_t DropCopy::operator()(Event<CreateOrder> const &event, oms::Order const 
           R"(}})"sv,
           ++request_id_,
           request_id,
-          trade_mode_.as_raw_text(),
+          trade_mode.as_raw_text(),
           position_side.as_raw_text(),
           create_order.symbol,
           side.as_raw_text(),
