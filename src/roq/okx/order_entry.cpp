@@ -229,7 +229,7 @@ void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
   profile_.balance_ack([&]() {
     auto handle_success = [&]([[maybe_unused]] auto &body) {
       /*
-      auto orders = json::Orders::create(body, decode_buffer_);
+      json::Orders orders{body, decode_buffer_};
       Trace event_2{event, orders};
       (*this)(event_2);
       */
@@ -323,7 +323,7 @@ void OrderEntry::get_positions() {
 void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
   profile_.positions_ack([&]() {
     auto handle_success = [&](auto &body) {
-      auto positions = json::PositionsRest::create(body, decode_buffer_);
+      json::PositionsRest positions{body, decode_buffer_};
       Trace event_2{event, positions};
       (*this)(event_2);
       download_positions_ = false;
@@ -389,7 +389,7 @@ void OrderEntry::get_orders() {
 void OrderEntry::get_orders_ack(Trace<web::rest::Response> const &event) {
   profile_.orders_ack([&]() {
     auto handle_success = [&](auto &body) {
-      auto orders = json::Orders::create(body, decode_buffer_);
+      json::Orders orders{body, decode_buffer_};
       Trace event_2{event, orders};
       (*this)(event_2);
       download_orders_ = false;
@@ -495,7 +495,7 @@ void OrderEntry::get_fills() {
 void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
   profile_.fills_ack([&]() {
     auto handle_success = [&](auto &body) {
-      auto fills = json::Fills::create(body, decode_buffer_);
+      json::Fills fills{body, decode_buffer_};
       Trace event_2{event, fills};
       (*this)(event_2);
       // download_orders_ = false;

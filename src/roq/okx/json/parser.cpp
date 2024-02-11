@@ -25,7 +25,7 @@ bool Parser::dispatch(
     std::string_view const &message,
     std::span<std::byte> const &buffer,
     TraceInfo const &trace_info) {
-  auto frame = Frame::create(message, buffer);
+  Frame frame{message, buffer};
   switch (frame.op) {
     using enum Operation::type_t;
     case UNDEFINED__:
@@ -164,7 +164,7 @@ void Parser::dispatch_event(auto &handler, auto &message, auto &buffer, auto &tr
     if (key.compare("data"sv) != 0)
       continue;
     for (auto item : std::get<core::json::Array>(value)) {
-      auto obj = T::create(item, buffer);
+      T obj{item, buffer};
       create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
     }
     break;
@@ -179,7 +179,7 @@ void Parser::dispatch_event_array(auto &handler, auto &message, auto &buffer, au
   for (auto [key, value] : std::get<core::json::Object>(root)) {
     if (key.compare("data"sv) != 0)
       continue;
-    auto obj = T::create(value, buffer);
+    T obj{value, buffer};
     create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
     break;
   }
@@ -188,7 +188,7 @@ void Parser::dispatch_event_array(auto &handler, auto &message, auto &buffer, au
 // note! the entire message
 template <typename T, typename... Args>
 void Parser::dispatch_event_frame(auto &handler, auto &message, auto &buffer, auto &trace_info, Args &&...args) {
-  auto obj = T::create(message, buffer);
+  T obj{message, buffer};
   create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
 }
 

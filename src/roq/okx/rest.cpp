@@ -188,7 +188,7 @@ void Rest::get_instruments(std::string_view const &type) {
 void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::string_view const &type) {
   profile_.instruments_ack([&]() {
     auto handle_success = [&](auto &body) {
-      auto instruments = json::InstrumentsRest::create(body, decode_buffer_);
+      json::InstrumentsRest instruments{body, decode_buffer_};
       Trace event_2{event, instruments};
       (*this)(event_2);
       if (type == "SPOT"sv) {

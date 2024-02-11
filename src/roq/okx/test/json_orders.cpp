@@ -19,7 +19,7 @@ TEST_CASE("json_orders_download_empty", "[json_orders]") {
                  R"("msg":"")"
                  R"(})";
   std::vector<std::byte> buffer(8192);
-  auto obj = json::Orders::create(message, buffer);
+  json::Orders obj{message, buffer};
   CHECK(obj.code == 0);
   REQUIRE(std::size(obj.data) == 0);
   CHECK(obj.msg == ""sv);
@@ -70,7 +70,7 @@ TEST_CASE("json_orders_download", "[json_orders]") {
                  R"("msg":"")"
                  R"(})";
   std::vector<std::byte> buffer(8192);
-  auto obj = json::Orders::create(message, buffer);
+  json::Orders obj{message, buffer};
   CHECK(obj.code == 0);
   REQUIRE(std::size(obj.data) == 1);
   // XXX HANS
