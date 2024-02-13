@@ -253,7 +253,7 @@ void OrderEntry::operator()(Trace<json::Balance> const &event) {
   for (auto &item : orders.data) {
     auto side = json::map(item.side);
     auto order_status = json::map(item.state);
-    auto order_update = oms::OrderUpdate{
+    auto order_update = server::oms::OrderUpdate{
         .account = account_.get_name(),
         .exchange = shared_.settings.exchange,
         .symbol = item.inst_id,
@@ -411,7 +411,7 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
   for (auto &item : orders.data) {
     auto side = json::map(item.side);
     auto order_status = json::map(item.state);
-    auto order_update = oms::OrderUpdate{
+    auto order_update = server::oms::OrderUpdate{
         .account = account_.get_name(),
         .exchange = shared_.settings.exchange,
         .symbol = item.inst_id,

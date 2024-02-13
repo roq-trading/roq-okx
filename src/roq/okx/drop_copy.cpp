@@ -11,7 +11,7 @@
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
 
-#include "roq/oms/exceptions.hpp"
+#include "roq/server/oms/exceptions.hpp"
 
 #include "roq/web/socket/client.hpp"
 
@@ -179,7 +179,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(
       order_type_ = json::OrderType::POST_ONLY;
     if (execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE))
       reduce_only = true;
-    // throw oms::NotSupported{"not supported"sv};
+    // throw server::oms::NotSupported{"not supported"sv};
   }
   switch (time_in_force) {
     using enum TimeInForce;
@@ -194,7 +194,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(
         order_type_ = json::OrderType::IOC;
       break;
     default:
-      throw oms::NotSupported{"not supported"sv};
+      throw server::oms::NotSupported{"not supported"sv};
   }
   if (order_type_ == json::OrderType{}) {
     switch (order_type) {
@@ -206,14 +206,15 @@ std::pair<json::OrderType, bool> compute_order_attributes(
         order_type_ = json::OrderType::LIMIT;
         break;
       default:
-        throw oms::NotSupported{"not supported"sv};
+        throw server::oms::NotSupported{"not supported"sv};
     }
   }
   return {order_type_, reduce_only};
 }
 }  // namespace
 
-uint16_t DropCopy::operator()(Event<CreateOrder> const &event, oms::Order const &, std::string_view const &request_id) {
+uint16_t DropCopy::operator()(
+    Event<CreateOrder> const &event, server::oms::Order const &, std::string_view const &request_id) {
   auto &[message_info, create_order] = event;
   json::PositionSide position_side = json::PositionSide::NET;  // XXX should be configurable
   auto side = json::map(create_order.side);
@@ -229,7 +230,7 @@ uint16_t DropCopy::operator()(Event<CreateOrder> const &event, oms::Order const 
       case CROSS:
         return json::TradeMode::type_t::CROSS;
       case PORTFOLIO:
-        throw oms::Rejected{Origin::GATEWAY, Error::INVALID_REQUEST_ARGS, "margin_mode"sv};
+        throw server::oms::Rejected{Origin::GATEWAY, Error::INVALID_REQUEST_ARGS, "margin_mode"sv};
     }
     return trade_mode_;
   }();
@@ -302,7 +303,7 @@ uint16_t DropCopy::operator()(Event<CreateOrder> const &event, oms::Order const 
 
 uint16_t DropCopy::operator()(
     Event<ModifyOrder> const &event,
-    oms::Order const &order,
+    server::oms::Order const &order,
     std::string_view const &request_id,
     std::string_view const &previous_request_id) {
   auto &[message_info, modify_order] = event;
@@ -338,7 +339,7 @@ uint16_t DropCopy::operator()(
 
 uint16_t DropCopy::operator()(
     Event<CancelOrder> const &,
-    oms::Order const &order,
+    server::oms::Order const &order,
     [[maybe_unused]] std::string_view const &request_id,
     std::string_view const &previous_request_id) {
   auto has_external_order_id = !std::empty(order.external_order_id);
@@ -704,7 +705,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
         log::warn<1>(R"(*** ERROR CODE={}, MSG="{}" ***)"sv, item.code, item.msg);
       auto side = json::map(item.side);
       auto order_status = json::map(item.state);
-      auto order_update = oms::OrderUpdate{
+      auto order_update = server::oms::OrderUpdate{
           .account = account_.get_name(),
           .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
@@ -788,7 +789,7 @@ void DropCopy::operator()(Trace<json::OrderAck> const &event) {
     auto order_status = order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : order_ack.data) {
       auto error = json::guess_error(item.s_code);
-      auto response = oms::Response{
+      auto response = server::oms::Response{
           .request_type = RequestType::CREATE_ORDER,
           .origin = Origin::EXCHANGE,
           .request_status = order_status,
@@ -815,7 +816,7 @@ void DropCopy::operator()(Trace<json::AmendOrderAck> const &event) {
     auto order_status = amend_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : amend_order_ack.data) {
       auto error = json::guess_error(item.s_code);
-      auto response = oms::Response{
+      auto response = server::oms::Response{
           .request_type = RequestType::MODIFY_ORDER,
           .origin = Origin::EXCHANGE,
           .request_status = order_status,
@@ -842,7 +843,7 @@ void DropCopy::operator()(Trace<json::CancelOrderAck> const &event) {
     auto order_status = cancel_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : cancel_order_ack.data) {
       auto error = json::guess_error(item.s_code);
-      auto response = oms::Response{
+      auto response = server::oms::Response{
           .request_type = RequestType::CANCEL_ORDER,
           .origin = Origin::EXCHANGE,
           .request_status = order_status,
