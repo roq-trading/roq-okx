@@ -6,6 +6,8 @@
 #include <string>
 #include <string_view>
 
+#include "roq/utils/container.hpp"
+
 #include "roq/utils/metrics/counter.hpp"
 #include "roq/utils/metrics/latency.hpp"
 #include "roq/utils/metrics/profile.hpp"
@@ -95,7 +97,7 @@ struct Rest final : public web::rest::Client::Handler {
   Shared &shared_;
   // state
   ConnectionStatus status_ = {};
-  absl::flat_hash_set<Symbol> all_symbols_;
+  utils::unordered_set<std::string> all_symbols_;
   struct {
     bool spot = {};
     bool swap = {};

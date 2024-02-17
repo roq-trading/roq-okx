@@ -2,8 +2,6 @@
 
 #pragma once
 
-#include <absl/container/flat_hash_set.h>
-
 #include <chrono>
 #include <string>
 #include <utility>
@@ -11,6 +9,8 @@
 
 #include "roq/api.hpp"
 #include "roq/server.hpp"
+
+#include "roq/utils/container.hpp"
 
 #include "roq/core/symbols.hpp"
 
@@ -50,14 +50,14 @@ struct Shared final {
   Settings const &settings;
   core::limit::RateLimiter rate_limiter;
   core::Symbols symbols;
-  absl::flat_hash_set<Symbol> all_symbols;
+  utils::unordered_set<std::string> all_symbols;
   struct {
     std::chrono::nanoseconds request = {};
     std::chrono::nanoseconds response = {};
   } instruments;
 
   // experimental
-  absl::flat_hash_set<Symbol> extended_symbols;
+  utils::unordered_set<std::string> extended_symbols;
 };
 
 }  // namespace okx

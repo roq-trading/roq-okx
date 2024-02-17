@@ -64,8 +64,7 @@ target_link_libraries(
           roq-logging::roq-logging-flags
           roq-flags::roq-flags
           roq-api::roq-api
-          absl::flat_hash_map
-          absl::flat_hash_set
+          unordered_dense::unordered_dense
           fmt::fmt
           ${RT_LIBRARIES})
 

@@ -310,7 +310,7 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols) {
   subscribe(get_books_channel(!std::empty(account_)), "instId"sv, symbols);
   for (auto &symbol : symbols) {
     if (shared_.settings.common.include_bad_subscriptions ||
-        shared_.extended_symbols.find(symbol) != shared_.extended_symbols.end()) {
+        shared_.extended_symbols.find(static_cast<std::string_view>(symbol)) != shared_.extended_symbols.end()) {
       subscribe("index-tickers"sv, "instId"sv, symbol);
       subscribe("funding-rate"sv, "instId"sv, symbol);
     }
