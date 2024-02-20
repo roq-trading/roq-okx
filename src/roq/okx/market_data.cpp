@@ -710,8 +710,8 @@ void MarketData::operator()(
         .exchange_time_utc = books_l2_tbt.ts,
         .exchange_sequence = books_l2_tbt.seq_id,
         .sending_time_utc = {},
-        .price_decimals = {},
-        .quantity_decimals = {},
+        .price_precision = {},
+        .quantity_precision = {},
         .checksum = {},
     };
     log::info<3>("market_by_price_update={}"sv, market_by_price_update);
