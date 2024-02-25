@@ -11,11 +11,21 @@
       "description": "WS end-point (URI)"
     },
     {
+      "name": "public_host",
+      "type": "std::string",
+      "description": "host (http header) in case uri uses an IP address"
+    },
+    {
       "name": "private_uri",
       "type": "roq::io::web::URI",
       "validator": "roq::core::flags::URI",
       "default": "wss://ws.okx.com:8443/ws/v5/private",
       "description": "WS end-point (URI)"
+    },
+    {
+      "name": "private_host",
+      "type": "std::string",
+      "description": "host (http header) in case uri uses an IP address"
     },
     {
       "name": "ping_freq",
