@@ -125,6 +125,14 @@
     {
       "name": "mmr",
       "type": "double"
+    },
+    {
+      "name": "rewardBal",
+      "type": "double"
+    },
+    {
+      "name": "smtSyncEq",
+      "type": "double"
     }
   ]
 }

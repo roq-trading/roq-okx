@@ -184,6 +184,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(
   }
   switch (time_in_force) {
     using enum TimeInForce;
+    case UNDEFINED:
     case GTC:
       break;
     case FOK:
@@ -238,31 +239,61 @@ uint16_t DropCopy::operator()(
   switch (order_type) {
     using enum json::OrderType::type_t;
     case MARKET: {
-      auto message = fmt::format(
-          R"({{)"
-          R"("id":"{}",)"
-          R"("op":"batch-orders",)"
-          R"("args":[{{)"
-          R"("clOrdId":"{}",)"
-          R"("tdMode":"{}",)"
-          R"("posSide":"{}",)"
-          R"("instId":"{}",)"
-          R"("side":"{}",)"
-          R"("ordType":"{}",)"
-          R"("reduceOnly":{},)"
-          R"("sz":"{}")"
-          R"(}})"
-          R"(])"
-          R"(}})"sv,
-          ++request_id_,
-          request_id,
-          trade_mode.as_raw_text(),
-          position_side.as_raw_text(),
-          create_order.symbol,
-          side.as_raw_text(),
-          order_type.as_raw_text(),
-          reduce_only,
-          create_order.quantity);
+      std::string message;
+      if (shared_.settings.test_spot_market_order) {
+        message = fmt::format(
+            R"({{)"
+            R"("id":"{}",)"
+            R"("op":"batch-orders",)"
+            R"("args":[{{)"
+            R"("clOrdId":"{}",)"
+            R"("tdMode":"{}",)"
+            R"("posSide":"{}",)"
+            R"("instId":"{}",)"
+            R"("side":"{}",)"
+            R"("ordType":"{}",)"
+            R"("reduceOnly":{},)"
+            R"("tgtCcy":"base_ccy",)"  // note!
+            R"("sz":"{}")"
+            R"(}})"
+            R"(])"
+            R"(}})"sv,
+            ++request_id_,
+            request_id,
+            trade_mode.as_raw_text(),
+            position_side.as_raw_text(),
+            create_order.symbol,
+            side.as_raw_text(),
+            order_type.as_raw_text(),
+            reduce_only,
+            create_order.quantity);
+      } else {
+        message = fmt::format(
+            R"({{)"
+            R"("id":"{}",)"
+            R"("op":"batch-orders",)"
+            R"("args":[{{)"
+            R"("clOrdId":"{}",)"
+            R"("tdMode":"{}",)"
+            R"("posSide":"{}",)"
+            R"("instId":"{}",)"
+            R"("side":"{}",)"
+            R"("ordType":"{}",)"
+            R"("reduceOnly":{},)"
+            R"("sz":"{}")"
+            R"(}})"
+            R"(])"
+            R"(}})"sv,
+            ++request_id_,
+            request_id,
+            trade_mode.as_raw_text(),
+            position_side.as_raw_text(),
+            create_order.symbol,
+            side.as_raw_text(),
+            order_type.as_raw_text(),
+            reduce_only,
+            create_order.quantity);
+      }
       log::debug("message={}"sv, message);
       (*connection_).send_text(message);
       break;

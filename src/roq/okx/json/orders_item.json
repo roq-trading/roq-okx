@@ -241,6 +241,16 @@
     {
       "name": "cancelSourceReason",
       "type": "std::string_view"
+    },
+    {
+      "name": "isTpLimit",
+      "type": "bool"
+    },
+    {
+      "name": "attachAlgoOrds"
+    },
+    {
+      "name": "linkedAlgoOrd"
     }
   ]
 }
