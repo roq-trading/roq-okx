@@ -8,12 +8,6 @@
       "required": true,
       "default": "okx",
       "description": "exchange identifier (string)"
-    },
-    {
-      "name": "test_spot_market_order",
-      "type": "bool",
-      "default": false,
-      "description": "workaround -- add tgtCcy when placing market order"
     }
   ]
 }

@@ -216,7 +216,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(
 }  // namespace
 
 uint16_t DropCopy::operator()(
-    Event<CreateOrder> const &event, server::oms::Order const &, std::string_view const &request_id) {
+    Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
   auto &[message_info, create_order] = event;
   json::PositionSide position_side = json::PositionSide::NET;  // XXX should be configurable
   auto side = json::map(create_order.side);
@@ -240,7 +240,7 @@ uint16_t DropCopy::operator()(
     using enum json::OrderType::type_t;
     case MARKET: {
       std::string message;
-      if (shared_.settings.test_spot_market_order) {
+      if (order.security_type == SecurityType::SPOT) {
         message = fmt::format(
             R"({{)"
             R"("id":"{}",)"

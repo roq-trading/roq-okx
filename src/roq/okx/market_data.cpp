@@ -262,7 +262,6 @@ void MarketData::login() {
       account_.get_passphrase(),
       timestamp,
       sign);
-  log::debug("message={}"sv, message);
   (*connection_).send_text(message);
   (*this)(ConnectionStatus::LOGIN_SENT);
 }
@@ -328,7 +327,6 @@ void MarketData::subscribe(std::string_view const &channel) {
       R"(])"
       R"(}})"sv,
       channel);
-  log::debug("message={}"sv, message);
   subscribe_queue_.emplace_back(message);
 }
 
@@ -346,7 +344,6 @@ void MarketData::subscribe(
       channel,
       selector,
       value);
-  log::debug("message={}"sv, message);
   subscribe_queue_.emplace_back(message);
 }
 
@@ -369,14 +366,12 @@ void MarketData::subscribe(
       R"(}})"sv,
       prefix,
       fmt::join(values, separator));
-  log::debug("message={}"sv, message);
   subscribe_queue_.emplace_back(message);
 }
 
 void MarketData::parse(std::string_view const &message) {
   profile_.parse([&]() {
     try {
-      // log::debug(R"(message="{}")"sv, message);
       TraceInfo trace_info;
       if (json::Parser::dispatch(*this, message, decode_buffer_, trace_info)) {
       } else {
@@ -400,7 +395,6 @@ void MarketData::operator()(Trace<json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
     log::info<1>("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
-    log::debug("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
     if (subscribe.channel == json::Channel::INSTRUMENTS && subscribe.inst_type == "FUTURES"sv) {
       log::info("Request instruments..."sv);
       shared_.instruments.request = clock::get_system();
@@ -412,7 +406,6 @@ void MarketData::operator()(Trace<json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("event={{unsubscribe={}, trace_info={}}}"sv, unsubscribe, trace_info);
-    log::debug("event={{unsubscribe={}, trace_info={}}}"sv, unsubscribe, trace_info);
   });
 }
 
@@ -520,7 +513,6 @@ void MarketData::operator()(Trace<json::EstimatedPrice> const &event) {
   profile_.estimated_price([&]() {
     auto &[trace_info, estimated_price] = event;
     log::info<3>("event={{estimated_price={}, trace_info={}}}"sv, estimated_price, trace_info);
-    log::debug("event={{estimated_price={}, trace_info={}}}"sv, estimated_price, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
     log::fatal("here"sv);
   });
@@ -530,7 +522,6 @@ void MarketData::operator()(Trace<json::PriceLimit> const &event) {
   profile_.price_limit([&]() {
     auto &[trace_info, price_limit] = event;
     log::info<3>("event={{price_limit={}, trace_info={}}}"sv, price_limit, trace_info);
-    log::debug("event={{price_limit={}, trace_info={}}}"sv, price_limit, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
     log::fatal("here"sv);
   });
@@ -540,7 +531,6 @@ void MarketData::operator()(Trace<json::MarkPrice> const &event) {
   profile_.mark_price([&]() {
     auto &[trace_info, mark_price] = event;
     log::info<3>("event={{mark_price={}, trace_info={}}}"sv, mark_price, trace_info);
-    log::debug("event={{mark_price={}, trace_info={}}}"sv, mark_price, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
     log::fatal("here"sv);
   });
@@ -794,7 +784,6 @@ void MarketData::operator()(Trace<json::Login> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
     log::info<1>("event={{login={}, trace_info={}}}"sv, login, trace_info);
-    log::debug("login={}"sv, login);
     (*connection_).touch(trace_info.source_receive_time);
     auto state = MarketDataState::LOGIN;
     download_.check_relaxed(state);
@@ -832,10 +821,7 @@ void MarketData::operator()(Trace<json::CancelOrderAck> const &) {
 void MarketData::check_subscribe_queue(std::chrono::nanoseconds now) {
   subscribe_queue_.dispatch(
       [&](auto now) { return shared_.rate_limiter.can_request(now); },
-      [&](auto &message) {
-        log::debug(R"(Subscribe: "{}")"sv, message);
-        (*connection_).send_text(message);
-      },
+      [&](auto &message) { (*connection_).send_text(message); },
       now);
 }
 
