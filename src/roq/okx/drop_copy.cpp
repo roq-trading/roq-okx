@@ -236,6 +236,9 @@ uint16_t DropCopy::operator()(
     }
     return trade_mode_;
   }();
+  std::string extras;
+  if (trade_mode == json::TradeMode::type_t::CROSS && !std::empty(shared_.settings.test_margin_currency))
+    extras = fmt::format(R"(,"ccy":"{}")"sv, shared_.settings.test_margin_currency);
   switch (order_type) {
     using enum json::OrderType::type_t;
     case MARKET: {
@@ -255,6 +258,7 @@ uint16_t DropCopy::operator()(
             R"("reduceOnly":{},)"
             R"("tgtCcy":"base_ccy",)"  // note!
             R"("sz":"{}")"
+            R"({})"  // extras
             R"(}})"
             R"(])"
             R"(}})"sv,
@@ -266,7 +270,8 @@ uint16_t DropCopy::operator()(
             side.as_raw_text(),
             order_type.as_raw_text(),
             reduce_only,
-            create_order.quantity);
+            create_order.quantity,
+            extras);
       } else {
         message = fmt::format(
             R"({{)"
@@ -281,6 +286,7 @@ uint16_t DropCopy::operator()(
             R"("ordType":"{}",)"
             R"("reduceOnly":{},)"
             R"("sz":"{}")"
+            R"({})"  // extras
             R"(}})"
             R"(])"
             R"(}})"sv,
@@ -292,7 +298,8 @@ uint16_t DropCopy::operator()(
             side.as_raw_text(),
             order_type.as_raw_text(),
             reduce_only,
-            create_order.quantity);
+            create_order.quantity,
+            extras);
       }
       log::debug("message={}"sv, message);
       (*connection_).send_text(message);
@@ -313,6 +320,7 @@ uint16_t DropCopy::operator()(
           R"("reduceOnly":{},)"
           R"("sz":"{}",)"
           R"("px":"{}")"
+          R"({})"  // extras
           R"(}})"
           R"(])"
           R"(}})"sv,
@@ -325,7 +333,8 @@ uint16_t DropCopy::operator()(
           order_type.as_raw_text(),
           reduce_only,
           create_order.quantity,
-          create_order.price);
+          create_order.price,
+          extras);
       log::debug("message={}"sv, message);
       (*connection_).send_text(message);
     }

@@ -8,6 +8,11 @@
       "required": true,
       "default": "okx",
       "description": "exchange identifier (string)"
+    },
+    {
+      "name": "test_margin_currency",
+      "type": "std::string",
+      "description": "testing"
     }
   ]
 }

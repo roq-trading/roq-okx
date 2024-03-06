@@ -165,6 +165,81 @@
     {
       "name": "posId",
       "type": "std::string_view"
+    },
+    {
+      "name": "baseBorrowed",
+      "type": "double"
+    },
+    {
+      "name": "baseInterest",
+      "type": "double"
+    },
+    {
+      "name": "bePx",
+      "type": "double"
+    },
+    {
+      "name": "bizRefId",
+      "type": "std::string_view"
+    },
+    {
+      "name": "bizRefType",
+      "type": "std::string_view"
+    },
+    {
+      "name": "closeOrderAlgo"
+    },
+    {
+      "name": "fee",
+      "type": "double"
+    },
+    {
+      "name": "fundingFee",
+      "type": "double"
+    },
+    {
+      "name": "idxPx",
+      "type": "double"
+    },
+    {
+      "name": "liqPenalty",
+      "type": "double"
+    },
+    {
+      "name": "pendingCloseOrdLiabVal",
+      "type": "double"
+    },
+    {
+      "name": "pnl",
+      "type": "double"
+    },
+    {
+      "name": "quoteBorrowed",
+      "type": "double"
+    },
+    {
+      "name": "quoteInterest",
+      "type": "double"
+    },
+    {
+      "name": "realizedPnl",
+      "type": "double"
+    },
+    {
+      "name": "spotInUseAmt",
+      "type": "double"
+    },
+    {
+      "name": "spotInUseCcy",
+      "type": "std::string_view"
+    },
+    {
+      "name": "uplLastPx",
+      "type": "double"
+    },
+    {
+      "name": "uplRatioLastPx",
+      "type": "double"
     }
   ]
 }
