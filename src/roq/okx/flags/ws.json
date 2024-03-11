@@ -13,7 +13,7 @@
     {
       "name": "public_host",
       "type": "std::string",
-      "description": "host (http header) in case uri uses an IP address"
+      "description": "Host (http header) in case uri uses an IP address"
     },
     {
       "name": "private_uri",
@@ -25,41 +25,41 @@
     {
       "name": "private_host",
       "type": "std::string",
-      "description": "host (http header) in case uri uses an IP address"
+      "description": "Host (http header) in case uri uses an IP address"
     },
     {
       "name": "ping_freq",
       "type": "std::chrono::nanoseconds",
       "validator": "roq::flags::validators::TimePeriod",
       "default": "5s",
-      "description": "ping frequency"
+      "description": "Ping frequency"
     },
     {
       "name": "max_subscriptions_per_stream",
       "type": "uint32_t",
       "required": true,
       "default": 32,
-      "description": "max symbols per connection (count)"
+      "description": "Max symbols per connection (count)"
     },
     {
       "name": "books_depth",
       "type": "uint16_t",
       "required": true,
       "default": 400,
-      "description": "defines what 'books' channel to subscribe to (some require authentication)"
+      "description": "Defines what 'books' channel to subscribe to (some require authentication)"
     },
     {
       "name": "books_use_public",
       "type": "bool",
       "default": false,
-      "description": "opt-out from the real-time feeds requiring VIP membership"
+      "description": "Opt-out from the real-time feeds requiring VIP membership"
     },
     {
       "name": "disconnect_timeout",
       "type": "std::chrono::nanoseconds",
       "validator": "roq::flags::validators::TimePeriod",
       "default": "10s",
-      "description": "disconnect timeout"
+      "description": "Disconnect timeout"
     }
   ]
 }
