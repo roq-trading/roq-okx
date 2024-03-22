@@ -158,7 +158,7 @@ Flags
 
    .. include:: flags/ws.rstinc
 
-.. tab:: Downlaod
+.. tab:: Download
 
    .. include:: flags/download.rstinc
 
