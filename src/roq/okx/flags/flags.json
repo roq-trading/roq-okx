@@ -10,6 +10,13 @@
       "description": "Exchange identifier (string)"
     },
     {
+      "name": "trade_mode",
+      "type": "std::string",
+      "required": true,
+      "default": "cross",
+      "description": "Trade mode (string)"
+    },
+    {
       "name": "test_margin_currency",
       "type": "std::string",
       "description": "Testing"

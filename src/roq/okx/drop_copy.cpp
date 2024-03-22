@@ -122,7 +122,7 @@ DropCopy::DropCopy(
           .heartbeat = create_metrics(shared.settings, name_, "heartbeat"sv),
       },
       account_{account}, shared_{shared}, request_{request},
-      download_{{}, [this](auto state) { return download(state); }}, trade_mode_{shared.settings.common.trade_mode} {
+      download_{{}, [this](auto state) { return download(state); }}, trade_mode_{shared.settings.trade_mode} {
 }
 
 bool DropCopy::ready() const {

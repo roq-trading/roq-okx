@@ -21,13 +21,6 @@
       "type": "bool",
       "default": false,
       "description": "TEST"
-    },
-    {
-      "name": "trade_mode",
-      "type": "std::string",
-      "required": true,
-      "default": "cross",
-      "description": "Trade mode (string)"
     }
   ]
 }
