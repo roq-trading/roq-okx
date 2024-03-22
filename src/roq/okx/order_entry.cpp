@@ -75,9 +75,9 @@ struct create_metrics final : public core::metrics::Factory {
 
 auto get_download_trades_lookback(auto const &settings, auto download_trades_is_first) {
   if (download_trades_is_first)
-    if (!settings.common.download_trades_lookback_on_restart.count())
-      return settings.common.download_trades_lookback_on_restart;
-  return settings.common.download_trades_lookback;
+    if (!settings.download.trades_lookback_on_restart.count())
+      return settings.download.trades_lookback_on_restart;
+  return settings.download.trades_lookback;
 }
 }  // namespace
 
@@ -473,7 +473,7 @@ void OrderEntry::get_fills() {
         R"(}})"sv,
         begin.count(),
         now.count(),
-        shared_.settings.common.download_trades_limit);
+        shared_.settings.download.trades_limit);
     log::debug(R"(body="{}")"sv, body);
     auto headers = account_.create_headers(method, path, body);
     auto request = web::rest::Request{

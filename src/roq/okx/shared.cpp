@@ -9,7 +9,7 @@ namespace okx {
 
 Shared::Shared(server::Dispatcher &dispatcher, Settings const &settings)
     : dispatcher_{dispatcher}, settings{settings},
-      rate_limiter{settings.common.request_limit, settings.common.request_limit_interval},
+      rate_limiter{settings.request.limit, settings.request.limit_interval},
       symbols{settings.ws.max_subscriptions_per_stream} {
 }
 

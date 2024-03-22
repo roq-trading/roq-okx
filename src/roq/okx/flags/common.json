@@ -3,19 +3,6 @@
   "type": "flags",
   "values": [
     {
-      "name": "request_limit",
-      "type": "uint32_t",
-      "default": "80",
-      "description": "Request limit per interval"
-    },
-    {
-      "name": "request_limit_interval",
-      "type": "std::chrono::nanoseconds",
-      "validator": "roq::flags::validators::TimePeriod",
-      "default": "10s",
-      "description": "Request limit monitor interval"
-    },
-    {
       "name": "encode_buffer_size",
       "type": "uint32_t",
       "required": true,
@@ -30,12 +17,6 @@
       "description": "Decode buffer size"
     },
     {
-      "name": "mbp_allow_price_inversion",
-      "type": "bool",
-      "default": false,
-      "description": "Allow price inversion?"
-    },
-    {
       "name": "include_bad_subscriptions",
       "type": "bool",
       "default": false,
@@ -47,26 +28,6 @@
       "required": true,
       "default": "cross",
       "description": "Trade mode (string)"
-    },
-    {
-      "name": "download_trades_lookback",
-      "type": "std::chrono::nanoseconds",
-      "validator": "roq::flags::validators::TimePeriod",
-      "default": "300s",
-      "description": "Download trades lookback period"
-    },
-    {
-      "name": "download_trades_lookback_on_restart",
-      "type": "std::chrono::nanoseconds",
-      "validator": "roq::flags::validators::TimePeriod",
-      "default": "{}",
-      "description": "Download trades lookback period"
-    },
-    {
-      "name": "download_trades_limit",
-      "type": "uint32_t",
-      "default": "100",
-      "description": "Exchange limit"
     }
   ]
 }

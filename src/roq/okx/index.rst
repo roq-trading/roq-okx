@@ -150,10 +150,6 @@ Flags
 
    .. include:: flags/flags.rstinc
 
-.. tab:: Common
-
-   .. include:: flags/common.rstinc
-
 .. tab:: REST
 
    .. include:: flags/rest.rstinc
@@ -161,6 +157,22 @@ Flags
 .. tab:: WS
 
    .. include:: flags/ws.rstinc
+
+.. tab:: Downlaod
+
+   .. include:: flags/download.rstinc
+
+.. tab:: MBP
+
+   .. include:: flags/mbp.rstinc
+
+.. tab:: Request
+
+   .. include:: flags/request.rstinc
+
+.. tab:: Common
+
+   .. include:: flags/common.rstinc
 
 
 Environments
