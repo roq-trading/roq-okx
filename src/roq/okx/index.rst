@@ -163,13 +163,22 @@ Flags
 Environments
 ------------
 
-.. code-block:: shell
-
-  $ $CONDA_PREFIX/share/roq-okx/flags
-
 .. tab:: Prod
 
+   .. code-block:: shell
+
+      $ $CONDA_PREFIX/share/roq-okx/flags/prod/flags.cfg
+
    .. include:: flags/prod/flags.cfg
+     :code: ini
+
+.. tab:: Test
+
+   .. code-block:: shell
+
+      $ $CONDA_PREFIX/share/roq-okx/flags/test/flags.cfg
+
+   .. include:: flags/test/flags.cfg
      :code: ini
 
 
