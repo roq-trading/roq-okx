@@ -7,19 +7,19 @@
       "type": "std::string",
       "required": true,
       "default": "okx",
-      "description": "Exchange identifier (string)"
+      "description": "Exchange identifier"
     },
     {
       "name": "trade_mode",
       "type": "std::string",
       "required": true,
       "default": "cross",
-      "description": "Trade mode (string)"
+      "description": "Trade mode (:code:`cross`, :code:`isolated` or :code:`cash`)"
     },
     {
       "name": "test_margin_currency",
       "type": "std::string",
-      "description": "Testing"
+      "description": "TEST Margin currency used when placing new orders"
     }
   ]
 }

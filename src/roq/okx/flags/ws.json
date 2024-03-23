@@ -8,24 +8,24 @@
       "type": "roq::io::web::URI",
       "validator": "roq::core::flags::URI",
       "default": "wss://ws.okx.com:8443/ws/v5/public",
-      "description": "WS end-point (URI)"
+      "description": "Exchange end-point"
     },
     {
       "name": "public_host",
       "type": "std::string",
-      "description": "Host (http header) in case uri uses an IP address"
+      "description": "Host (when URI is an IP address)"
     },
     {
       "name": "private_uri",
       "type": "roq::io::web::URI",
       "validator": "roq::core::flags::URI",
       "default": "wss://ws.okx.com:8443/ws/v5/private",
-      "description": "WS end-point (URI)"
+      "description": "Exchange end-point"
     },
     {
       "name": "private_host",
       "type": "std::string",
-      "description": "Host (http header) in case uri uses an IP address"
+      "description": "Host (when URI is an IP address)"
     },
     {
       "name": "ping_freq",
@@ -39,27 +39,27 @@
       "type": "uint32_t",
       "required": true,
       "default": 32,
-      "description": "Max symbols per connection (count)"
+      "description": "Maximum number of symbols per connection"
     },
     {
       "name": "books_depth",
       "type": "uint16_t",
       "required": true,
       "default": 400,
-      "description": "Defines what 'books' channel to subscribe to (some require authentication)"
+      "description": "Depth defines what 'books' channel to subscribe to (some require authentication)"
     },
     {
       "name": "books_use_public",
       "type": "bool",
       "default": false,
-      "description": "Opt-out from the real-time feeds requiring VIP membership"
+      "description": "Only use publicly available data sources (not requiring VIP membership)?"
     },
     {
       "name": "disconnect_timeout",
       "type": "std::chrono::nanoseconds",
       "validator": "roq::flags::validators::TimePeriod",
       "default": "10s",
-      "description": "Disconnect timeout"
+      "description": "Disconnect if connection has been silent for this period"
     }
   ]
 }

@@ -6,10 +6,10 @@
 
 #include "roq/server/flags/settings.hpp"
 
-#include "roq/okx/flags/common.hpp"
 #include "roq/okx/flags/download.hpp"
 #include "roq/okx/flags/flags.hpp"
 #include "roq/okx/flags/mbp.hpp"
+#include "roq/okx/flags/misc.hpp"
 #include "roq/okx/flags/request.hpp"
 #include "roq/okx/flags/rest.hpp"
 #include "roq/okx/flags/ws.hpp"
@@ -20,7 +20,7 @@ namespace okx {
 struct Settings final : public server::flags::Settings, public flags::Flags {
   explicit Settings(args::Parser const &);
 
-  flags::Common common;
+  flags::Misc misc;
   flags::REST rest;
   flags::WS ws;
   flags::Download download;
@@ -39,7 +39,7 @@ struct fmt::formatter<roq::okx::Settings> {
     return fmt::format_to(
         context.out(),
         R"({{)"
-        R"(common={}, )"
+        R"(misc={}, )"
         R"(rest={}, )"
         R"(ws={}, )"
         R"(download={}, )"
@@ -47,7 +47,7 @@ struct fmt::formatter<roq::okx::Settings> {
         R"(request={}, )"
         R"(server={})"
         R"(}})"sv,
-        value.common,
+        value.misc,
         value.rest,
         value.ws,
         value.download,

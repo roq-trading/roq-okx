@@ -18,16 +18,7 @@ Links
 * `Documentation <https://www.okx.com/docs-v5/en/>`__
 
 
-Purpose
--------
-
-* Maintain network connectivity with the OKX exchange
-* Route exchange updates to connected clients
-* Route client requests to the relevant exchange accounts
-* Stream all messages to an event-log
-
-
-Overview
+Supports
 --------
 
 .. grid::  2
@@ -44,6 +35,8 @@ Overview
         - |checkmark|
       * - Options
         - |checkmark|
+      * - Combos
+        -
 
   .. grid-item-card::  Market Data
 
@@ -56,9 +49,9 @@ Overview
         -
       * - Top of Book
         - |checkmark|
-      * - Market by Price (L2)
+      * - Market by Price
         - |checkmark|
-      * - Market by Order (L3)
+      * - Market by Order
         -
       * - Trade Summary
         - |checkmark|
@@ -78,7 +71,7 @@ Overview
         - |checkmark|
       * - Cancel All
         - |checkmark|
-      * - Auto Cancellation
+      * - Auto-Cancel
         -
 
   .. grid-item-card::  Account Management
@@ -91,58 +84,50 @@ Overview
       * - Funds
         - |checkmark|
 
-* Data center located in
-  `AWS <https://aws.amazon.com/>`__,
-  Hong Kong
-* No test environment
 
-
-Conda
------
+Installing
+----------
 
 * :ref:`Using Conda <tutorial-conda>`
 
-.. tab:: Install
+.. tab:: Stable
 
-  .. code-block:: bash
+  .. code-block:: shell
 
-    $ mamba install \
-      --channel https://roq-trading.com/conda/stable \
-      roq-okx
+     $ mamba install \
+           --channel https://roq-trading.com/conda/stable \
+           roq-okx
 
-.. tab:: Configure
+.. tab:: Unstable
 
-  .. code-block:: bash
+  .. code-block:: shell
 
-    $ cp $CONDA_PREFIX/share/roq-okx/config.toml $CONFIG_FILE_PATH
-
-    # Then modify $CONFIG_FILE_PATH to match your specific configuration
-
-.. tab:: Run
-
-  .. code-block:: bash
-
-    $ roq-okx \
-          --name "okx" \
-          --config_file "$CONFIG_FILE_PATH" \
-          --client_listen_address "$UNIX_SOCKET_PATH" \
-          --service_listen_address "$TCP_LISTEN_PORT" \
-          --flagfile "$FLAG_FILE"
+     $ mamba install \
+           --channel https://roq-trading.com/conda/unstable \
+           roq-okx
 
 
-Config
-------
+Using
+-----
 
-* :ref:`Common Config <gateway-config>`
+.. code-block:: shell
 
+   $ roq-okx \
+         --name "okx" \
+         --config_file $CONFIG_FILE_PATH \
+         --client_listen_address $UNIX_SOCKET_PATH \
+         --flagfile $ENVIRONMENT_FLAGFILE
+
+
+.. _roq-okx-flags:
 
 Flags
 -----
 
 * :ref:`Using Flags <abseil-cpp>`
-* :ref:`Common Flags <gateway-flags>`
+* :ref:`Gateway Flags <gateway-flags>`
 
-.. code-block:: bash
+.. code-block:: shell
 
    $ roq-okx --help
 
@@ -170,22 +155,40 @@ Flags
 
    .. include:: flags/request.rstinc
 
-.. tab:: Common
+.. tab:: Misc
 
-   .. include:: flags/common.rstinc
+   .. include:: flags/misc.rstinc
 
 
 Environments
 ------------
 
-.. code-block:: bash
+.. code-block:: shell
 
-  $ $CONDA_PREFIX/share/roq-oks/flags
+  $ $CONDA_PREFIX/share/roq-okx/flags
 
 .. tab:: Prod
 
    .. include:: flags/prod/flags.cfg
      :code: ini
+
+
+Configuration
+-------------
+
+* :ref:`Gateway Config <gateway-config>`
+
+.. code-block:: shell
+
+   $ $CONDA_PREFIX/share/roq-okx/config.toml
+
+.. important::
+
+   The template will be replaced when the software is upgraded.
+   Make a copy and modify to your needs.
+
+.. include:: config.toml
+   :code: toml
 
 
 Market Data
