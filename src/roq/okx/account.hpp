@@ -21,9 +21,7 @@ struct Account final {
   Account(Account &&) = delete;
   Account(Account const &) = delete;
 
-  bool empty() const { return std::empty(name_); }
-
-  std::string_view get_name() const { return name_; }
+  bool empty() const { return std::empty(name); }
 
   std::string_view get_key() const { return crypto_.get_key(); }
   std::string_view get_passphrase() const { return crypto_.get_passphrase(); }
@@ -32,8 +30,9 @@ struct Account final {
 
   std::string create_headers(web::http::Method, std::string_view const &path, std::string_view const &body);
 
+  std::string const name;
+
  private:
-  std::string const name_;
   tools::Crypto crypto_;
 };
 

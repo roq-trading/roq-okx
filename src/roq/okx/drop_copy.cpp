@@ -137,7 +137,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(
 
 DropCopy::DropCopy(
     Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
-    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account.get_name())},
+    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account.name)},
       connection_{create_connection(*this, shared.settings, context)},
       decode_buffer_(shared.settings.misc.decode_buffer_size),
       request_id_{static_cast<uint64_t>(stream_id_) * REQUEST_ID},
@@ -437,7 +437,7 @@ void DropCopy::operator()(web::socket::Client::Latency const &latency) {
   TraceInfo trace_info;
   auto external_latency = ExternalLatency{
       .stream_id = stream_id_,
-      .account = account_.get_name(),
+      .account = account_.name,
       .latency = latency.sample,
   };
   create_trace_and_dispatch(handler_, trace_info, external_latency);
@@ -457,7 +457,7 @@ void DropCopy::operator()(ConnectionStatus status) {
     TraceInfo trace_info;
     auto stream_status = StreamStatus{
         .stream_id = stream_id_,
-        .account = account_.get_name(),
+        .account = account_.name,
         .supports = SUPPORTS,
         .transport = Transport::TCP,
         .protocol = Protocol::WS,
@@ -668,7 +668,7 @@ void DropCopy::operator()(Trace<json::Account> const &event) {
     for (auto &item : account.details) {
       auto funds_update = FundsUpdate{
           .stream_id = stream_id_,
-          .account = account_.get_name(),
+          .account = account_.name,
           .currency = item.ccy,
           .margin_mode = {},
           .balance = item.cash_bal,
@@ -699,7 +699,7 @@ void DropCopy::operator()(Trace<json::Positions> const &event) {
       auto short_quantity = std::max(0.0, -item.pos);
       auto position_update = PositionUpdate{
           .stream_id = stream_id_,
-          .account = account_.get_name(),
+          .account = account_.name,
           .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
           .margin_mode = {},
@@ -728,7 +728,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
       auto side = json::map(item.side);
       auto order_status = json::map(item.state);
       auto order_update = server::oms::OrderUpdate{
-          .account = account_.get_name(),
+          .account = account_.name,
           .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
           .side = side,
@@ -774,7 +774,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
           fmt::format_to(std::back_inserter(fill.external_trade_id), "{}"sv, item.trade_id);
           auto trade_update = TradeUpdate{
               .stream_id = stream_id_,
-              .account = account_.get_name(),
+              .account = account_.name,
               .order_id = {},
               .exchange = shared_.settings.exchange,
               .symbol = item.inst_id,

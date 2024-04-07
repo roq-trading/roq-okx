@@ -42,7 +42,7 @@ auto create_crypto(auto &config, auto &name) -> tools::Crypto {
 // === IMPLEMENTATION ===
 
 Account::Account(Config const &config, std::string_view const &name)
-    : name_{name}, crypto_{create_crypto(config, name_)} {
+    : name{name}, crypto_{create_crypto(config, name)} {
 }
 
 std::string Account::create_headers(

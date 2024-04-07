@@ -256,7 +256,7 @@ void OrderEntry::operator()(Trace<json::Balance> const &event) {
     auto side = json::map(item.side);
     auto order_status = json::map(item.state);
     auto order_update = server::oms::OrderUpdate{
-        .account = account_.get_name(),
+        .account = account_.name,
         .exchange = shared_.settings.exchange,
         .symbol = item.inst_id,
         .side = side,
@@ -350,7 +350,7 @@ void OrderEntry::operator()(Trace<json::PositionsRest> const &event) {
     auto short_quantity = std::max(0.0, -item.pos);
     auto position_update = PositionUpdate{
         .stream_id = stream_id_,
-        .account = account_.get_name(),
+        .account = account_.name,
         .exchange = shared_.settings.exchange,
         .symbol = item.inst_id,
         .margin_mode = {},
@@ -416,7 +416,7 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
     auto side = json::map(item.side);
     auto order_status = json::map(item.state);
     auto order_update = server::oms::OrderUpdate{
-        .account = account_.get_name(),
+        .account = account_.name,
         .exchange = shared_.settings.exchange,
         .symbol = item.inst_id,
         .side = side,
@@ -532,7 +532,7 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
     fmt::format_to(std::back_inserter(fill.external_trade_id), "{}"sv, item.trade_id);
     auto trade_update = TradeUpdate{
         .stream_id = stream_id_,
-        .account = account_.get_name(),
+        .account = account_.name,
         .order_id = {},
         .exchange = shared_.settings.exchange,
         .symbol = item.inst_id,
