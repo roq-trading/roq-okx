@@ -47,6 +47,8 @@ auto const SUPPORTS = Mask{
     SupportType::TRADE,
     SupportType::FUNDS,
 };
+
+auto const REQUEST_ID = uint64_t{1000000};
 }  // namespace
 
 // === HELPERS ===
@@ -86,6 +88,49 @@ struct create_metrics final : public core::metrics::Factory {
   explicit create_metrics(auto &settings, auto const &group, auto const &function)
       : core::metrics::Factory(settings.app.name, group, function) {}
 };
+
+std::pair<json::OrderType, bool> compute_order_attributes(
+    auto &order_type, auto &time_in_force, auto &execution_instructions) {
+  bool reduce_only = false;
+  json::OrderType order_type_ = {};
+  if (!std::empty(execution_instructions)) {
+    if (execution_instructions.has(ExecutionInstruction::PARTICIPATE_DO_NOT_INITIATE))
+      order_type_ = json::OrderType::POST_ONLY;
+    if (execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE))
+      reduce_only = true;
+    // throw server::oms::NotSupported{"not supported"sv};
+  }
+  switch (time_in_force) {
+    using enum TimeInForce;
+    case UNDEFINED:
+    case GTC:
+      break;
+    case FOK:
+      if (order_type_ != json::OrderType{})
+        order_type_ = json::OrderType::FOK;
+      break;
+    case IOC:
+      if (order_type_ != json::OrderType{})
+        order_type_ = json::OrderType::IOC;
+      break;
+    default:
+      throw server::oms::NotSupported{"not supported"sv};
+  }
+  if (order_type_ == json::OrderType{}) {
+    switch (order_type) {
+      using enum OrderType;
+      case MARKET:
+        order_type_ = json::OrderType::MARKET;
+        break;
+      case LIMIT:
+        order_type_ = json::OrderType::LIMIT;
+        break;
+      default:
+        throw server::oms::NotSupported{"not supported"sv};
+    }
+  }
+  return {order_type_, reduce_only};
+}
 }  // namespace
 
 // === IMPLEMENTATION ===
@@ -95,7 +140,7 @@ DropCopy::DropCopy(
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account.get_name())},
       connection_{create_connection(*this, shared.settings, context)},
       decode_buffer_(shared.settings.misc.decode_buffer_size),
-      request_id_{static_cast<uint64_t>(stream_id_) * 1000000},  // scale (debugging)
+      request_id_{static_cast<uint64_t>(stream_id_) * REQUEST_ID},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
@@ -169,51 +214,6 @@ void DropCopy::operator()(metrics::Writer &writer) {
       .write(latency_.ping, metrics::Type::LATENCY)
       .write(latency_.heartbeat, metrics::Type::LATENCY);
 }
-
-namespace {
-std::pair<json::OrderType, bool> compute_order_attributes(
-    auto const &order_type, auto const &time_in_force, auto const &execution_instructions) {
-  bool reduce_only = false;
-  json::OrderType order_type_ = {};
-  if (!std::empty(execution_instructions)) {
-    if (execution_instructions.has(ExecutionInstruction::PARTICIPATE_DO_NOT_INITIATE))
-      order_type_ = json::OrderType::POST_ONLY;
-    if (execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE))
-      reduce_only = true;
-    // throw server::oms::NotSupported{"not supported"sv};
-  }
-  switch (time_in_force) {
-    using enum TimeInForce;
-    case UNDEFINED:
-    case GTC:
-      break;
-    case FOK:
-      if (order_type_ != json::OrderType{})
-        order_type_ = json::OrderType::FOK;
-      break;
-    case IOC:
-      if (order_type_ != json::OrderType{})
-        order_type_ = json::OrderType::IOC;
-      break;
-    default:
-      throw server::oms::NotSupported{"not supported"sv};
-  }
-  if (order_type_ == json::OrderType{}) {
-    switch (order_type) {
-      using enum OrderType;
-      case MARKET:
-        order_type_ = json::OrderType::MARKET;
-        break;
-      case LIMIT:
-        order_type_ = json::OrderType::LIMIT;
-        break;
-      default:
-        throw server::oms::NotSupported{"not supported"sv};
-    }
-  }
-  return {order_type_, reduce_only};
-}
-}  // namespace
 
 uint16_t DropCopy::operator()(
     Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
@@ -301,7 +301,6 @@ uint16_t DropCopy::operator()(
             create_order.quantity,
             extras);
       }
-      log::debug("message={}"sv, message);
       (*connection_).send_text(message);
       break;
     }
@@ -335,7 +334,6 @@ uint16_t DropCopy::operator()(
           create_order.quantity,
           create_order.price,
           extras);
-      log::debug("message={}"sv, message);
       (*connection_).send_text(message);
     }
   }
@@ -373,7 +371,6 @@ uint16_t DropCopy::operator()(
       request_id,
       new_sz,
       new_px);
-  log::debug("message={}"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
 }
@@ -400,7 +397,6 @@ uint16_t DropCopy::operator()(
       order_id_type,
       order_id,
       order.symbol);
-  log::debug("message={}"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
 }
@@ -410,10 +406,7 @@ uint16_t DropCopy::operator()(
   auto &cancel_all_orders_2 = event.value;
   std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_ids;
   if (shared_.dispatcher_.get_all_orders(
-          [&](auto &order) {
-            log::debug("order={}"sv, order);
-            symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id);
-          },
+          [&](auto &order) { symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id); },
           cancel_all_orders_2)) {
   } else {
     log::info<1>("No orders"sv);
@@ -504,10 +497,10 @@ uint32_t DropCopy::download(DropCopyState state) {
       return 1;
     case DONE:
       (*this)(ConnectionStatus::READY);
-      return {};
+      return 0;
   }
   assert(false);
-  return {};
+  return 0;
 }
 
 void DropCopy::login() {
@@ -529,7 +522,6 @@ void DropCopy::login() {
       account_.get_passphrase(),
       timestamp,
       sign);
-  log::debug("message={}"sv, message);
   (*connection_).send_text(message);
   (*this)(ConnectionStatus::LOGIN_SENT);
 }
@@ -551,7 +543,6 @@ void DropCopy::subscribe(std::string_view const &channel) {
       R"(])"
       R"(}})"sv,
       channel);
-  log::debug("message={}"sv, message);
   (*connection_).send_text(message);
 }
 
@@ -569,21 +560,18 @@ void DropCopy::subscribe(
       channel,
       selector,
       value);
-  log::debug("message={}"sv, message);
   (*connection_).send_text(message);
 }
 
 void DropCopy::parse(std::string_view const &message) {
   profile_.parse([&]() {
+    auto log_message = [&]() { log::warn(R"(message="{}")"sv, message); };
     try {
-      // log::debug(R"(message="{}")"sv, message);
       TraceInfo trace_info;
-      if (json::Parser::dispatch(*this, message, decode_buffer_, trace_info)) {
-      } else {
-        log::fatal(R"(message="{}")"sv, message);
-      }
+      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info))
+        log_message();
     } catch (...) {
-      log::warn(R"(message="{}")"sv, message);
+      log_message();
       core::tools::UnhandledException::terminate();
     }
   });
@@ -600,7 +588,6 @@ void DropCopy::operator()(Trace<json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
     log::info<1>("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
-    log::debug("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
     if (subscribe.channel == json::Channel::ORDERS)
       download_.check(DropCopyState::SUBSCRIBE);
   });
@@ -610,7 +597,6 @@ void DropCopy::operator()(Trace<json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("event={{unsubscribe={}, trace_info={}}}"sv, unsubscribe, trace_info);
-    log::debug("event={{unsubscribe={}, trace_info={}}}"sv, unsubscribe, trace_info);
   });
 }
 
@@ -663,7 +649,6 @@ void DropCopy::operator()(Trace<json::ChannelConnCount> const &event) {
   profile_.channel_conn_count([&]() {
     auto &[trace_info, channel_conn_count] = event;
     log::info<1>("event={{channel_conn_count={}, trace_info={}}}"sv, channel_conn_count, trace_info);
-    log::debug("channel_conn_count={}"sv, channel_conn_count);
   });
 }
 
@@ -671,7 +656,6 @@ void DropCopy::operator()(Trace<json::Login> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
     log::info<1>("event={{login={}, trace_info={}}}"sv, login, trace_info);
-    log::debug("login={}"sv, login);
     auto state = DropCopyState::LOGIN;
     download_.check_relaxed(state);
   });
@@ -681,7 +665,6 @@ void DropCopy::operator()(Trace<json::Account> const &event) {
   profile_.account([&]() {
     auto &[trace_info, account] = event;
     log::info<1>("event={{account={}, trace_info={}}}"sv, account, trace_info);
-    // log::debug("account={}"sv, account);
     for (auto &item : account.details) {
       auto funds_update = FundsUpdate{
           .stream_id = stream_id_,
@@ -704,7 +687,6 @@ void DropCopy::operator()(Trace<json::BalanceAndPosition> const &event) {
   profile_.balance_and_position([&]() {
     auto &[trace_info, balance_and_position] = event;
     log::info<1>("event={{balance_and_position={}, trace_info={}}}"sv, balance_and_position, trace_info);
-    // log::debug("balance_and_position={}"sv, balance_and_position);
   });
 }
 
@@ -712,7 +694,6 @@ void DropCopy::operator()(Trace<json::Positions> const &event) {
   profile_.positions([&]() {
     auto &[trace_info, positions] = event;
     log::info<1>("event={{positions={}, trace_info={}}}"sv, positions, trace_info);
-    // log::debug("positions={}"sv, positions);
     for (auto &item : positions.data) {
       auto long_quantity = std::max(0.0, item.pos);
       auto short_quantity = std::max(0.0, -item.pos);
@@ -738,8 +719,8 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
   profile_.orders([&]() {
     auto &[trace_info, orders] = event;
     log::info<1>("event={{orders={}, trace_info={}}}"sv, orders, trace_info);
-    log::debug("orders={}"sv, orders);
     for (auto &item : orders.data) {
+      log::info<2>("item={}"sv, item);
       if (item.amend_result < 0)
         log::warn<1>("*** AMEND HAS FAILED ***"sv);
       if (item.code != 0)
@@ -826,7 +807,6 @@ void DropCopy::operator()(Trace<json::OrderAck> const &event) {
   profile_.order_ack([&]() {
     auto &[trace_info, order_ack] = event;
     log::info<1>("event={{order_ack={}, trace_info={}}}"sv, order_ack, trace_info);
-    log::debug("order_ack={}"sv, order_ack);
     auto order_status = order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : order_ack.data) {
       auto error = json::guess_error(item.s_code);
@@ -853,7 +833,6 @@ void DropCopy::operator()(Trace<json::AmendOrderAck> const &event) {
   profile_.amend_order_ack([&]() {
     auto &[trace_info, amend_order_ack] = event;
     log::info<1>("event={{amend_order_ack={}, trace_info={}}}"sv, amend_order_ack, trace_info);
-    log::debug("amend_order_ack={}"sv, amend_order_ack);
     auto order_status = amend_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : amend_order_ack.data) {
       auto error = json::guess_error(item.s_code);
@@ -880,7 +859,6 @@ void DropCopy::operator()(Trace<json::CancelOrderAck> const &event) {
   profile_.cancel_order_ack([&]() {
     auto &[trace_info, cancel_order_ack] = event;
     log::info<1>("event={{cancel_order_ack={}, trace_info={}}}"sv, cancel_order_ack, trace_info);
-    log::debug("cancel_order_ack={}"sv, cancel_order_ack);
     auto order_status = cancel_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : cancel_order_ack.data) {
       auto error = json::guess_error(item.s_code);
@@ -919,15 +897,28 @@ void DropCopy::cancel_all_orders(
         ++request_id_,
         symbol,
         external_order_id);
-    log::debug("message={}"sv, message);
     (*connection_).send_text(message);
   }
 }
+
+// request
 
 void DropCopy::request_balance() {
   log::info("Requesting balance download..."sv);
   request_.request_balance = clock::get_system();
 }
+
+void DropCopy::request_positions() {
+  log::info("Requesting positions download..."sv);
+  request_.request_positions = clock::get_system();
+}
+
+void DropCopy::request_orders() {
+  log::info("Requesting order download..."sv);
+  request_.request_orders = clock::get_system();
+}
+
+// response
 
 void DropCopy::check_response_balance() {
   if (download_.state() != DropCopyState::BALANCE)
@@ -938,11 +929,6 @@ void DropCopy::check_response_balance() {
   }
 }
 
-void DropCopy::request_positions() {
-  log::info("Requesting positions download..."sv);
-  request_.request_positions = clock::get_system();
-}
-
 void DropCopy::check_response_positions() {
   if (download_.state() != DropCopyState::POSITIONS)
     return;
@@ -950,11 +936,6 @@ void DropCopy::check_response_positions() {
     log::info("Positions download has completed!"sv);
     download_.check(DropCopyState::POSITIONS);
   }
-}
-
-void DropCopy::request_orders() {
-  log::info("Requesting order download..."sv);
-  request_.request_orders = clock::get_system();
 }
 
 void DropCopy::check_response_orders() {

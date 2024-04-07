@@ -166,12 +166,10 @@ void Rest::operator()(Trace<web::rest::Client::Latency> const &event) {
 
 void Rest::get_instruments(std::string_view const &type) {
   profile_.instruments([&]() {
-    auto method = web::http::Method::GET;
-    auto path = "/api/v5/public/instruments"sv;
     auto query = fmt::format("?instType={}"sv, type);
     auto request = web::rest::Request{
-        .method = method,
-        .path = path,
+        .method = web::http::Method::GET,
+        .path = shared_.api.market_data.instruments,
         .query = query,
         .accept = web::http::Accept::APPLICATION_JSON,
         .content_type = {},
@@ -302,6 +300,8 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
   }
 }
 
+// request
+
 void Rest::check_request_queue([[maybe_unused]] std::chrono::nanoseconds now) {
   if (!downloading() && shared_.instruments.response < shared_.instruments.request) {
     log::info("Download instruments..."sv);
@@ -311,6 +311,8 @@ void Rest::check_request_queue([[maybe_unused]] std::chrono::nanoseconds now) {
     download_instruments_.spot = download_instruments_.swap = download_instruments_.futures = true;
   }
 }
+
+// helpers
 
 template <typename SuccessHandler, typename ErrorHandler>
 void Rest::process_response(
@@ -343,5 +345,6 @@ void Rest::process_response(
     error_handler(Origin::EXCHANGE, RequestStatus::ERROR, Error::UNKNOWN, e.what());
   }
 }
+
 }  // namespace okx
 }  // namespace roq

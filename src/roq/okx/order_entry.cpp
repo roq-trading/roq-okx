@@ -73,7 +73,7 @@ struct create_metrics final : public core::metrics::Factory {
       : core::metrics::Factory(settings.app.name, group, function) {}
 };
 
-auto get_download_trades_lookback(auto const &settings, auto download_trades_is_first) {
+auto get_download_trades_lookback(auto &settings, auto download_trades_is_first) {
   if (download_trades_is_first)
     if (!settings.download.trades_lookback_on_restart.count())
       return settings.download.trades_lookback_on_restart;
@@ -207,7 +207,7 @@ void OrderEntry::operator()(Trace<web::rest::Client::Latency> const &event) {
 void OrderEntry::get_balance() {
   profile_.balance([&]() {
     auto method = web::http::Method::GET;
-    auto path = "/api/v5/account/balance"sv;
+    auto path = shared_.api.simple.account_balance;
     auto headers = account_.create_headers(method, path, {});
     auto request = web::rest::Request{
         .method = method,
@@ -224,7 +224,7 @@ void OrderEntry::get_balance() {
       Trace event{trace_info, response};
       get_balance_ack(event);
     };
-    (*connection_)("balance"sv, request, callback);
+    (*connection_)("account-balance"sv, request, callback);
   });
 }
 
@@ -252,6 +252,7 @@ void OrderEntry::operator()(Trace<json::Balance> const &event) {
   auto &[trace_info, orders] = event;
   log::info<4>("orders={}"sv, orders);
   for (auto &item : orders.data) {
+    log::info<2>("item={}"sv, item);
     auto side = json::map(item.side);
     auto order_status = json::map(item.state);
     auto order_update = server::oms::OrderUpdate{
@@ -302,7 +303,7 @@ void OrderEntry::operator()(Trace<json::Balance> const &event) {
 void OrderEntry::get_positions() {
   profile_.positions([&]() {
     auto method = web::http::Method::GET;
-    auto path = "/api/v5/account/positions"sv;
+    auto path = shared_.api.simple.account_positions;
     auto headers = account_.create_headers(method, path, {});
     auto request = web::rest::Request{
         .method = method,
@@ -319,7 +320,7 @@ void OrderEntry::get_positions() {
       Trace event{trace_info, response};
       get_positions_ack(event);
     };
-    (*connection_)("positions"sv, request, callback);
+    (*connection_)("account-positions"sv, request, callback);
   });
 }
 
@@ -344,6 +345,7 @@ void OrderEntry::operator()(Trace<json::PositionsRest> const &event) {
   auto &[trace_info, positions] = event;
   log::info<4>("positions={}"sv, positions);
   for (auto &item : positions.data) {
+    log::info<2>("item={}"sv, item);
     auto long_quantity = std::max(0.0, item.pos);
     auto short_quantity = std::max(0.0, -item.pos);
     auto position_update = PositionUpdate{
@@ -368,7 +370,7 @@ void OrderEntry::operator()(Trace<json::PositionsRest> const &event) {
 void OrderEntry::get_orders() {
   profile_.orders([&]() {
     auto method = web::http::Method::GET;
-    auto path = "/api/v5/trade/orders-pending"sv;
+    auto path = shared_.api.simple.trade_orders_pending;
     auto headers = account_.create_headers(method, path, {});
     auto request = web::rest::Request{
         .method = method,
@@ -385,7 +387,7 @@ void OrderEntry::get_orders() {
       Trace event{trace_info, response};
       get_orders_ack(event);
     };
-    (*connection_)("orders"sv, request, callback);
+    (*connection_)("trade-orders-pending"sv, request, callback);
   });
 }
 
@@ -410,6 +412,7 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
   auto &[trace_info, orders] = event;
   log::info<4>("orders={}"sv, orders);
   for (auto &item : orders.data) {
+    log::info<2>("item={}"sv, item);
     auto side = json::map(item.side);
     auto order_status = json::map(item.state);
     auto order_update = server::oms::OrderUpdate{
@@ -458,8 +461,6 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
 
 void OrderEntry::get_fills() {
   profile_.fills([&]() {
-    auto method = web::http::Method::GET;
-    auto path = "/api/v5/trade/fills"sv;
     auto now = clock::get_realtime<std::chrono::milliseconds>();
     auto lookback = get_download_trades_lookback(shared_.settings, download_trades_is_first_);
     log::info<1>("Download trades: lookback={}"sv, lookback);
@@ -474,7 +475,8 @@ void OrderEntry::get_fills() {
         begin.count(),
         now.count(),
         shared_.settings.download.trades_limit);
-    log::debug(R"(body="{}")"sv, body);
+    auto method = web::http::Method::GET;
+    auto path = shared_.api.simple.trade_fills;
     auto headers = account_.create_headers(method, path, body);
     auto request = web::rest::Request{
         .method = method,
@@ -491,7 +493,7 @@ void OrderEntry::get_fills() {
       Trace event{trace_info, response};
       get_fills_ack(event);
     };
-    (*connection_)("fills"sv, request, callback);
+    (*connection_)("trade-fills"sv, request, callback);
   });
 }
 
@@ -517,6 +519,7 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
   auto &[trace_info, fills] = event;
   log::info<4>("fills={}"sv, fills);
   for (auto &item : fills.data) {
+    log::info<2>("item={}"sv, item);
     auto side = json::map(item.side);
     auto liquidity = json::map(item.exec_type);
     auto fill = Fill{
@@ -552,12 +555,13 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
   }
 }
 
+// helpers
+
 template <typename SuccessHandler, typename ErrorHandler>
 void OrderEntry::process_response(
     web::rest::Response const &response, SuccessHandler success_handler, ErrorHandler error_handler) {
   try {
     auto [status, category, body] = response.result();
-    log::debug(R"(status={}, category={}, body="{}")"sv, status, category, body);
     switch (category) {
       using enum web::http::Category;
       case SUCCESS:  // 2xx
@@ -584,5 +588,6 @@ void OrderEntry::process_response(
     error_handler(Origin::EXCHANGE, RequestStatus::ERROR, Error::UNKNOWN, e.what());
   }
 }
+
 }  // namespace okx
 }  // namespace roq

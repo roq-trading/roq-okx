@@ -81,7 +81,7 @@ R create_market_data(
   result_type result;
   ++stream_id;
   auto index = std::size(result);
-  log::debug("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
+  log::info("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
   auto market_data =
       std::make_unique<MarketData>(gateway, context, stream_id, get_account(accounts, master_account), shared, index);
   result.emplace_back(std::move(market_data));
@@ -186,7 +186,7 @@ void Gateway::ensure_symbol_slices(size_t size) {
   while (std::size(market_data_) < size) {
     auto stream_id = ++stream_id_;
     auto index = std::size(market_data_);
-    log::debug("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
+    log::info("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
     auto market_data = std::make_unique<MarketData>(
         *this, context_, stream_id, get_account(accounts_, master_account_), shared_, index);
     MessageInfo message_info;

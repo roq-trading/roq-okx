@@ -237,10 +237,10 @@ uint32_t MarketData::download(MarketDataState state) {
       (*this)(ConnectionStatus::READY);
       subscribe_static();
       subscribe();  // note! must be *after* READY
-      return {};
+      return 0;
   }
   assert(false);
-  return {};
+  return 0;
 }
 
 void MarketData::login() {
@@ -371,14 +371,13 @@ void MarketData::subscribe(
 
 void MarketData::parse(std::string_view const &message) {
   profile_.parse([&]() {
+    auto log_message = [&]() { log::warn(R"(message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (json::Parser::dispatch(*this, message, decode_buffer_, trace_info)) {
-      } else {
-        log::fatal(R"(message="{}")"sv, message);
-      }
+      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info))
+        log_message();
     } catch (...) {
-      log::warn(R"(message="{}")"sv, message);
+      log_message();
       core::tools::UnhandledException::terminate();
     }
   });
@@ -514,7 +513,7 @@ void MarketData::operator()(Trace<json::EstimatedPrice> const &event) {
     auto &[trace_info, estimated_price] = event;
     log::info<3>("event={{estimated_price={}, trace_info={}}}"sv, estimated_price, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
-    log::fatal("here"sv);
+    log::fatal("HERE"sv);
   });
 }
 
@@ -523,7 +522,7 @@ void MarketData::operator()(Trace<json::PriceLimit> const &event) {
     auto &[trace_info, price_limit] = event;
     log::info<3>("event={{price_limit={}, trace_info={}}}"sv, price_limit, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
-    log::fatal("here"sv);
+    log::fatal("HERE"sv);
   });
 }
 
@@ -532,7 +531,7 @@ void MarketData::operator()(Trace<json::MarkPrice> const &event) {
     auto &[trace_info, mark_price] = event;
     log::info<3>("event={{mark_price={}, trace_info={}}}"sv, mark_price, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
-    log::fatal("here"sv);
+    log::fatal("HERE"sv);
   });
 }
 
@@ -542,7 +541,7 @@ void MarketData::operator()(Trace<json::Tickers> const &event) {
     log::info<3>("event={{tickers={}, trace_info={}}}"sv, tickers, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
     for (auto &item : tickers.data) {
-      auto statistics = std::array<Statistics, 4>{{
+      std::array<Statistics, 4> statistics{{
           {
               .type = StatisticsType::OPEN_PRICE,
               .value = item.open24h,
@@ -747,7 +746,7 @@ void MarketData::operator()(Trace<json::FundingRate> const &event) {
     log::info<3>("event={{funding_rate={}, trace_info={}}}"sv, funding_rate, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
     for (auto &item : funding_rate.data) {
-      auto statistics = std::array<Statistics, 2>{{
+      std::array<Statistics, 2> statistics{{
           {
               .type = StatisticsType::FUNDING_RATE,
               .value = item.funding_rate,
@@ -817,6 +816,8 @@ void MarketData::operator()(Trace<json::AmendOrderAck> const &) {
 void MarketData::operator()(Trace<json::CancelOrderAck> const &) {
   log::fatal("Unexpected"sv);
 }
+
+// request
 
 void MarketData::check_subscribe_queue(std::chrono::nanoseconds now) {
   subscribe_queue_.dispatch(

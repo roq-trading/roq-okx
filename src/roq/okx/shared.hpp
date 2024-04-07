@@ -16,6 +16,7 @@
 
 #include "roq/core/limit/rate_limiter.hpp"
 
+#include "roq/okx/api.hpp"
 #include "roq/okx/settings.hpp"
 
 namespace roq {
@@ -48,6 +49,7 @@ struct Shared final {
 
  public:
   Settings const &settings;
+  API const api;
   core::limit::RateLimiter rate_limiter;
   core::Symbols symbols;
   utils::unordered_set<std::string> all_symbols;
