@@ -9,17 +9,39 @@ roq-okx
 .. important::
    The account must be configured for the "net" position mode (futures and swaps).
 
+.. tab:: Stable
 
-Links
------
+  .. code-block:: shell
 
-* `Website <https://www.okx.com/>`__
-* `Support <mailto:support@okex.com>`__
-* `Documentation <https://www.okx.com/docs-v5/en/>`__
+     $ mamba install \
+           --channel https://roq-trading.com/conda/stable \
+           roq-okx
+
+.. tab:: Unstable
+
+  .. code-block:: shell
+
+     $ mamba install \
+           --channel https://roq-trading.com/conda/unstable \
+           roq-okx
+
+
+:code:`roq-okx`
+---------------
+
+.. code-block:: shell
+
+   $ roq-okx [FLAGS]
+
+
+Description
+~~~~~~~~~~~
+
+:code:`roq-okx` is a gateway
 
 
 Supports
---------
+~~~~~~~~
 
 .. grid::  2
   :gutter: 2
@@ -85,47 +107,10 @@ Supports
         - |checkmark|
 
 
-Installing
-----------
-
-* :ref:`Using Conda <tutorial-conda>`
-
-.. tab:: Stable
-
-  .. code-block:: shell
-
-     $ mamba install \
-           --channel https://roq-trading.com/conda/stable \
-           roq-okx
-
-.. tab:: Unstable
-
-  .. code-block:: shell
-
-     $ mamba install \
-           --channel https://roq-trading.com/conda/unstable \
-           roq-okx
-
-
-Using
------
-
-.. code-block:: shell
-
-   $ roq-okx \
-         --name "okx" \
-         --config_file $CONFIG_FILE_PATH \
-         --client_listen_address $UNIX_SOCKET_PATH \
-         --flagfile $ENVIRONMENT_FLAGFILE
-
-
 .. _roq-okx-flags:
 
 Flags
------
-
-* :ref:`Using Flags <abseil-cpp>`
-* :ref:`Gateway Flags <gateway-flags>`
+~~~~~
 
 .. code-block:: shell
 
@@ -161,7 +146,7 @@ Flags
 
 
 Environments
-------------
+~~~~~~~~~~~~
 
 .. tab:: Prod
 
@@ -183,9 +168,7 @@ Environments
 
 
 Configuration
--------------
-
-* :ref:`Gateway Config <gateway-config>`
+~~~~~~~~~~~~~
 
 .. code-block:: shell
 
@@ -201,7 +184,7 @@ Configuration
 
 
 Market Data
------------
+~~~~~~~~~~~
 
 .. tab:: Live
 
@@ -297,7 +280,7 @@ Market Data
 
 
 Statistics
-~~~~~~~~~~
+^^^^^^^^^^
 
 .. list-table::
   :header-rows: 1
@@ -329,7 +312,7 @@ Statistics
 
 
 Order Management
-----------------
+~~~~~~~~~~~~~~~~
 
 .. tab:: Live
 
@@ -421,7 +404,7 @@ Order Management
       -
 
 Mapping
-~~~~~~~
+^^^^^^^
 
 .. list-table::
   :header-rows: 1
@@ -478,7 +461,7 @@ Mapping
 
 
 Account Management
-------------------
+~~~~~~~~~~~~~~~~~~
 
 .. tab:: Live
 
@@ -524,7 +507,7 @@ Account Management
 
 
 Streams
--------
+~~~~~~~
 
 .. tab:: DropCopy
 
@@ -587,12 +570,13 @@ Streams
 
 
 Constraints
------------
+~~~~~~~~~~~
 
 * Only VIP members can access the L2 tick-by-tick market data feed.
 
+
 Comments
---------
+~~~~~~~~
 
 * TopOfBook is throttled at 100ms (by exchange)
 
@@ -627,3 +611,22 @@ Comments
 
   * :code:`--ws_books_use_public` is an opt-out flag because the gateway will
     by default use a realtime feed if an account has been configured.
+
+
+References
+----------
+
+Common
+~~~~~~
+
+* :ref:`Using Conda <tutorial-conda>`
+* :ref:`Using Flags <abseil-cpp>`
+* :ref:`Gateway Flags <gateway-flags>`
+* :ref:`Gateway Config <gateway-config>`
+
+OKX
+~~~
+
+* `Website <https://www.okx.com/>`__
+* `Support <mailto:support@okex.com>`__
+* `Documentation <https://www.okx.com/docs-v5/en/>`__
