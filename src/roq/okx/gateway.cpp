@@ -22,12 +22,14 @@ template <typename R>
 R create_accounts(auto &config) {
   using result_type = std::remove_cvref<R>::type;
   result_type result;
-  for (auto &[_, account] : config.accounts)
-    result.try_emplace(static_cast<std::string_view>(account.name), std::make_unique<Account>(config, account.name));
+  for (auto &[_, account] : config.accounts) {
+    auto obj = std::make_unique<Account>(config, account.name);
+    result.try_emplace(static_cast<std::string_view>(account.name), std::move(obj));
+  }
   return result;
 }
 
-auto &get_account(auto &accounts, auto const &master_account) {
+auto &get_account(auto &accounts, auto &master_account) {
   if (std::empty(accounts) && std::empty(master_account))
     return NO_SECURITY;
   assert(!std::empty(master_account));
@@ -51,11 +53,11 @@ R create_order_entry(
     auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &request_by_account) {
   using result_type = std::remove_cvref<R>::type;
   result_type result;
-  for (auto &[name, account] : accounts) {
-    auto &request = request_by_account[name];
-    result.try_emplace(
-        static_cast<std::string_view>(name),
-        std::make_unique<OrderEntry>(gateway, context, ++stream_id, *account, shared, request));
+  for (auto &[_, item] : accounts) {
+    auto &account = *item;
+    auto &request = request_by_account[account.name];
+    auto obj = std::make_unique<OrderEntry>(gateway, context, ++stream_id, account, shared, request);
+    result.try_emplace(static_cast<std::string_view>(account.name), std::move(obj));
   }
   return result;
 }
@@ -65,11 +67,11 @@ R create_drop_copy(
     auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &request_by_account) {
   using result_type = std::remove_cvref<R>::type;
   result_type result;
-  for (auto &[name, account] : accounts) {
-    auto &request = request_by_account[name];
-    result.try_emplace(
-        static_cast<std::string_view>(name),
-        std::make_unique<DropCopy>(gateway, context, ++stream_id, *account, shared, request));
+  for (auto &[_, item] : accounts) {
+    auto &account = *item;
+    auto &request = request_by_account[account.name];
+    auto obj = std::make_unique<DropCopy>(gateway, context, ++stream_id, account, shared, request);
+    result.try_emplace(static_cast<std::string_view>(account.name), std::move(obj));
   }
   return result;
 }
@@ -82,9 +84,9 @@ R create_market_data(
   ++stream_id;
   auto index = std::size(result);
   log::info("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
-  auto market_data =
+  auto obj =
       std::make_unique<MarketData>(gateway, context, stream_id, get_account(accounts, master_account), shared, index);
-  result.emplace_back(std::move(market_data));
+  result.emplace_back(std::move(obj));
   return result;
 }
 }  // namespace
@@ -171,15 +173,15 @@ void Gateway::operator()(Trace<PositionUpdate> const &event, bool is_last) {
 void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
   auto [size, start_from] = shared_.symbols(symbols_update.symbols);
   ensure_symbol_slices(size);
-  for (auto &iter : market_data_)
-    (*iter).subscribe(start_from);
+  for (auto &item : market_data_)
+    (*item).subscribe(start_from);
 }
 
 void Gateway::operator()(MarketData::SymbolsUpdate &symbols_update) {
   auto [size, start_from] = shared_.symbols(symbols_update.symbols);
   ensure_symbol_slices(size);
-  for (auto &iter : market_data_)
-    (*iter).subscribe(start_from);
+  for (auto &item : market_data_)
+    (*item).subscribe(start_from);
 }
 
 void Gateway::ensure_symbol_slices(size_t size) {
