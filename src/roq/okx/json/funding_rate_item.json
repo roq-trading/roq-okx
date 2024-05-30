@@ -4,15 +4,15 @@
   "values": [
     {
       "name": "fundingRate",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fundingTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "instId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "instType",
@@ -20,11 +20,11 @@
     },
     {
       "name": "nextFundingRate",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "nextFundingTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     }
   ]
 }

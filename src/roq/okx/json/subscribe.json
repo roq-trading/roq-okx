@@ -8,11 +8,11 @@
     },
     {
       "name": "instType",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "instId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     }
   ]
 }

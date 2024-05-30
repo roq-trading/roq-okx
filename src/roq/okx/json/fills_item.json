@@ -4,67 +4,67 @@
   "values": [
     {
       "name": "instType",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "instId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "tradeId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "ordId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "clOrdId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "billId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "tag",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "fillPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillIdxPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillPnl",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillPxVol",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillPxUsd",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillMarkVol",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillFwdPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillMarkPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "side",
@@ -80,23 +80,23 @@
     },
     {
       "name": "feeCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "fee",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "ts",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "fillTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "feeRate",
-      "type": "double"
+      "type": "std/double"
     }
   ]
 }

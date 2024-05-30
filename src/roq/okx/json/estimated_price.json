@@ -4,7 +4,8 @@
   "values": [
     {
       "name": "data",
-      "type": "std::span<EstimatedPriceItem const>"
+      "type": "EstimatedPriceItem",
+      "array": "std/span"
     }
   ]
 }

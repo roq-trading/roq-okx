@@ -4,19 +4,20 @@
   "values": [
     {
       "name": "code",
-      "type": "int32_t"
+      "type": "std/int32"
     },
     {
       "name": "data",
-      "type": "std::span<AmendOrderAckItem const>"
+      "type": "AmendOrderAckItem",
+      "array": "std/span"
     },
     {
       "name": "id",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "msg",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "op",
@@ -24,11 +25,11 @@
     },
     {
       "name": "inTime",
-      "type": "std::chrono::microseconds"
+      "type": "std/microseconds"
     },
     {
       "name": "outTime",
-      "type": "std::chrono::microseconds"
+      "type": "std/microseconds"
     }
   ]
 }

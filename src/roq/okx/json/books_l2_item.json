@@ -4,19 +4,19 @@
   "values": [
     {
       "name": "price",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "size",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "liquidated_orders",
-      "type": "uint32_t"
+      "type": "std/uint32"
     },
     {
       "name": "orders",
-      "type": "uint32_t"
+      "type": "std/uint32"
     }
   ]
 }

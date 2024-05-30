@@ -4,15 +4,15 @@
   "values": [
     {
       "name": "accFillSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "amendResult",
-      "type": "int32_t"
+      "type": "std/int32"
     },
     {
       "name": "avgPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "category",
@@ -20,19 +20,19 @@
     },
     {
       "name": "ccy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "clOrdId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "code",
-      "type": "int32_t"
+      "type": "std/int32"
     },
     {
       "name": "cTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "execType",
@@ -40,39 +40,39 @@
     },
     {
       "name": "feeCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "fee",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillFeeCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "fillFee",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillNotionalUsd",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "fillPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "instId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "instType",
@@ -80,19 +80,19 @@
     },
     {
       "name": "lever",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "msg",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "notionalUsd",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "ordId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "ordType",
@@ -100,7 +100,7 @@
     },
     {
       "name": "pnl",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "posSide",
@@ -108,23 +108,23 @@
     },
     {
       "name": "px",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "rebateCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "rebate",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "reduceOnly",
-      "type": "bool"
+      "type": "std/bool"
     },
     {
       "name": "reqId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "side",
@@ -132,11 +132,11 @@
     },
     {
       "name": "slOrdPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "slTriggerPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "slTriggerPxType",
@@ -144,7 +144,7 @@
     },
     {
       "name": "source",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "state",
@@ -152,11 +152,11 @@
     },
     {
       "name": "sz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "tag",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "tdMode",
@@ -164,15 +164,15 @@
     },
     {
       "name": "tgtCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "tpOrdPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "tpTriggerPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "tpTriggerPxType",
@@ -180,71 +180,71 @@
     },
     {
       "name": "tradeId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "uTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "algoClOrdId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "algoId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "amendSource",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "attachAlgoClOrdId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "cancelSource",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "fillFwdPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillMarkPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillMarkVol",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fillPnl",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "lastPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "quickMgnType",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "stpId",
-      "type": "uint32_t"
+      "type": "std/uint32"
     },
     {
       "name": "stpMode",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "cancelSourceReason",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "isTpLimit",
-      "type": "bool"
+      "type": "std/bool"
     },
     {
       "name": "attachAlgoOrds"

@@ -4,27 +4,27 @@
   "values": [
     {
       "name": "clOrdId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "ordId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "sCode",
-      "type": "int32_t"
+      "type": "std/int32"
     },
     {
       "name": "sMsg",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "tag",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "ts",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     }
   ]
 }

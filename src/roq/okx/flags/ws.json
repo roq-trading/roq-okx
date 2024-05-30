@@ -12,7 +12,7 @@
     },
     {
       "name": "public_host",
-      "type": "std::string",
+      "type": "std/string",
       "description": "Host (when URI is an IP address)"
     },
     {
@@ -24,39 +24,39 @@
     },
     {
       "name": "private_host",
-      "type": "std::string",
+      "type": "std/string",
       "description": "Host (when URI is an IP address)"
     },
     {
       "name": "ping_freq",
-      "type": "std::chrono::nanoseconds",
+      "type": "std/nanoseconds",
       "validator": "roq::flags::validators::TimePeriod",
       "default": "5s",
       "description": "Ping frequency"
     },
     {
       "name": "max_subscriptions_per_stream",
-      "type": "uint32_t",
+      "type": "std/uint32",
       "required": true,
       "default": 32,
       "description": "Maximum number of symbols per connection"
     },
     {
       "name": "books_depth",
-      "type": "uint16_t",
+      "type": "std/uint16",
       "required": true,
       "default": 400,
       "description": "Depth defines what 'books' channel to subscribe to (some require authentication)"
     },
     {
       "name": "books_use_public",
-      "type": "bool",
+      "type": "std/bool",
       "default": false,
       "description": "Only use publicly available data sources (not requiring VIP membership)?"
     },
     {
       "name": "disconnect_timeout",
-      "type": "std::chrono::nanoseconds",
+      "type": "std/nanoseconds",
       "validator": "roq::flags::validators::TimePeriod",
       "default": "10s",
       "description": "Disconnect if connection has been silent for this period"

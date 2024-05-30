@@ -4,19 +4,19 @@
   "values": [
     {
       "name": "alias",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "baseCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "category",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "ctMult",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "ctType",
@@ -24,19 +24,19 @@
     },
     {
       "name": "ctValCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "ctVal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "expTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "instId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "instType",
@@ -44,19 +44,19 @@
     },
     {
       "name": "lever",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "listTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "lotSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "minSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "optType",
@@ -64,11 +64,11 @@
     },
     {
       "name": "quoteCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "settleCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "state",
@@ -76,51 +76,51 @@
     },
     {
       "name": "stk",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "tickSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "uly",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "maxIcebergSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "maxLmtSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "maxMktSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "maxStopSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "maxTriggerSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "maxTwapSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "instFamily",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "maxLmtAmt",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "maxMktAmt",
-      "type": "double"
+      "type": "std/double"
     }
   ]
 }

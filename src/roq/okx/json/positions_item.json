@@ -16,230 +16,230 @@
     },
     {
       "name": "pos",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "posCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "availPos",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "avgPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "upl",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "uplRatio",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "instId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "lever",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "liqPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "markPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "imr",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "margin",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "mgnRatio",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "mmr",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "liab",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "liabCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "interest",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "tradeId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "notionalUsd",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "optVal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "adl",
-      "type": "int32_t"
+      "type": "std/int32"
     },
     {
       "name": "ccy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "last",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "usdPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "deltaBS",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "deltaPA",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "gammaBS",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "gammaPA",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "thetaBS",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "thetaPA",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "vegaBS",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "vegaPA",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "cTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "uTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "pTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "baseBal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "quoteBal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "posId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "baseBorrowed",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "baseInterest",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "bePx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "bizRefId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "bizRefType",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "closeOrderAlgo"
     },
     {
       "name": "fee",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fundingFee",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "idxPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "liqPenalty",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "pendingCloseOrdLiabVal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "pnl",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "quoteBorrowed",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "quoteInterest",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "realizedPnl",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "spotInUseAmt",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "spotInUseCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "uplLastPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "uplRatioLastPx",
-      "type": "double"
+      "type": "std/double"
     }
   ]
 }

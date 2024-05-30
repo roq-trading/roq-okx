@@ -8,63 +8,63 @@
     },
     {
       "name": "instId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "last",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "lastSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "askPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "askSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "bidPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "bidSz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "open24h",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "high24h",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "low24h",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "sodUtc0",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "sodUtc8",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "volCcy24h",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "vol24h",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "ts",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     }
   ]
 }

@@ -4,32 +4,34 @@
   "values": [
     {
       "name": "bids",
-      "type": "std::span<BooksL2Item const>"
+      "type": "BooksL2Item",
+      "array": "std/span"
     },
     {
       "name": "asks",
-      "type": "std::span<BooksL2Item const>"
+      "type": "BooksL2Item",
+      "array": "std/span"
     },
     {
       "name": "instId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "ts",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "seqId",
-      "type": "uint64_t"
+      "type": "std/uint64"
     },
     {
       "name": "prevSeqId",
-      "type": "int64_t",
+      "type": "std/int64",
       "comment": "have seen -1"
     },
     {
       "name": "checksum",
-      "type": "int64_t"
+      "type": "std/int64"
     }
   ]
 }

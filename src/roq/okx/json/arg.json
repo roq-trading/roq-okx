@@ -8,15 +8,15 @@
     },
     {
       "name": "instId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "instType",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "uid",
-      "type": "std::string_view"
+      "type": "std/string_view"
     }
   ]
 }

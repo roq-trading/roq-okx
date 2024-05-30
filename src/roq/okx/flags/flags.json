@@ -4,21 +4,21 @@
   "values": [
     {
       "name": "exchange",
-      "type": "std::string",
+      "type": "std/string",
       "required": true,
       "default": "okx",
       "description": "Exchange identifier"
     },
     {
       "name": "trade_mode",
-      "type": "std::string",
+      "type": "std/string",
       "required": true,
       "default": "cross",
       "description": "Trade mode (:code:`cross`, :code:`isolated` or :code:`cash`)"
     },
     {
       "name": "test_margin_currency",
-      "type": "std::string",
+      "type": "std/string",
       "description": "TEST Margin currency used when placing new orders"
     }
   ]

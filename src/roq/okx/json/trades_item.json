@@ -4,20 +4,20 @@
   "values": [
     {
       "name": "instId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "tradeId",
-      "type": "std::string_view",
+      "type": "std/string_view",
       "comment": "we need the string"
     },
     {
       "name": "px",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "sz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "side",
@@ -25,11 +25,11 @@
     },
     {
       "name": "ts",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "count",
-      "type": "uint32_t"
+      "type": "std/uint32"
     }
   ]
 }

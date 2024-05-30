@@ -4,15 +4,15 @@
   "values": [
     {
       "name": "posId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "tradeId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "instId",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "instType",
@@ -24,11 +24,11 @@
     },
     {
       "name": "avgPx",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "ccy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "posSide",
@@ -36,23 +36,23 @@
     },
     {
       "name": "pos",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "posCcy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "uTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "baseBal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "quoteBal",
-      "type": "double"
+      "type": "std/double"
     }
   ]
 }

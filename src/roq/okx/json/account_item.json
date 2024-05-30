@@ -4,135 +4,135 @@
   "values": [
     {
       "name": "availBal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "availEq",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "cashBal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "ccy",
-      "type": "std::string_view"
+      "type": "std/string_view"
     },
     {
       "name": "coinUsdPrice",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "crossLiab",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "disEq",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "eq",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "eqUsd",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "frozenBal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "interest",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "isoEq",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "isoLiab",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "isoUpl",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "liab",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "maxLoan",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "mgnRatio",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "notionalLever",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "ordFrozen",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "stgyEq",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "twap",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "uplLib",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "upl",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "uTime",
-      "type": "std::chrono::milliseconds"
+      "type": "std/milliseconds"
     },
     {
       "name": "spotInUseAmt",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "fixedBal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "borrowFroz",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "spotIsoBal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "uplLiab",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "imr",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "mmr",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "rewardBal",
-      "type": "double"
+      "type": "std/double"
     },
     {
       "name": "smtSyncEq",
-      "type": "double"
+      "type": "std/double"
     }
   ]
 }

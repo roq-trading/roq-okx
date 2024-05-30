@@ -4,7 +4,8 @@
   "values": [
     {
       "name": "data",
-      "type": "std::span<TickersItem const>"
+      "type": "TickersItem",
+      "array": "std/span"
     }
   ]
 }

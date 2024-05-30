@@ -4,7 +4,8 @@
   "values": [
     {
       "name": "data",
-      "type": "std::span<FundingRateItem const>"
+      "type": "FundingRateItem",
+      "array": "std/span"
     }
   ]
 }
