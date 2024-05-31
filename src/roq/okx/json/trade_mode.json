@@ -1,5 +1,5 @@
 {
-  "name": "TradeMode",
+  "name": "roq/okx/json/TradeMode",
   "type": "enum",
   "values": [
     {

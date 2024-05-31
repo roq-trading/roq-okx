@@ -1,5 +1,5 @@
 {
-  "name": "InstrumentType",
+  "name": "roq/okx/json/InstrumentType",
   "type": "enum",
   "values": [
     {

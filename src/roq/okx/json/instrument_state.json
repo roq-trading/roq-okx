@@ -1,5 +1,5 @@
 {
-  "name": "InstrumentState",
+  "name": "roq/okx/json/InstrumentState",
   "type": "enum",
   "values": [
     {

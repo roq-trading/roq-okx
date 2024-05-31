@@ -1,5 +1,5 @@
 {
-  "name": "TradesItem",
+  "name": "roq/okx/json/TradesItem",
   "type": "item",
   "values": [
     {
@@ -21,7 +21,7 @@
     },
     {
       "name": "side",
-      "type": "Side"
+      "type": "roq/okx/json/Side"
     },
     {
       "name": "ts",

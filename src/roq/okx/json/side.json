@@ -1,5 +1,5 @@
 {
-  "name": "Side",
+  "name": "roq/okx/json/Side",
   "type": "enum",
   "values": [
     {

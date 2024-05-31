@@ -1,5 +1,5 @@
 {
-  "name": "Account",
+  "name": "roq/okx/json/Account",
   "type": "comp",
   "values": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "name": "details",
-      "type": "AccountItem",
+      "type": "roq/okx/json/AccountItem",
       "array": "std/span"
     },
     {

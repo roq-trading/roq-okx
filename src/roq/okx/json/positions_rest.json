@@ -1,5 +1,5 @@
 {
-  "name": "PositionsRest",
+  "name": "roq/okx/json/PositionsRest",
   "type": "comp",
   "values": [
     {
@@ -12,7 +12,7 @@
     },
     {
       "name": "data",
-      "type": "PositionsItem",
+      "type": "roq/okx/json/PositionsItem",
       "array": "std/span"
     }
   ]

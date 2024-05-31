@@ -1,5 +1,5 @@
 {
-  "name": "Action",
+  "name": "roq/okx/json/Action",
   "type": "enum",
   "values": [
     {

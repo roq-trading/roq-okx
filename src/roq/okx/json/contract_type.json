@@ -1,5 +1,5 @@
 {
-  "name": "ContractType",
+  "name": "roq/okx/json/ContractType",
   "type": "enum",
   "values": [
     {

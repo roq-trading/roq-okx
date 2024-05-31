@@ -1,10 +1,10 @@
 {
-  "name": "TickersItem",
+  "name": "roq/okx/json/TickersItem",
   "type": "item",
   "values": [
     {
       "name": "instType",
-      "type": "InstrumentType"
+      "type": "roq/okx/json/InstrumentType"
     },
     {
       "name": "instId",

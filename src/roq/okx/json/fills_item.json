@@ -1,5 +1,5 @@
 {
-  "name": "FillsItem",
+  "name": "roq/okx/json/FillsItem",
   "type": "item",
   "values": [
     {
@@ -68,15 +68,15 @@
     },
     {
       "name": "side",
-      "type": "Side"
+      "type": "roq/okx/json/Side"
     },
     {
       "name": "posSide",
-      "type": "PositionSide"
+      "type": "roq/okx/json/PositionSide"
     },
     {
       "name": "execType",
-      "type": "OrderFlowType"
+      "type": "roq/okx/json/OrderFlowType"
     },
     {
       "name": "feeCcy",

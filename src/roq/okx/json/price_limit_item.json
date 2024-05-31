@@ -1,10 +1,10 @@
 {
-  "name": "PriceLimitItem",
+  "name": "roq/okx/json/PriceLimitItem",
   "type": "item",
   "values": [
     {
       "name": "instType",
-      "type": "InstrumentType"
+      "type": "roq/okx/json/InstrumentType"
     },
     {
       "name": "instId",

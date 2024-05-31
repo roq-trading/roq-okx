@@ -1,5 +1,5 @@
 {
-  "name": "Channel",
+  "name": "roq/okx/json/Channel",
   "type": "enum",
   "values": [
     {

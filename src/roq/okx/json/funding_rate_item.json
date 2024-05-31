@@ -1,5 +1,5 @@
 {
-  "name": "FundingRateItem",
+  "name": "roq/okx/json/FundingRateItem",
   "type": "item",
   "values": [
     {
@@ -16,7 +16,7 @@
     },
     {
       "name": "instType",
-      "type": "InstrumentType"
+      "type": "roq/okx/json/InstrumentType"
     },
     {
       "name": "nextFundingRate",

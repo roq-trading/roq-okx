@@ -1,5 +1,5 @@
 {
-  "name": "Orders",
+  "name": "roq/okx/json/Orders",
   "type": "comp",
   "values": [
     {
@@ -12,11 +12,11 @@
     },
     {
       "name": "arg",
-      "type": "Arg"
+      "type": "roq/okx/json/Arg"
     },
     {
       "name": "data",
-      "type": "OrdersItem",
+      "type": "roq/okx/json/OrdersItem",
       "array": "std/span"
     }
   ]

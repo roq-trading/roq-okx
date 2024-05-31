@@ -1,10 +1,10 @@
 {
-  "name": "PriceLimit",
+  "name": "roq/okx/json/PriceLimit",
   "type": "array",
   "values": [
     {
       "name": "data",
-      "type": "PriceLimitItem",
+      "type": "roq/okx/json/PriceLimitItem",
       "array": "std/span"
     }
   ]

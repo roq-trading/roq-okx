@@ -1,5 +1,5 @@
 {
-  "name": "Fills",
+  "name": "roq/okx/json/Fills",
   "type": "comp",
   "values": [
     {
@@ -12,11 +12,11 @@
     },
     {
       "name": "arg",
-      "type": "Arg"
+      "type": "roq/okx/json/Arg"
     },
     {
       "name": "data",
-      "type": "FillsItem",
+      "type": "roq/okx/json/FillsItem",
       "array": "std/span"
     }
   ]

@@ -1,5 +1,5 @@
 {
-  "name": "OptionType",
+  "name": "roq/okx/json/OptionType",
   "type": "enum",
   "values": [
     {

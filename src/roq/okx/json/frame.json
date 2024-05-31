@@ -1,5 +1,5 @@
 {
-  "name": "Frame",
+  "name": "roq/okx/json/Frame",
   "type": "comp",
   "values": [
     {
@@ -16,19 +16,19 @@
     },
     {
       "name": "op",
-      "type": "Operation"
+      "type": "roq/okx/json/Operation"
     },
     {
       "name": "event",
-      "type": "EventType"
+      "type": "roq/okx/json/EventType"
     },
     {
       "name": "arg",
-      "type": "Arg"
+      "type": "roq/okx/json/Arg"
     },
     {
       "name": "action",
-      "type": "Action"
+      "type": "roq/okx/json/Action"
     },
     {
       "name": "data"
@@ -47,7 +47,7 @@
     },
     {
       "name": "channel",
-      "type": "Channel"
+      "type": "roq/okx/json/Channel"
     },
     {
       "name": "connCount",

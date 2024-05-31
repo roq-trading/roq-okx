@@ -1,10 +1,10 @@
 {
-  "name": "ChannelConnCount",
+  "name": "roq/okx/json/ChannelConnCount",
   "type": "item",
   "values": [
     {
       "name": "channel",
-      "type": "Channel"
+      "type": "roq/okx/json/Channel"
     },
     {
       "name": "connCount",

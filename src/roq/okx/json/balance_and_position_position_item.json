@@ -1,5 +1,5 @@
 {
-  "name": "BalanceAndPositionPositionItem",
+  "name": "roq/okx/json/BalanceAndPositionPositionItem",
   "type": "item",
   "values": [
     {
@@ -16,11 +16,11 @@
     },
     {
       "name": "instType",
-      "type": "InstrumentType"
+      "type": "roq/okx/json/InstrumentType"
     },
     {
       "name": "mgnMode",
-      "type": "MarginMode"
+      "type": "roq/okx/json/MarginMode"
     },
     {
       "name": "avgPx",
@@ -32,7 +32,7 @@
     },
     {
       "name": "posSide",
-      "type": "PositionSide"
+      "type": "roq/okx/json/PositionSide"
     },
     {
       "name": "pos",

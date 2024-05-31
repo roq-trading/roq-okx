@@ -1,5 +1,5 @@
 {
-  "name": "OrderType",
+  "name": "roq/okx/json/OrderType",
   "type": "enum",
   "values": [
     {

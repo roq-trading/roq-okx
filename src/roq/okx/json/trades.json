@@ -1,10 +1,10 @@
 {
-  "name": "Trades",
+  "name": "roq/okx/json/Trades",
   "type": "array",
   "values": [
     {
       "name": "data",
-      "type": "TradesItem",
+      "type": "roq/okx/json/TradesItem",
       "array": "std/span"
     }
   ]

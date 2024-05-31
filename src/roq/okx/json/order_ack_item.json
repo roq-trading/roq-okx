@@ -1,5 +1,5 @@
 {
-  "name": "OrderAckItem",
+  "name": "roq/okx/json/OrderAckItem",
   "type": "item",
   "values": [
     {

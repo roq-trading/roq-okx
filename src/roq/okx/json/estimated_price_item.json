@@ -1,10 +1,10 @@
 {
-  "name": "EstimatedPriceItem",
+  "name": "roq/okx/json/EstimatedPriceItem",
   "type": "item",
   "values": [
     {
       "name": "instType",
-      "type": "InstrumentType"
+      "type": "roq/okx/json/InstrumentType"
     },
     {
       "name": "instId",

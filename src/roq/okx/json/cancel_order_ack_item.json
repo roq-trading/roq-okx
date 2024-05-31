@@ -1,5 +1,5 @@
 {
-  "name": "CancelOrderAckItem",
+  "name": "roq/okx/json/CancelOrderAckItem",
   "type": "item",
   "values": [
     {

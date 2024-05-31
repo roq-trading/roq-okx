@@ -1,5 +1,5 @@
 {
-  "name": "TriggerPriceType",
+  "name": "roq/okx/json/TriggerPriceType",
   "type": "enum",
   "values": [
     {

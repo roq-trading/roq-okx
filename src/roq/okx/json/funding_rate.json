@@ -1,10 +1,10 @@
 {
-  "name": "FundingRate",
+  "name": "roq/okx/json/FundingRate",
   "type": "array",
   "values": [
     {
       "name": "data",
-      "type": "FundingRateItem",
+      "type": "roq/okx/json/FundingRateItem",
       "array": "std/span"
     }
   ]

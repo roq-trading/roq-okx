@@ -1,10 +1,10 @@
 {
-  "name": "Subscribe",
+  "name": "roq/okx/json/Subscribe",
   "type": "item",
   "values": [
     {
       "name": "channel",
-      "type": "Channel"
+      "type": "roq/okx/json/Channel"
     },
     {
       "name": "instType",

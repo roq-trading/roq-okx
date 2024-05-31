@@ -1,5 +1,5 @@
 {
-  "name": "Category",
+  "name": "roq/okx/json/Category",
   "type": "enum",
   "values": [
     {

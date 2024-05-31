@@ -1,5 +1,5 @@
 {
-  "name": "EventType",
+  "name": "roq/okx/json/EventType",
   "type": "enum",
   "values": [
     {

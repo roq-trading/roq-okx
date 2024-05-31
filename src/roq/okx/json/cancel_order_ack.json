@@ -1,5 +1,5 @@
 {
-  "name": "CancelOrderAck",
+  "name": "roq/okx/json/CancelOrderAck",
   "type": "comp",
   "values": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "name": "data",
-      "type": "CancelOrderAckItem",
+      "type": "roq/okx/json/CancelOrderAckItem",
       "array": "std/span"
     },
     {
@@ -21,7 +21,7 @@
     },
     {
       "name": "op",
-      "type": "Operation"
+      "type": "roq/okx/json/Operation"
     },
     {
       "name": "inTime",

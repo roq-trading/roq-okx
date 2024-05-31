@@ -1,5 +1,5 @@
 {
-  "name": "Status",
+  "name": "roq/okx/json/Status",
   "type": "comp",
   "values": [
     {
@@ -8,7 +8,7 @@
     },
     {
       "name": "state",
-      "type": "State"
+      "type": "roq/okx/json/State"
     },
     {
       "name": "begin",

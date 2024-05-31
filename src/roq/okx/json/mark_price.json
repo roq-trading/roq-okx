@@ -1,10 +1,10 @@
 {
-  "name": "MarkPrice",
+  "name": "roq/okx/json/MarkPrice",
   "type": "array",
   "values": [
     {
       "name": "data",
-      "type": "MarkPriceItem",
+      "type": "roq/okx/json/MarkPriceItem",
       "array": "std/span"
     }
   ]

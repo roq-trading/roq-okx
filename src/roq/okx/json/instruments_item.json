@@ -1,5 +1,5 @@
 {
-  "name": "InstrumentsItem",
+  "name": "roq/okx/json/InstrumentsItem",
   "type": "item",
   "values": [
     {
@@ -20,7 +20,7 @@
     },
     {
       "name": "ctType",
-      "type": "ContractType"
+      "type": "roq/okx/json/ContractType"
     },
     {
       "name": "ctValCcy",
@@ -40,7 +40,7 @@
     },
     {
       "name": "instType",
-      "type": "InstrumentType"
+      "type": "roq/okx/json/InstrumentType"
     },
     {
       "name": "lever",
@@ -60,7 +60,7 @@
     },
     {
       "name": "optType",
-      "type": "OptionType"
+      "type": "roq/okx/json/OptionType"
     },
     {
       "name": "quoteCcy",
@@ -72,7 +72,7 @@
     },
     {
       "name": "state",
-      "type": "InstrumentState"
+      "type": "roq/okx/json/InstrumentState"
     },
     {
       "name": "stk",

@@ -1,5 +1,5 @@
 {
-  "name": "InstrumentsRest",
+  "name": "roq/okx/json/InstrumentsRest",
   "type": "comp",
   "values": [
     {
@@ -12,7 +12,7 @@
     },
     {
       "name": "data",
-      "type": "InstrumentsItem",
+      "type": "roq/okx/json/InstrumentsItem",
       "array": "std/span"
     }
   ]

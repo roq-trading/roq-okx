@@ -1,5 +1,5 @@
 {
-  "name": "OrdersItem",
+  "name": "roq/okx/json/OrdersItem",
   "type": "item",
   "values": [
     {
@@ -16,7 +16,7 @@
     },
     {
       "name": "category",
-      "type": "Category"
+      "type": "roq/okx/json/Category"
     },
     {
       "name": "ccy",
@@ -36,7 +36,7 @@
     },
     {
       "name": "execType",
-      "type": "OrderFlowType"
+      "type": "roq/okx/json/OrderFlowType"
     },
     {
       "name": "feeCcy",
@@ -76,7 +76,7 @@
     },
     {
       "name": "instType",
-      "type": "InstrumentType"
+      "type": "roq/okx/json/InstrumentType"
     },
     {
       "name": "lever",
@@ -96,7 +96,7 @@
     },
     {
       "name": "ordType",
-      "type": "OrderType"
+      "type": "roq/okx/json/OrderType"
     },
     {
       "name": "pnl",
@@ -104,7 +104,7 @@
     },
     {
       "name": "posSide",
-      "type": "PositionSide"
+      "type": "roq/okx/json/PositionSide"
     },
     {
       "name": "px",
@@ -128,7 +128,7 @@
     },
     {
       "name": "side",
-      "type": "Side"
+      "type": "roq/okx/json/Side"
     },
     {
       "name": "slOrdPx",
@@ -140,7 +140,7 @@
     },
     {
       "name": "slTriggerPxType",
-      "type": "TriggerPriceType"
+      "type": "roq/okx/json/TriggerPriceType"
     },
     {
       "name": "source",
@@ -148,7 +148,7 @@
     },
     {
       "name": "state",
-      "type": "OrderState"
+      "type": "roq/okx/json/OrderState"
     },
     {
       "name": "sz",
@@ -160,7 +160,7 @@
     },
     {
       "name": "tdMode",
-      "type": "TradeMode"
+      "type": "roq/okx/json/TradeMode"
     },
     {
       "name": "tgtCcy",
@@ -176,7 +176,7 @@
     },
     {
       "name": "tpTriggerPxType",
-      "type": "TriggerPriceType"
+      "type": "roq/okx/json/TriggerPriceType"
     },
     {
       "name": "tradeId",

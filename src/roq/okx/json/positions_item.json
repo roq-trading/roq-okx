@@ -1,18 +1,18 @@
 {
-  "name": "PositionsItem",
+  "name": "roq/okx/json/PositionsItem",
   "type": "item",
   "values": [
     {
       "name": "instType",
-      "type": "InstrumentType"
+      "type": "roq/okx/json/InstrumentType"
     },
     {
       "name": "mgnMode",
-      "type": "MarginMode"
+      "type": "roq/okx/json/MarginMode"
     },
     {
       "name": "posSide",
-      "type": "PositionSide"
+      "type": "roq/okx/json/PositionSide"
     },
     {
       "name": "pos",

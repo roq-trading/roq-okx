@@ -1,10 +1,10 @@
 {
-  "name": "EstimatedPrice",
+  "name": "roq/okx/json/EstimatedPrice",
   "type": "array",
   "values": [
     {
       "name": "data",
-      "type": "EstimatedPriceItem",
+      "type": "roq/okx/json/EstimatedPriceItem",
       "array": "std/span"
     }
   ]

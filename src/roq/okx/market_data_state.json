@@ -1,5 +1,5 @@
 {
-  "name": "MarketDataState",
+  "name": "roq/okx/MarketDataState",
   "type": "enum",
   "values": [
     {

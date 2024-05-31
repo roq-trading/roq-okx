@@ -1,5 +1,5 @@
 {
-  "name": "BalanceAndPosition",
+  "name": "roq/okx/json/BalanceAndPosition",
   "type": "comp",
   "values": [
     {
@@ -12,17 +12,17 @@
     },
     {
       "name": "balData",
-      "type": "BalanceAndPositionBalanceItem",
+      "type": "roq/okx/json/BalanceAndPositionBalanceItem",
       "array": "std/span"
     },
     {
       "name": "posData",
-      "type": "BalanceAndPositionPositionItem",
+      "type": "roq/okx/json/BalanceAndPositionPositionItem",
       "array": "std/span"
     },
     {
       "name": "trades",
-      "type": "BalanceAndPositionTradesItem",
+      "type": "roq/okx/json/BalanceAndPositionTradesItem",
       "array": "std/span"
     }
   ]

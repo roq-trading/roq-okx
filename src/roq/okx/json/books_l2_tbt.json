@@ -1,15 +1,15 @@
 {
-  "name": "BooksL2Tbt",
+  "name": "roq/okx/json/BooksL2Tbt",
   "type": "comp",
   "values": [
     {
       "name": "bids",
-      "type": "BooksL2Item",
+      "type": "roq/okx/json/BooksL2Item",
       "array": "std/span"
     },
     {
       "name": "asks",
-      "type": "BooksL2Item",
+      "type": "roq/okx/json/BooksL2Item",
       "array": "std/span"
     },
     {

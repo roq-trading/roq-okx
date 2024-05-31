@@ -1,5 +1,5 @@
 {
-  "name": "MarginMode",
+  "name": "roq/okx/json/MarginMode",
   "type": "enum",
   "values": [
     {
