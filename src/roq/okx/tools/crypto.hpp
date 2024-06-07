@@ -27,11 +27,7 @@ struct Crypto final {
 
   std::string create_sign(std::string_view const &timestamp);
 
-  std::string create_headers(
-      web::http::Method,
-      std::string_view const &path,
-      std::string_view const &body,
-      std::chrono::milliseconds timestamp);
+  std::string create_headers(web::http::Method, std::string_view const &path, std::string_view const &body, std::chrono::milliseconds timestamp);
 
  private:
   using MAC = utils::mac::HMAC<utils::hash::SHA256>;

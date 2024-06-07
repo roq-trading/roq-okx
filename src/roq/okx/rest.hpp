@@ -61,9 +61,7 @@ struct Rest final : public web::rest::Client::Handler {
 
   void operator()(ConnectionStatus);
 
-  bool downloading() const {
-    return download_instruments_.spot || download_instruments_.swap || download_instruments_.futures;
-  }
+  bool downloading() const { return download_instruments_.spot || download_instruments_.swap || download_instruments_.futures; }
 
   void get_instruments(std::string_view const &type);
   void get_instruments_ack(Trace<web::rest::Response> const &, std::string_view const &type);

@@ -54,10 +54,7 @@ TEST_CASE("json_trades_parser", "[json_trades]") {
       CHECK(d0.ts == 1640157052811ms);
     }
     void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(
-        Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override {
-      FAIL();
-    }
+    void operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override { FAIL(); }
     void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
     void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
     void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }

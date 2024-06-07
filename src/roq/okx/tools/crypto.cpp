@@ -39,11 +39,7 @@ std::string Crypto::create_sign(std::string_view const &timestamp) {
   return result;
 }
 
-std::string Crypto::create_headers(
-    web::http::Method method,
-    std::string_view const &path,
-    std::string_view const &body,
-    std::chrono::milliseconds timestamp) {
+std::string Crypto::create_headers(web::http::Method method, std::string_view const &path, std::string_view const &body, std::chrono::milliseconds timestamp) {
   assert(!std::empty(path));
   auto tmp = fmt::format("{}"sv, utils::DateTime_iso8601{timestamp});
   auto tmp_2 = fmt::format("{}{}"sv, tmp, method);

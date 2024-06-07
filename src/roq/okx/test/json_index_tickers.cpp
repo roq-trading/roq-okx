@@ -45,10 +45,7 @@ TEST_CASE("json_index_tickers_parser", "[json_index_tickers]") {
     void operator()(Trace<json::Tickers> const &) override { FAIL(); }
     void operator()(Trace<json::Trades> const &) override { FAIL(); }
     void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(
-        Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override {
-      FAIL();
-    }
+    void operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override { FAIL(); }
     void operator()(Trace<json::IndexTickers> const &event) override {
       ++count_;
       auto &[trace_info, trades] = event;

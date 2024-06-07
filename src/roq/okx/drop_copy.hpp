@@ -33,8 +33,7 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
   struct Handler {
     virtual void operator()(Trace<StreamStatus> const &) = 0;
     virtual void operator()(Trace<ExternalLatency> const &) = 0;
-    virtual void operator()(
-        Trace<TradeUpdate> const &, bool is_last, uint8_t user_id, std::string_view const &request_id) = 0;
+    virtual void operator()(Trace<TradeUpdate> const &, bool is_last, uint8_t user_id, std::string_view const &request_id) = 0;
     virtual void operator()(Trace<FundsUpdate> const &, bool is_last) = 0;
     virtual void operator()(Trace<PositionUpdate> const &, bool is_last) = 0;
   };
@@ -53,16 +52,8 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
   void operator()(metrics::Writer &);
 
   uint16_t operator()(Event<CreateOrder> const &, server::oms::Order const &, std::string_view const &request_id);
-  uint16_t operator()(
-      Event<ModifyOrder> const &,
-      server::oms::Order const &,
-      std::string_view const &request_id,
-      std::string_view const &previous_request_id);
-  uint16_t operator()(
-      Event<CancelOrder> const &,
-      server::oms::Order const &,
-      std::string_view const &request_id,
-      std::string_view const &previous_request_id);
+  uint16_t operator()(Event<ModifyOrder> const &, server::oms::Order const &, std::string_view const &request_id, std::string_view const &previous_request_id);
+  uint16_t operator()(Event<CancelOrder> const &, server::oms::Order const &, std::string_view const &request_id, std::string_view const &previous_request_id);
 
   uint16_t operator()(Event<CancelAllOrders> const &, std::string_view const &request_id);
 
@@ -140,9 +131,8 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, error, subscribe, unsubscribe, channel_conn_count, login, account,
-        balance_and_position, positions, orders, create_order, modify_order, cancel_order, order_ack, amend_order_ack,
-        cancel_order_ack;
+    utils::metrics::Profile parse, error, subscribe, unsubscribe, channel_conn_count, login, account, balance_and_position, positions, orders, create_order,
+        modify_order, cancel_order, order_ack, amend_order_ack, cancel_order_ack;
   } profile_;
   struct {
     utils::metrics::Latency ping, heartbeat;

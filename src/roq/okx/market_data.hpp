@@ -86,8 +86,7 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
 
   void subscribe(std::string_view const &channel);
   void subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value);
-  void subscribe(
-      std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values);
+  void subscribe(std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values);
 
   void parse(std::string_view const &message);
 
@@ -134,8 +133,8 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, error, subscribe, unsubscribe, login, status, instruments, estimated_price,
-        price_limit, mark_price, tickers, trades, bbo_tbt, books_l2_tbt, index_tickers, funding_rate;
+    utils::metrics::Profile parse, error, subscribe, unsubscribe, login, status, instruments, estimated_price, price_limit, mark_price, tickers, trades,
+        bbo_tbt, books_l2_tbt, index_tickers, funding_rate;
   } profile_;
   struct {
     utils::metrics::Latency ping, heartbeat;

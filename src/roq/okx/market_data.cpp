@@ -74,17 +74,14 @@ auto create_connection(auto &handler, auto &settings, auto &context) {
 }
 
 struct create_metrics final : public core::metrics::Factory {
-  explicit create_metrics(auto &settings, auto const &group, auto const &function)
-      : core::metrics::Factory(settings.app.name, group, function) {}
+  explicit create_metrics(auto &settings, auto const &group, auto const &function) : core::metrics::Factory(settings.app.name, group, function) {}
 };
 }  // namespace
 
 // === IMPLEMENTATION ===
 
-MarketData::MarketData(
-    Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, size_t index)
-    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, index_{index},
-      connection_{create_connection(*this, shared.settings, context)},
+MarketData::MarketData(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, size_t index)
+    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, index_{index}, connection_{create_connection(*this, shared.settings, context)},
       decode_buffer_(shared.settings.misc.decode_buffer_size),
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
@@ -330,8 +327,7 @@ void MarketData::subscribe(std::string_view const &channel) {
   subscribe_queue_.emplace_back(message);
 }
 
-void MarketData::subscribe(
-    std::string_view const &channel, std::string_view const &selector, std::string_view const &value) {
+void MarketData::subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value) {
   auto message = fmt::format(
       R"({{)"
       R"("op":"subscribe",)"
@@ -347,8 +343,7 @@ void MarketData::subscribe(
   subscribe_queue_.emplace_back(message);
 }
 
-void MarketData::subscribe(
-    std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values) {
+void MarketData::subscribe(std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values) {
   assert(!std::empty(values));
   auto prefix = fmt::format(
       R"({{)"
@@ -664,8 +659,7 @@ void MarketData::operator()(Trace<json::BboTbt> const &event, std::string_view c
   });
 }
 
-void MarketData::operator()(
-    Trace<json::BooksL2Tbt> const &event, std::string_view const &inst_id, json::Action action) {
+void MarketData::operator()(Trace<json::BooksL2Tbt> const &event, std::string_view const &inst_id, json::Action action) {
   profile_.books_l2_tbt([&]() {
     auto &[trace_info, books_l2_tbt] = event;
     log::info<3>("event={{books_l2_tbt={}, action={}, trace_info={}}}"sv, books_l2_tbt, action, trace_info);
@@ -820,10 +814,7 @@ void MarketData::operator()(Trace<json::CancelOrderAck> const &) {
 // request
 
 void MarketData::check_subscribe_queue(std::chrono::nanoseconds now) {
-  subscribe_queue_.dispatch(
-      [&](auto now) { return shared_.rate_limiter.can_request(now); },
-      [&](auto &message) { (*connection_).send_text(message); },
-      now);
+  subscribe_queue_.dispatch([&](auto now) { return shared_.rate_limiter.can_request(now); }, [&](auto &message) { (*connection_).send_text(message); }, now);
 }
 
 }  // namespace okx

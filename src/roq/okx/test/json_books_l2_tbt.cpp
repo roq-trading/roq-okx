@@ -47,8 +47,7 @@ TEST_CASE("json_books_l2_tbt_parser", "[json_books_l2_tbt]") {
     void operator()(Trace<json::Tickers> const &) override { FAIL(); }
     void operator()(Trace<json::Trades> const &) override { FAIL(); }
     void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(
-        Trace<json::BooksL2Tbt> const &event, std::string_view const &inst_id, json::Action action) override {
+    void operator()(Trace<json::BooksL2Tbt> const &event, std::string_view const &inst_id, json::Action action) override {
       ++count_;
       auto &[trace_info, books_l2_tbt] = event;
       CHECK(inst_id == "BTC-USD-220325"sv);
@@ -134,8 +133,7 @@ TEST_CASE("json_books_l2_tbt_parser_books5", "[json_books_l2_tbt]") {
     void operator()(Trace<json::Tickers> const &) override { FAIL(); }
     void operator()(Trace<json::Trades> const &) override { FAIL(); }
     void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(
-        Trace<json::BooksL2Tbt> const &event, std::string_view const &inst_id, json::Action action) override {
+    void operator()(Trace<json::BooksL2Tbt> const &event, std::string_view const &inst_id, json::Action action) override {
       ++count_;
       auto &[trace_info, books_l2_tbt] = event;
       CHECK(inst_id == "PERP-USDT"sv);

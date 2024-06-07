@@ -85,12 +85,10 @@ auto create_connection(auto &handler, auto &settings, auto &context) {
 }
 
 struct create_metrics final : public core::metrics::Factory {
-  explicit create_metrics(auto &settings, auto const &group, auto const &function)
-      : core::metrics::Factory(settings.app.name, group, function) {}
+  explicit create_metrics(auto &settings, auto const &group, auto const &function) : core::metrics::Factory(settings.app.name, group, function) {}
 };
 
-std::pair<json::OrderType, bool> compute_order_attributes(
-    auto &order_type, auto &time_in_force, auto &execution_instructions) {
+std::pair<json::OrderType, bool> compute_order_attributes(auto &order_type, auto &time_in_force, auto &execution_instructions) {
   bool reduce_only = false;
   json::OrderType order_type_ = {};
   if (!std::empty(execution_instructions)) {
@@ -135,12 +133,9 @@ std::pair<json::OrderType, bool> compute_order_attributes(
 
 // === IMPLEMENTATION ===
 
-DropCopy::DropCopy(
-    Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
-    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account.name)},
-      connection_{create_connection(*this, shared.settings, context)},
-      decode_buffer_(shared.settings.misc.decode_buffer_size),
-      request_id_{static_cast<uint64_t>(stream_id_) * REQUEST_ID},
+DropCopy::DropCopy(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
+    : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account.name)}, connection_{create_connection(*this, shared.settings, context)},
+      decode_buffer_(shared.settings.misc.decode_buffer_size), request_id_{static_cast<uint64_t>(stream_id_) * REQUEST_ID},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
@@ -166,8 +161,8 @@ DropCopy::DropCopy(
           .ping = create_metrics(shared.settings, name_, "ping"sv),
           .heartbeat = create_metrics(shared.settings, name_, "heartbeat"sv),
       },
-      account_{account}, shared_{shared}, request_{request},
-      download_{{}, [this](auto state) { return download(state); }}, trade_mode_{shared.settings.trade_mode} {
+      account_{account}, shared_{shared}, request_{request}, download_{{}, [this](auto state) { return download(state); }},
+      trade_mode_{shared.settings.trade_mode} {
 }
 
 bool DropCopy::ready() const {
@@ -215,13 +210,11 @@ void DropCopy::operator()(metrics::Writer &writer) {
       .write(latency_.heartbeat, metrics::Type::LATENCY);
 }
 
-uint16_t DropCopy::operator()(
-    Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
+uint16_t DropCopy::operator()(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
   auto &[message_info, create_order] = event;
   json::PositionSide position_side = json::PositionSide::NET;  // XXX should be configurable
   auto side = json::map(create_order.side);
-  auto [order_type, reduce_only] = compute_order_attributes(
-      create_order.order_type, create_order.time_in_force, create_order.execution_instructions);
+  auto [order_type, reduce_only] = compute_order_attributes(create_order.order_type, create_order.time_in_force, create_order.execution_instructions);
   auto trade_mode = [&]() -> json::TradeMode {
     switch (create_order.margin_mode) {
       using enum MarginMode;
@@ -341,10 +334,7 @@ uint16_t DropCopy::operator()(
 }
 
 uint16_t DropCopy::operator()(
-    Event<ModifyOrder> const &event,
-    server::oms::Order const &order,
-    std::string_view const &request_id,
-    std::string_view const &previous_request_id) {
+    Event<ModifyOrder> const &event, server::oms::Order const &order, std::string_view const &request_id, std::string_view const &previous_request_id) {
   auto &[message_info, modify_order] = event;
   auto has_external_order_id = !std::empty(order.external_order_id);
   auto order_id_type = has_external_order_id ? "ordId"sv : "clOrdId"sv;
@@ -401,13 +391,11 @@ uint16_t DropCopy::operator()(
   return stream_id_;
 }
 
-uint16_t DropCopy::operator()(
-    Event<CancelAllOrders> const &event, [[maybe_unused]] std::string_view const &request_id) {
+uint16_t DropCopy::operator()(Event<CancelAllOrders> const &event, [[maybe_unused]] std::string_view const &request_id) {
   auto &cancel_all_orders_2 = event.value;
   std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_ids;
   if (shared_.dispatcher_.get_all_orders(
-          [&](auto &order) { symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id); },
-          cancel_all_orders_2)) {
+          [&](auto &order) { symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id); }, cancel_all_orders_2)) {
   } else {
     log::info<1>("No orders"sv);
   }
@@ -546,8 +534,7 @@ void DropCopy::subscribe(std::string_view const &channel) {
   (*connection_).send_text(message);
 }
 
-void DropCopy::subscribe(
-    std::string_view const &channel, std::string_view const &selector, std::string_view const &value) {
+void DropCopy::subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value) {
   auto message = fmt::format(
       R"({{)"
       R"("op":"subscribe",)"
@@ -640,8 +627,7 @@ void DropCopy::operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::str
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(
-    Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) {
+void DropCopy::operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) {
   log::fatal("Unexpected"sv);
 }
 
@@ -760,8 +746,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
           .update_type = UpdateType::INCREMENTAL,
           .sending_time_utc = utils::safe_cast(item.u_time),
       };
-      if (shared_.update_order(
-              item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
+      if (shared_.update_order(item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
         if (item.exec_type != json::OrderFlowType{}) {
           auto liquidity = json::map(item.exec_type);
           auto fill = Fill{
@@ -884,8 +869,7 @@ void DropCopy::operator()(Trace<json::CancelOrderAck> const &event) {
   });
 }
 
-void DropCopy::cancel_all_orders(
-    std::span<std::pair<std::string_view, std::string_view>> const &symbol_and_external_order_ids) {
+void DropCopy::cancel_all_orders(std::span<std::pair<std::string_view, std::string_view>> const &symbol_and_external_order_ids) {
   for (auto &[symbol, external_order_id] : symbol_and_external_order_ids) {
     auto message = fmt::format(
         R"({{)"
