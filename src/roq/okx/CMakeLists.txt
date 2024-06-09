@@ -31,17 +31,15 @@ include(RoqAutogen)
 
 set(AUTOGEN_SCHEMAS drop_copy_state.json market_data_state.json)
 
-roq_autogen(
+roq_autogen_hpp(
   OUTPUT
   AUTOGEN_HEADERS
-  NAMESPACE
-  "roq/okx"
-  OUTPUT_TYPE
-  "state"
-  FILE_TYPE
-  "hpp"
   SOURCES
-  ${AUTOGEN_SCHEMAS})
+  ${AUTOGEN_SCHEMAS}
+  TEMPLATE_DIR
+  ${TEMPLATE_DIR}
+  TEMPLATE_TYPE
+  "state")
 
 add_custom_target(autogen-headers ALL DEPENDS ${AUTOGEN_HEADERS})
 
