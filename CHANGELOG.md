@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* MbP number_of_orders exceeded 65k (#461)
+
 ## 1.0.1 &ndash; 2024-04-14
 
 ## 1.0.0 &ndash; 2024-03-16

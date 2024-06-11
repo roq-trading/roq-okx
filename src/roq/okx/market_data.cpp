@@ -672,7 +672,7 @@ void MarketData::operator()(Trace<json::BooksL2Tbt> const &event, std::string_vi
           .price = item.price,
           .quantity = item.size,
           .implied_quantity = NaN,
-          .number_of_orders = utils::safe_cast(item.orders),
+          .number_of_orders = utils::safe_cast(std::min(item.orders, 65535u)),
           .update_action = {},
           .price_level = {},
       };
