@@ -48,7 +48,7 @@ auto const SUPPORTS = Mask{
     SupportType::FUNDS,
 };
 
-auto const REQUEST_ID = uint64_t{1000000};
+uint64_t const REQUEST_ID = 1000000;
 }  // namespace
 
 // === HELPERS ===
