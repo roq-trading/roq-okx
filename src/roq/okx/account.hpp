@@ -18,7 +18,6 @@ struct Account final {
   Account() {}
   Account(Config const &, std::string_view const &name);
 
-  Account(Account &&) = default;
   Account(Account const &) = delete;
 
   bool empty() const { return std::empty(name); }

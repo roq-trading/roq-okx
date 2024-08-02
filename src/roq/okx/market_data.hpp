@@ -49,7 +49,6 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
 
   MarketData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, size_t index);
 
-  MarketData(MarketData &&) = default;
   MarketData(MarketData const &) = delete;
 
   uint16_t stream_id() const { return stream_id_; }
