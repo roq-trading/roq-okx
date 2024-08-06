@@ -16,6 +16,7 @@
 
 #include "roq/web/rest/client.hpp"
 
+#include "roq/okx/json/map.hpp"
 #include "roq/okx/json/utils.hpp"
 
 using namespace std::literals;
@@ -410,13 +411,11 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
   log::info<4>("orders={}"sv, orders);
   for (auto &item : orders.data) {
     log::info<2>("item={}"sv, item);
-    auto side = json::map(item.side);
-    auto order_status = json::map(item.state);
     auto order_update = server::oms::OrderUpdate{
         .account = account_.name,
         .exchange = shared_.settings.exchange,
         .symbol = item.inst_id,
-        .side = side,
+        .side = json::Map{item.side},
         .position_effect = {},
         .margin_mode = {},
         .max_show_quantity = NaN,
@@ -428,7 +427,7 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
         .external_account = {},
         .external_order_id = item.ord_id,
         .client_order_id = {},
-        .order_status = order_status,
+        .order_status = json::Map{item.state},
         .quantity = item.sz,
         .price = item.px,
         .stop_price = NaN,
@@ -516,14 +515,12 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
   log::info<4>("fills={}"sv, fills);
   for (auto &item : fills.data) {
     log::info<2>("item={}"sv, item);
-    auto side = json::map(item.side);
-    auto liquidity = json::map(item.exec_type);
     auto fill = Fill{
         .exchange_time_utc = utils::safe_cast(item.fill_time),
         .external_trade_id = {},
         .quantity = item.fill_sz,
         .price = item.fill_px,
-        .liquidity = liquidity,
+        .liquidity = json::Map{item.exec_type},
         .quote_quantity = NaN,
         .commission_quantity = item.fee,
         .commission_currency = item.fee_ccy,
@@ -535,7 +532,7 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
         .order_id = {},
         .exchange = shared_.settings.exchange,
         .symbol = item.inst_id,
-        .side = side,
+        .side = json::Map{item.side},
         .position_effect = {},
         .margin_mode = {},
         .create_time_utc = utils::safe_cast(item.fill_time),

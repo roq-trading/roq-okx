@@ -18,6 +18,7 @@
 
 #include "roq/web/socket/client.hpp"
 
+#include "roq/okx/json/map.hpp"
 #include "roq/okx/json/utils.hpp"
 
 using namespace std::literals;
@@ -426,14 +427,12 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
       log::info<2>("item={}"sv, item);
       auto symbol = item.inst_id;
       auto discard = shared_.discard_symbol(symbol);
-      auto security_type = json::map(item.inst_type);
-      auto option_type = json::map(item.opt_type);
       auto reference_data = ReferenceData{
           .stream_id = stream_id_,
           .exchange = shared_.settings.exchange,
           .symbol = symbol,
           .description = {},
-          .security_type = security_type,
+          .security_type = json::Map{item.inst_type},
           .base_currency = item.base_ccy,
           .quote_currency = item.quote_ccy,
           .margin_currency = item.settle_ccy,
@@ -444,7 +443,7 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
           .min_trade_vol = item.min_sz,
           .max_trade_vol = NaN,
           .trade_vol_step_size = NaN,
-          .option_type = option_type,
+          .option_type = json::Map{item.opt_type},
           .strike_currency = {},
           .strike_price = item.stk,
           .underlying = item.uly,
@@ -464,12 +463,11 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
       if (shared_.all_symbols.emplace(symbol).second)  // only include new
         symbols.emplace_back(symbol);
       ++counter;
-      auto trading_status = json::map(item.state);
       auto market_status = MarketStatus{
           .stream_id = stream_id_,
           .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
-          .trading_status = trading_status,
+          .trading_status = json::Map{item.state},
           .exchange_time_utc = {},
           .exchange_sequence = {},
           .sending_time_utc = {},
@@ -585,7 +583,7 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
     shared_.trades.clear();
     auto emplace_back = [](auto &result, auto &value) {
       auto trade = Trade{
-          .side = json::map(value.side),
+          .side = json::Map{value.side},
           .price = value.px,
           .quantity = value.sz,
           .trade_id = value.trade_id,

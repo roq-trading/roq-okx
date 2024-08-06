@@ -23,6 +23,7 @@
 
 #include "roq/server.hpp"
 
+#include "roq/okx/json/map.hpp"
 #include "roq/okx/json/order_type.hpp"
 #include "roq/okx/json/position_side.hpp"
 #include "roq/okx/json/trade_mode.hpp"
@@ -213,7 +214,7 @@ void DropCopy::operator()(metrics::Writer &writer) {
 uint16_t DropCopy::operator()(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
   auto &[message_info, create_order] = event;
   json::PositionSide position_side = json::PositionSide::NET;  // XXX should be configurable
-  auto side = json::map(create_order.side);
+  auto side = json::map<json::Side>(create_order.side);
   auto [order_type, reduce_only] = compute_order_attributes(create_order.order_type, create_order.time_in_force, create_order.execution_instructions);
   auto trade_mode = [&]() -> json::TradeMode {
     switch (create_order.margin_mode) {
@@ -711,13 +712,11 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
         log::warn<1>("*** AMEND HAS FAILED ***"sv);
       if (item.code != 0)
         log::warn<1>(R"(*** ERROR CODE={}, MSG="{}" ***)"sv, item.code, item.msg);
-      auto side = json::map(item.side);
-      auto order_status = json::map(item.state);
       auto order_update = server::oms::OrderUpdate{
           .account = account_.name,
           .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
-          .side = side,
+          .side = json::Map{item.side},
           .position_effect = {},
           .margin_mode = {},
           .max_show_quantity = NaN,
@@ -729,7 +728,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
           .external_account = {},
           .external_order_id = item.ord_id,
           .client_order_id = {},
-          .order_status = order_status,
+          .order_status = json::Map{item.state},
           .quantity = item.sz,
           .price = item.px,
           .stop_price = NaN,
@@ -748,13 +747,12 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
       };
       if (shared_.update_order(item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
         if (item.exec_type != json::OrderFlowType{}) {
-          auto liquidity = json::map(item.exec_type);
           auto fill = Fill{
               .exchange_time_utc = utils::safe_cast(item.c_time),
               .external_trade_id = {},
               .quantity = item.fill_sz,
               .price = item.fill_px,
-              .liquidity = liquidity,
+              .liquidity = json::Map{item.exec_type},
               .quote_quantity = NaN,
               .commission_quantity = item.fill_fee,
               .commission_currency = item.fill_fee_ccy,
@@ -766,7 +764,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
               .order_id = {},
               .exchange = shared_.settings.exchange,
               .symbol = item.inst_id,
-              .side = side,
+              .side = json::Map{item.side},
               .position_effect = {},
               .margin_mode = {},
               .create_time_utc = utils::safe_cast(item.c_time),
