@@ -63,7 +63,7 @@ auto create_connection(auto &handler, auto &settings, auto &context) {
   auto uri = settings.ws.private_uri;
   auto config = web::socket::Client::Config{
       // connection
-      .interface = {},
+      .interface = settings.misc.test_local_interface,
       .uris = {&uri, 1},
       .host = settings.ws.private_host,
       .validate_certificate = settings.net.tls_validate_certificate,

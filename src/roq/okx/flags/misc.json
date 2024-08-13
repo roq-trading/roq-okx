@@ -21,6 +21,11 @@
       "type": "std/bool",
       "default": false,
       "description": "TEST"
+    },
+    {
+      "name": "test_local_interface",
+      "type": "std/string",
+      "description": "Local interface"
     }
   ]
 }

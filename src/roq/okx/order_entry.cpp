@@ -43,7 +43,7 @@ auto create_connection(auto &handler, auto &settings, auto &context) {
   auto uri = settings.rest.uri;
   auto config = web::rest::Client::Config{
       // connection
-      .interface = {},
+      .interface = settings.misc.test_local_interface,
       .proxy = settings.rest.proxy,
       .uris = {&uri, 1},
       .host = settings.rest.host,
