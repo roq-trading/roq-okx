@@ -10,11 +10,11 @@
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
 
-#include "roq/core/json/parser.hpp"
-
-#include "roq/core/metrics/factory.hpp"
+#include "roq/utils/metrics/factory.hpp"
 
 #include "roq/web/rest/client.hpp"
+
+#include "roq/core/json/parser.hpp"
 
 #include "roq/okx/json/map.hpp"
 #include "roq/okx/json/utils.hpp"
@@ -69,8 +69,8 @@ auto create_connection(auto &handler, auto &settings, auto &context) {
   return web::rest::Client::create(handler, context, config);
 }
 
-struct create_metrics final : public core::metrics::Factory {
-  explicit create_metrics(auto &settings, auto const &group, auto const &function) : core::metrics::Factory(settings.app.name, group, function) {}
+struct create_metrics final : public utils::metrics::Factory {
+  create_metrics(auto &settings, auto &group, auto const &function) : utils::metrics::Factory(settings.app.name, group, function) {}
 };
 
 auto get_download_trades_lookback(auto &settings, auto download_trades_is_first) {

@@ -11,17 +11,17 @@
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
 
-#include "roq/server/oms/exceptions.hpp"
+#include "roq/utils/metrics/factory.hpp"
 
 #include "roq/web/socket/client.hpp"
 
 #include "roq/core/tools/exception.hpp"
 
-#include "roq/core/metrics/factory.hpp"
-
 #include "roq/core/json/buffer.hpp"
 
 #include "roq/server.hpp"
+
+#include "roq/server/oms/exceptions.hpp"
 
 #include "roq/okx/json/map.hpp"
 #include "roq/okx/json/order_type.hpp"
@@ -85,8 +85,8 @@ auto create_connection(auto &handler, auto &settings, auto &context) {
   return web::socket::Client::create(handler, context, config, []() { return std::string(); });
 }
 
-struct create_metrics final : public core::metrics::Factory {
-  explicit create_metrics(auto &settings, auto const &group, auto const &function) : core::metrics::Factory(settings.app.name, group, function) {}
+struct create_metrics final : public utils::metrics::Factory {
+  create_metrics(auto &settings, auto &group, auto const &function) : utils::metrics::Factory(settings.app.name, group, function) {}
 };
 
 std::pair<json::OrderType, bool> compute_order_attributes(auto &order_type, auto &time_in_force, auto &execution_instructions) {
