@@ -4,11 +4,16 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+*  Incorrect market data subscription logic (#467)
+*  Order book processing didn't check previous sequence id (#466)
+
 ## 1.0.2 &ndash; 2024-07-14
 
 ### Fixed
 
-* MbP number_of_orders exceeded 65k (#461)
+* MbP `number_of_orders` exceeded 65k (#461)
 
 ## 1.0.1 &ndash; 2024-04-14
 

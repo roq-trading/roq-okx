@@ -27,7 +27,7 @@
     {
       "name": "prevSeqId",
       "type": "std/int64",
-      "comment": "have seen -1"
+      "comment": ", incremental >=0, snapshot -1"
     },
     {
       "name": "checksum",

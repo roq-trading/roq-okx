@@ -286,13 +286,13 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
         break;
     }
     */
-    log::info("Instruments {} / {}"sv, counter, std::size(instruments.data));
-    if (!std::empty(symbols)) {
-      auto symbols_update = SymbolsUpdate{
-          .symbols = symbols,
-      };
-      handler_(symbols_update);
-    }
+  }
+  log::info("Instruments {} / {}"sv, counter, std::size(instruments.data));
+  if (!std::empty(symbols)) {
+    auto symbols_update = SymbolsUpdate{
+        .symbols = symbols,
+    };
+    handler_(symbols_update);
   }
 }
 

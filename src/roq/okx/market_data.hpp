@@ -147,6 +147,8 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
   core::Download<MarketDataState> download_;
   // queue
   core::TimerQueue<std::string> subscribe_queue_;
+  // sequencing
+  utils::unordered_map<std::string, int64_t> sequence_;
 };
 
 }  // namespace okx

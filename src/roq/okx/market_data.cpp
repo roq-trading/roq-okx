@@ -152,6 +152,7 @@ void MarketData::operator()(metrics::Writer &writer) {
 }
 
 void MarketData::subscribe(size_t start_from) {
+  log::info("DEBUG SUBSCRIBE XXX stream_id={}, index={}, start_from={}"sv, stream_id_, index_, start_from);
   if (ready())
     subscribe(shared_.symbols.get_slice(index_, start_from));
 }
@@ -277,6 +278,7 @@ void MarketData::subscribe_static() {
 void MarketData::subscribe(std::span<Symbol const> const &symbols) {
   if (std::empty(symbols))
     return;
+  log::info("DEBUG SUBSCRIBE XXX stream_id={}, symbols=[{}]"sv, stream_id_, fmt::join(symbols, ", "sv));
   // subscribe("price-limit"sv, "instType"sv, symbols);
   // subscribe("mark-price"sv, "instType"sv, symbols);
   subscribe("tickers"sv, "instId"sv, symbols);
@@ -305,6 +307,7 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols) {
   };
   subscribe(get_books_channel(!std::empty(account_)), "instId"sv, symbols);
   for (auto &symbol : symbols) {
+    log::info(R"(DEBUG SUBSCRIBE stream_id={}, inst_id="{}")"sv, stream_id_, static_cast<std::string_view>(symbol));
     if (shared_.settings.misc.include_bad_subscriptions ||
         shared_.extended_symbols.find(static_cast<std::string_view>(symbol)) != shared_.extended_symbols.end()) {
       subscribe("index-tickers"sv, "instId"sv, symbol);
@@ -660,7 +663,18 @@ void MarketData::operator()(Trace<json::BooksL2Tbt> const &event, std::string_vi
     auto &[trace_info, books_l2_tbt] = event;
     log::info<3>("event={{books_l2_tbt={}, action={}, trace_info={}}}"sv, books_l2_tbt, action, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
-    auto snapshot = action == json::Action::SNAPSHOT;
+    auto snapshot = [&]() {
+      if (action != json::Action::SNAPSHOT)
+        return false;
+      assert(books_l2_tbt.prev_seq_id == -1);
+      return true;
+    }();
+    auto &sequence = sequence_[inst_id];
+    if (books_l2_tbt.seq_id <= sequence)
+      return;
+    if (books_l2_tbt.prev_seq_id >= 0 && books_l2_tbt.prev_seq_id != sequence)
+      log::warn<1>(R"(DEBUG inst_id="{}" prev_seq_id={}, have={})"sv, inst_id, books_l2_tbt.prev_seq_id, sequence);
+    sequence = books_l2_tbt.seq_id;
     shared_.bids.clear();
     shared_.asks.clear();
     auto emplace_back = [](auto &result, auto &item) {
