@@ -121,6 +121,10 @@
     {
       "name": "maxMktAmt",
       "type": "std/double"
+    },
+    {
+      "name": "ruleType",
+      "type": "std/string_view"
     }
   ]
 }

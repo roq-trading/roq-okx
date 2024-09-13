@@ -22,7 +22,7 @@
     },
     {
       "name": "seqId",
-      "type": "std/uint64"
+      "type": "std/int64"
     },
     {
       "name": "prevSeqId",

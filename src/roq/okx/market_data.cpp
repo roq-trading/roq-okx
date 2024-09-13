@@ -669,6 +669,7 @@ void MarketData::operator()(Trace<json::BooksL2Tbt> const &event, std::string_vi
       assert(books_l2_tbt.prev_seq_id == -1);
       return true;
     }();
+    assert(books_l2_tbt.seq_id >= 0);
     auto &sequence = sequence_[inst_id];
     if (books_l2_tbt.seq_id <= sequence)
       return;
@@ -682,7 +683,7 @@ void MarketData::operator()(Trace<json::BooksL2Tbt> const &event, std::string_vi
           .price = item.price,
           .quantity = item.size,
           .implied_quantity = NaN,
-          .number_of_orders = utils::safe_cast(std::min(item.orders, 65535u)),
+          .number_of_orders = utils::safe_cast{std::min(item.orders, 65535u)},
           .update_action = {},
           .price_level = {},
       };
@@ -702,7 +703,7 @@ void MarketData::operator()(Trace<json::BooksL2Tbt> const &event, std::string_vi
         .asks = shared_.asks,
         .update_type = update_type,
         .exchange_time_utc = books_l2_tbt.ts,
-        .exchange_sequence = books_l2_tbt.seq_id,
+        .exchange_sequence = utils::safe_cast{books_l2_tbt.seq_id},
         .sending_time_utc = {},
         .price_precision = {},
         .quantity_precision = {},
