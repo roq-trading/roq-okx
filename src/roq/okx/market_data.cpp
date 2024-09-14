@@ -152,7 +152,6 @@ void MarketData::operator()(metrics::Writer &writer) {
 }
 
 void MarketData::subscribe(size_t start_from) {
-  log::info("DEBUG SUBSCRIBE XXX stream_id={}, index={}, start_from={}"sv, stream_id_, index_, start_from);
   if (ready())
     subscribe(shared_.symbols.get_slice(index_, start_from));
 }
@@ -278,7 +277,6 @@ void MarketData::subscribe_static() {
 void MarketData::subscribe(std::span<Symbol const> const &symbols) {
   if (std::empty(symbols))
     return;
-  log::info("DEBUG SUBSCRIBE XXX stream_id={}, symbols=[{}]"sv, stream_id_, fmt::join(symbols, ", "sv));
   // subscribe("price-limit"sv, "instType"sv, symbols);
   // subscribe("mark-price"sv, "instType"sv, symbols);
   subscribe("tickers"sv, "instId"sv, symbols);
