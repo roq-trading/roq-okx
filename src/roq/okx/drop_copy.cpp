@@ -767,6 +767,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
               .side = json::Map{item.side},
               .position_effect = {},
               .margin_mode = {},
+              .quantity_type = {},
               .create_time_utc = utils::safe_cast(item.c_time),
               .update_time_utc = utils::safe_cast(item.u_time),
               .external_account = {},

@@ -229,6 +229,7 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
         .security_type = json::Map{item.inst_type},
         .base_currency = item.base_ccy,
         .quote_currency = item.quote_ccy,
+        .settlement_currency = item.settle_ccy,
         .margin_currency = item.settle_ccy,
         .commission_currency = {},
         .tick_size = item.tick_sz,

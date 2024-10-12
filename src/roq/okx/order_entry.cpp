@@ -535,6 +535,7 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
         .side = json::Map{item.side},
         .position_effect = {},
         .margin_mode = {},
+        .quantity_type = {},
         .create_time_utc = utils::safe_cast(item.fill_time),
         .update_time_utc = utils::safe_cast(item.fill_time),
         .external_account = {},
