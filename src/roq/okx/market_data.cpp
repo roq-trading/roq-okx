@@ -426,16 +426,46 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
       log::info<2>("item={}"sv, item);
       auto symbol = item.inst_id;
       auto discard = shared_.discard_symbol(symbol);
+      auto base_currency = [&]() {
+        if (std::empty(item.base_ccy)) {
+          switch (item.ct_type) {
+            using enum json::ContractType::type_t;
+            case UNDEFINED__:
+            case UNKNOWN__:
+              break;
+            case LINEAR:
+              return item.ct_val_ccy;
+            case INVERSE:
+              return item.settle_ccy;
+          }
+        }
+        return item.base_ccy;
+      }();
+      auto quote_currency = [&]() {
+        if (std::empty(item.quote_ccy)) {
+          switch (item.ct_type) {
+            using enum json::ContractType::type_t;
+            case UNDEFINED__:
+            case UNKNOWN__:
+              break;
+            case LINEAR:
+              return item.settle_ccy;
+            case INVERSE:
+              return item.ct_val_ccy;
+          }
+        }
+        return item.quote_ccy;
+      }();
       auto reference_data = ReferenceData{
           .stream_id = stream_id_,
           .exchange = shared_.settings.exchange,
           .symbol = symbol,
           .description = {},
           .security_type = json::Map{item.inst_type},
-          .base_currency = item.base_ccy,
-          .quote_currency = item.quote_ccy,
+          .base_currency = base_currency,
+          .quote_currency = quote_currency,
           .settlement_currency = item.settle_ccy,
-          .margin_currency = item.settle_ccy,
+          .margin_currency = {},
           .commission_currency = {},
           .tick_size = item.tick_sz,
           .multiplier = item.ct_mult,
@@ -448,10 +478,10 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
           .strike_price = item.stk,
           .underlying = item.uly,
           .time_zone = {},
-          .issue_date = utils::safe_cast(item.list_time),
+          .issue_date = utils::safe_cast{item.list_time},
           .settlement_date = {},
-          .expiry_datetime = utils::safe_cast(item.exp_time),
-          .expiry_datetime_utc = utils::safe_cast(item.exp_time),
+          .expiry_datetime = utils::safe_cast{item.exp_time},
+          .expiry_datetime_utc = utils::safe_cast{item.exp_time},
           .exchange_time_utc = {},
           .exchange_sequence = {},
           .sending_time_utc = {},

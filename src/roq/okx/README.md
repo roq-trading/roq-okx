@@ -1,3 +1,139 @@
+# ReferenceData
+
+## SPOT
+
+* `lot_sz` == multiplier ???
+* `ct_mult` => multiplier ???
+
+```json
+{
+  alias="",
+  base_ccy="BTC",
+  category="1",
+  ct_mult=nan,
+  ct_type=<UNDEFINED>,
+  ct_val_ccy="",
+  ct_val=nan,
+  exp_time=0ms,
+  inst_id="BTC-USDT",
+  inst_type=SPOT,
+  lever=10,
+  list_time=1548133413000ms,
+  lot_sz=1.0000000000000005e-08,
+  min_sz=1.0000000000000004e-05,
+  opt_type=<UNDEFINED>,
+  quote_ccy="USDT",
+  settle_ccy="",
+  state=LIVE,
+  stk=nan,
+  tick_sz=0.1,
+  uly="",
+  max_iceberg_sz=9999999999,
+  max_lmt_sz=9999999999,
+  max_mkt_sz=1000000,
+  max_stop_sz=1000000,
+  max_trigger_sz=9999999999,
+  max_twap_sz=9999999999,
+  inst_family="",
+  max_lmt_amt=20000000,
+  max_mkt_amt=1000000,
+  rule_type="normal"
+}
+```
+
+## INVERSE
+
+* `ct_mult` => multiplier ???
+* `ct_val` => multiplier ???
+
+```json
+{
+  alias="",
+  base_ccy="",
+  category="1",
+  ct_mult=1,
+  ct_type=INVERSE,
+  ct_val_ccy="USD",
+  ct_val=100,
+  exp_time=0ms,
+  inst_id="BTC-USD-SWAP",
+  inst_type=SWAP,
+  lever=100,
+  list_time=1611916828000ms,
+  lot_sz=1,
+  min_sz=1,
+  opt_type=<UNDEFINED>,
+  quote_ccy="",
+  settle_ccy="BTC",
+  state=LIVE,
+  stk=nan,
+  tick_sz=0.1,
+  uly="BTC-USD",
+  max_iceberg_sz=100000000,
+  max_lmt_sz=100000000,
+  max_mkt_sz=30000,
+  max_stop_sz=30000,
+  max_trigger_sz=100000000,
+  max_twap_sz=100000000,
+  inst_family="BTC-USD",
+  max_lmt_amt=20000000,
+  max_mkt_amt=nan,
+  rule_type="normal"
+}
+```
+
+## LINEAR
+
+* `ct_val` => multiplier ???
+
+```json
+{
+  alias="",
+  base_ccy="",
+  category="1",
+  ct_mult=1,
+  ct_type=LINEAR,
+  ct_val_ccy="BTC",
+  ct_val=0.010000000000000002,
+  exp_time=0ms,
+  inst_id="BTC-USDT-SWAP",
+  inst_type=SWAP,
+  lever=100,
+  list_time=1611916828000ms,
+  lot_sz=0.1,
+  min_sz=0.1,
+  opt_type=<UNDEFINED>,
+  quote_ccy="",
+  settle_ccy="USDT",
+  state=LIVE,
+  stk=nan,
+  tick_sz=0.1,
+  uly="BTC-USDT",
+  max_iceberg_sz=100000000,
+  max_lmt_sz=100000000,
+  max_mkt_sz=12000,
+  max_stop_sz=12000,
+  max_trigger_sz=100000000,
+  max_twap_sz=100000000,
+  inst_family="BTC-USDT",
+  max_lmt_amt=20000000,
+  max_mkt_amt=nan,
+  rule_type="normal"
+}
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 price inversion:
 
 ```

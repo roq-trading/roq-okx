@@ -1,7 +1,6 @@
 symbols = [
-  "^BTC-USD[A-Z]?(-[0-9]{6})?$",  # spot + futures
-  "^ETH-USD[A-Z]?(-[0-9]{6})?$",  # spot + futures
-  "^PERP-USD[A-Z]?(-SWAP)?$"      # swaps
+  "^BTC-USD[A-Z]$",      # spot
+  "^BTC-USD[A-Z]-SWAP$"  # swap
 ]
 
 [accounts]
