@@ -264,6 +264,7 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
         .margin_currency = {},
         .commission_currency = {},
         .tick_size = item.tick_sz,
+        .tick_size_steps = {},
         .multiplier = item.ct_mult,
         .min_notional = NaN,
         .min_trade_vol = item.min_sz,
