@@ -89,7 +89,10 @@ struct create_metrics final : public utils::metrics::Factory {
   create_metrics(auto &settings, auto &group, auto const &function) : utils::metrics::Factory(settings.app.name, group, function) {}
 };
 
-std::pair<json::OrderType, bool> compute_order_attributes(auto &order_type, auto &time_in_force, auto &execution_instructions) {
+std::pair<json::OrderType, bool> compute_order_attributes(auto order_type, auto time_in_force, auto execution_instructions) {
+  auto log_no_mapping_exists = [&]() {
+    log::error("No mapping exists for order_type={}, time_in_force={}, execution_instructions={}"sv, order_type, time_in_force, execution_instructions);
+  };
   bool reduce_only = false;
   json::OrderType order_type_ = {};
   if (!std::empty(execution_instructions)) {
@@ -113,6 +116,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(auto &order_type, auto
         order_type_ = json::OrderType::IOC;
       break;
     default:
+      log_no_mapping_exists();
       throw server::oms::NotSupported{"not supported"sv};
   }
   if (order_type_ == json::OrderType{}) {
@@ -125,6 +129,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(auto &order_type, auto
         order_type_ = json::OrderType::LIMIT;
         break;
       default:
+        log_no_mapping_exists();
         throw server::oms::NotSupported{"not supported"sv};
     }
   }
