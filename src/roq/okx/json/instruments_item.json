@@ -125,6 +125,10 @@
     {
       "name": "ruleType",
       "type": "std/string_view"
+    },
+    {
+      "name": "auctionEndTime",
+      "type": "std/milliseconds"
     }
   ]
 }
