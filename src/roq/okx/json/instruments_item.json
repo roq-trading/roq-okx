@@ -129,6 +129,10 @@
     {
       "name": "auctionEndTime",
       "type": "std/milliseconds"
+    },
+    {
+      "name": "futureSettlement",
+      "type": "std/bool"
     }
   ]
 }
