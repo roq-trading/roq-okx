@@ -219,7 +219,7 @@ void DropCopy::operator()(metrics::Writer &writer) {
 uint16_t DropCopy::operator()(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
   auto &[message_info, create_order] = event;
   json::PositionSide position_side = json::PositionSide::NET;  // XXX should be configurable
-  auto side = json::map<json::Side>(create_order.side);
+  auto side = map(create_order.side).template get<json::Side>();
   auto [order_type, reduce_only] = compute_order_attributes(create_order.order_type, create_order.time_in_force, create_order.execution_instructions);
   auto trade_mode = [&]() -> json::TradeMode {
     switch (create_order.margin_mode) {
@@ -721,7 +721,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
           .account = account_.name,
           .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
-          .side = json::Map{item.side},
+          .side = map(item.side),
           .position_effect = {},
           .margin_mode = {},
           .max_show_quantity = NaN,
@@ -733,7 +733,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
           .external_account = {},
           .external_order_id = item.ord_id,
           .client_order_id = {},
-          .order_status = json::Map{item.state},
+          .order_status = map(item.state),
           .quantity = item.sz,
           .price = item.px,
           .stop_price = NaN,
@@ -757,7 +757,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
               .external_trade_id = {},
               .quantity = item.fill_sz,
               .price = item.fill_px,
-              .liquidity = json::Map{item.exec_type},
+              .liquidity = map(item.exec_type),
               .quote_quantity = NaN,
               .commission_quantity = item.fill_fee,
               .commission_currency = item.fill_fee_ccy,
@@ -769,7 +769,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
               .order_id = {},
               .exchange = shared_.settings.exchange,
               .symbol = item.inst_id,
-              .side = json::Map{item.side},
+              .side = map(item.side),
               .position_effect = {},
               .margin_mode = {},
               .quantity_type = {},

@@ -461,7 +461,7 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
           .exchange = shared_.settings.exchange,
           .symbol = symbol,
           .description = {},
-          .security_type = json::Map{item.inst_type},
+          .security_type = map(item.inst_type),
           .cfi_code = {},
           .base_currency = base_currency,
           .quote_currency = quote_currency,
@@ -475,7 +475,7 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
           .min_trade_vol = item.min_sz,
           .max_trade_vol = NaN,
           .trade_vol_step_size = NaN,
-          .option_type = json::Map{item.opt_type},
+          .option_type = map(item.opt_type),
           .strike_currency = {},
           .strike_price = item.stk,
           .underlying = item.uly,
@@ -499,7 +499,7 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
           .stream_id = stream_id_,
           .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
-          .trading_status = json::Map{item.state},
+          .trading_status = map(item.state),
           .exchange_time_utc = {},
           .exchange_sequence = {},
           .sending_time_utc = {},
@@ -615,7 +615,7 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
     shared_.trades.clear();
     auto emplace_back = [](auto &result, auto &value) {
       auto trade = Trade{
-          .side = json::Map{value.side},
+          .side = map(value.side),
           .price = value.px,
           .quantity = value.sz,
           .trade_id = value.trade_id,
