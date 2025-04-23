@@ -86,7 +86,7 @@ auto create_connection(auto &handler, auto &settings, auto &context) {
 }
 
 struct create_metrics final : public utils::metrics::Factory {
-  create_metrics(auto &settings, auto &group, auto const &function) : utils::metrics::Factory(settings.app.name, group, function) {}
+  create_metrics(auto &settings, auto &group, auto const &function) : utils::metrics::Factory{settings.app.name, group, function} {}
 };
 
 std::pair<json::OrderType, bool> compute_order_attributes(auto order_type, auto time_in_force, auto execution_instructions) {
