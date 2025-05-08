@@ -121,8 +121,9 @@ void MarketData::operator()(Event<Stop> const &) {
 void MarketData::operator()(Event<Timer> const &event) {
   auto now = event.value.now;
   (*connection_).refresh(now);
-  if ((*connection_).ready())
+  if ((*connection_).ready()) {
     check_subscribe_queue(now);
+  }
 }
 
 void MarketData::operator()(metrics::Writer &writer) {
@@ -152,8 +153,9 @@ void MarketData::operator()(metrics::Writer &writer) {
 }
 
 void MarketData::subscribe(size_t start_from) {
-  if (ready())
+  if (ready()) {
     subscribe(shared_.symbols.get_slice(index_, start_from));
+  }
 }
 
 void MarketData::operator()(web::socket::Client::Connected const &) {
@@ -263,8 +265,9 @@ void MarketData::login() {
 }
 
 void MarketData::subscribe_static() {
-  if (index_ != 0)  // note! only subscribe instruments from the first connection
+  if (index_ != 0) {  // note! only subscribe instruments from the first connection
     return;
+  }
   subscribe("status"sv);
   subscribe("instruments"sv, "instType"sv, "SPOT"sv);
   subscribe("instruments"sv, "instType"sv, "SWAP"sv);
@@ -275,8 +278,9 @@ void MarketData::subscribe_static() {
 }
 
 void MarketData::subscribe(std::span<Symbol const> const &symbols) {
-  if (std::empty(symbols))
+  if (std::empty(symbols)) {
     return;
+  }
   // subscribe("price-limit"sv, "instType"sv, symbols);
   // subscribe("mark-price"sv, "instType"sv, symbols);
   subscribe("tickers"sv, "instId"sv, symbols);
@@ -291,8 +295,9 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols) {
         break;
       case 50:
         result = "books50-l2-tbt"sv;
-        if (!vip)
+        if (!vip) {
           log::fatal(R"(Channel "{}" requires authentication (only available to VIP members))"sv, result);
+        }
         break;
       case 400:
         result = vip ? "books-l2-tbt"sv : "books"sv;
@@ -369,8 +374,9 @@ void MarketData::parse(std::string_view const &message) {
     auto log_message = [&]() { log::warn(R"(message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info))
+      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info)) {
         log_message();
+      }
     } catch (...) {
       log_message();
       utils::exceptions::Unhandled::terminate();
@@ -490,10 +496,12 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
           .discard = discard,
       };
       create_trace_and_dispatch(handler_, trace_info, reference_data, true);
-      if (discard)
+      if (discard) {
         continue;
-      if (shared_.all_symbols.emplace(symbol).second)  // only include new
+      }
+      if (shared_.all_symbols.emplace(symbol).second) {  // only include new
         symbols.emplace_back(symbol);
+      }
       ++counter;
       auto market_status = MarketStatus{
           .stream_id = stream_id_,
@@ -516,8 +524,9 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
           break;
         case SWAP:
         case FUTURES:
-          if (shared_.extended_symbols.emplace(symbol).second)
+          if (shared_.extended_symbols.emplace(symbol).second) {
             log::info<2>(R"(DEBUG: symbol="{}")"sv, symbol);
+          }
           break;
         case OPTION:
           break;
@@ -668,8 +677,9 @@ void MarketData::operator()(Trace<json::BboTbt> const &event, std::string_view c
     (*connection_).touch(trace_info.source_receive_time);
     auto &bids = bbo_tbt.bids;
     auto &asks = bbo_tbt.asks;
-    if (std::size(bids) > 1 || std::size(asks) > 1)
+    if (std::size(bids) > 1 || std::size(asks) > 1) {
       log::fatal("Unexpected"sv);
+    }
     auto top_of_book = TopOfBook{
         .stream_id = stream_id_,
         .exchange = shared_.settings.exchange,
@@ -695,17 +705,20 @@ void MarketData::operator()(Trace<json::BooksL2Tbt> const &event, std::string_vi
     log::info<3>("event={{books_l2_tbt={}, action={}, trace_info={}}}"sv, books_l2_tbt, action, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
     auto snapshot = [&]() {
-      if (action != json::Action::SNAPSHOT)
+      if (action != json::Action::SNAPSHOT) {
         return false;
+      }
       assert(books_l2_tbt.prev_seq_id == -1);
       return true;
     }();
     assert(books_l2_tbt.seq_id >= 0);
     auto &sequence = sequence_[inst_id];
-    if (books_l2_tbt.seq_id <= sequence)
+    if (books_l2_tbt.seq_id <= sequence) {
       return;
-    if (books_l2_tbt.prev_seq_id >= 0 && books_l2_tbt.prev_seq_id != sequence)
+    }
+    if (books_l2_tbt.prev_seq_id >= 0 && books_l2_tbt.prev_seq_id != sequence) {
       log::warn<1>(R"(DEBUG inst_id="{}" prev_seq_id={}, have={})"sv, inst_id, books_l2_tbt.prev_seq_id, sequence);
+    }
     sequence = books_l2_tbt.seq_id;
     shared_.bids.clear();
     shared_.asks.clear();
@@ -720,10 +733,12 @@ void MarketData::operator()(Trace<json::BooksL2Tbt> const &event, std::string_vi
       };
       result.emplace_back(std::move(mbp_update));
     };
-    for (auto &item : books_l2_tbt.bids)
+    for (auto &item : books_l2_tbt.bids) {
       emplace_back(shared_.bids, item);
-    for (auto &item : books_l2_tbt.asks)
+    }
+    for (auto &item : books_l2_tbt.asks) {
       emplace_back(shared_.asks, item);
+    }
     // XXX HANS validate checksum
     auto update_type = snapshot ? UpdateType::SNAPSHOT : UpdateType::INCREMENTAL;
     auto market_by_price_update = MarketByPriceUpdate{

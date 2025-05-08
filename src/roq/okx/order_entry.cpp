@@ -74,9 +74,11 @@ struct create_metrics final : public utils::metrics::Factory {
 };
 
 auto get_download_trades_lookback(auto &settings, auto download_trades_is_first) {
-  if (download_trades_is_first)
-    if (!settings.download.trades_lookback_on_restart.count())
+  if (download_trades_is_first) {
+    if (!settings.download.trades_lookback_on_restart.count()) {
       return settings.download.trades_lookback_on_restart;
+    }
+  }
   return settings.download.trades_lookback;
 }
 }  // namespace

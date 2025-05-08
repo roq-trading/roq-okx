@@ -96,10 +96,12 @@ std::pair<json::OrderType, bool> compute_order_attributes(auto order_type, auto 
   bool reduce_only = false;
   json::OrderType order_type_ = {};
   if (!std::empty(execution_instructions)) {
-    if (execution_instructions.has(ExecutionInstruction::PARTICIPATE_DO_NOT_INITIATE))
+    if (execution_instructions.has(ExecutionInstruction::PARTICIPATE_DO_NOT_INITIATE)) {
       order_type_ = json::OrderType::POST_ONLY;
-    if (execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE))
+    }
+    if (execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE)) {
       reduce_only = true;
+    }
     // throw server::oms::NotSupported{"not supported"sv};
   }
   switch (time_in_force) {
@@ -108,12 +110,14 @@ std::pair<json::OrderType, bool> compute_order_attributes(auto order_type, auto 
     case GTC:
       break;
     case FOK:
-      if (order_type_ != json::OrderType{})
+      if (order_type_ != json::OrderType{}) {
         order_type_ = json::OrderType::FOK;
+      }
       break;
     case IOC:
-      if (order_type_ != json::OrderType{})
+      if (order_type_ != json::OrderType{}) {
         order_type_ = json::OrderType::IOC;
+      }
       break;
     default:
       log_no_mapping_exists();
@@ -236,8 +240,9 @@ uint16_t DropCopy::operator()(Event<CreateOrder> const &event, server::oms::Orde
     return trade_mode_;
   }();
   std::string extras;
-  if (trade_mode == json::TradeMode::type_t::CROSS && !std::empty(shared_.settings.test_margin_currency))
+  if (trade_mode == json::TradeMode::type_t::CROSS && !std::empty(shared_.settings.test_margin_currency)) {
     extras = fmt::format(R"(,"ccy":"{}")"sv, shared_.settings.test_margin_currency);
+  }
   switch (order_type) {
     using enum json::OrderType::type_t;
     case MARKET: {
@@ -561,8 +566,9 @@ void DropCopy::parse(std::string_view const &message) {
     auto log_message = [&]() { log::warn(R"(message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info))
+      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info)) {
         log_message();
+      }
     } catch (...) {
       log_message();
       utils::exceptions::Unhandled::terminate();
@@ -581,8 +587,9 @@ void DropCopy::operator()(Trace<json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
     log::info<1>("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
-    if (subscribe.channel == json::Channel::ORDERS)
+    if (subscribe.channel == json::Channel::ORDERS) {
       download_.check(DropCopyState::SUBSCRIBE);
+    }
   });
 }
 
@@ -713,10 +720,12 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
     log::info<1>("event={{orders={}, trace_info={}}}"sv, orders, trace_info);
     for (auto &item : orders.data) {
       log::info<2>("item={}"sv, item);
-      if (item.amend_result < 0)
+      if (item.amend_result < 0) {
         log::warn<1>("*** AMEND HAS FAILED ***"sv);
-      if (item.code != 0)
+      }
+      if (item.code != 0) {
         log::warn<1>(R"(*** ERROR CODE={}, MSG="{}" ***)"sv, item.code, item.msg);
+      }
       auto order_update = server::oms::OrderUpdate{
           .account = account_.name,
           .exchange = shared_.settings.exchange,
@@ -912,8 +921,9 @@ void DropCopy::request_orders() {
 // response
 
 void DropCopy::check_response_balance() {
-  if (download_.state() != DropCopyState::BALANCE)
+  if (download_.state() != DropCopyState::BALANCE) {
     return;
+  }
   if (request_.request_balance < request_.respond_balance) {
     log::info("Balance download has completed!"sv);
     download_.check(DropCopyState::BALANCE);
@@ -921,8 +931,9 @@ void DropCopy::check_response_balance() {
 }
 
 void DropCopy::check_response_positions() {
-  if (download_.state() != DropCopyState::POSITIONS)
+  if (download_.state() != DropCopyState::POSITIONS) {
     return;
+  }
   if (request_.request_positions < request_.respond_positions) {
     log::info("Positions download has completed!"sv);
     download_.check(DropCopyState::POSITIONS);
@@ -930,8 +941,9 @@ void DropCopy::check_response_positions() {
 }
 
 void DropCopy::check_response_orders() {
-  if (download_.state() != DropCopyState::ORDERS)
+  if (download_.state() != DropCopyState::ORDERS) {
     return;
+  }
   if (request_.request_orders < request_.respond_orders) {
     log::info("Order download has completed!"sv);
     download_.check(DropCopyState::ORDERS);

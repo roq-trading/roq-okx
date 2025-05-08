@@ -103,8 +103,9 @@ void Rest::operator()(Event<Stop> const &) {
 void Rest::operator()(Event<Timer> const &event) {
   auto now = event.value.now;
   (*connection_).refresh(now);
-  if (ready())
+  if (ready()) {
     check_request_queue(now);
+  }
 }
 
 void Rest::operator()(metrics::Writer &writer) {
@@ -285,10 +286,12 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
         .discard = discard,
     };
     create_trace_and_dispatch(handler_, trace_info, reference_data, true);
-    if (discard)
+    if (discard) {
       continue;
-    if (shared_.all_symbols.emplace(symbol).second)  // only include new
+    }
+    if (shared_.all_symbols.emplace(symbol).second) {  // only include new
       symbols.emplace_back(symbol);
+    }
     ++counter;
     auto market_status = MarketStatus{
         .stream_id = stream_id_,

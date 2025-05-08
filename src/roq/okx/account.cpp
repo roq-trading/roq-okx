@@ -33,8 +33,9 @@ auto create_crypto(auto &config, auto &name) -> tools::Crypto {
     ready = false;
     log::warn(R"(Unexpected: missing passphrase for name="{}")"sv, name);
   }
-  if (!ready)
+  if (!ready) {
     log::fatal("Invalid config"sv);
+  }
   return {key, secret, passphrase};
 }
 }  // namespace

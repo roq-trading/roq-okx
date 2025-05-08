@@ -32,12 +32,14 @@ R create_accounts(auto &config) {
 }
 
 auto &get_account(auto &accounts, auto &master_account) {
-  if (std::empty(accounts) && std::empty(master_account))
+  if (std::empty(accounts) && std::empty(master_account)) {
     return NO_SECURITY;
+  }
   assert(!std::empty(master_account));
   auto iter = accounts.find(master_account);
-  if (iter == std::end(accounts))
+  if (iter == std::end(accounts)) {
     log::fatal("Unexpected"sv);
+  }
   return *(*iter).second;
 }
 
@@ -45,8 +47,9 @@ template <typename R>
 R create_request(auto &config) {
   using result_type = std::remove_cvref<R>::type;
   result_type result;
-  for (auto &[_, account] : config.accounts)
+  for (auto &[_, account] : config.accounts) {
     result.try_emplace(static_cast<std::string_view>(account.name), Request{});
+  }
   return result;
 }
 
@@ -183,15 +186,17 @@ void Gateway::operator()(Trace<PositionUpdate> const &event, bool is_last) {
 void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
   auto [size, start_from] = shared_.symbols(symbols_update.symbols);
   ensure_symbol_slices(size);
-  for (auto &item : market_data_)
+  for (auto &item : market_data_) {
     (*item).subscribe(start_from);
+  }
 }
 
 void Gateway::operator()(MarketData::SymbolsUpdate &symbols_update) {
   auto [size, start_from] = shared_.symbols(symbols_update.symbols);
   ensure_symbol_slices(size);
-  for (auto &item : market_data_)
+  for (auto &item : market_data_) {
     (*item).subscribe(start_from);
+  }
 }
 
 void Gateway::ensure_symbol_slices(size_t size) {
@@ -247,19 +252,24 @@ template <typename... Args>
 void Gateway::dispatch(Args &&...args) {
   auto helper = [&](auto &target) { target(std::forward<Args>(args)...); };
   helper(rest_);
-  for (auto &[_, item] : order_entry_)
+  for (auto &[_, item] : order_entry_) {
     helper(*item);
-  for (auto &[_, item] : drop_copy_)
-    if (static_cast<bool>(item))
+  }
+  for (auto &[_, item] : drop_copy_) {
+    if (static_cast<bool>(item)) {
       helper(*item);
-  for (auto &item : market_data_)
+    }
+  }
+  for (auto &item : market_data_) {
     helper(*item);
+  }
 }
 
 DropCopy &Gateway::get_order_entry(std::string_view const &account) {
   auto iter = drop_copy_.find(account);
-  if (iter != std::end(drop_copy_))
+  if (iter != std::end(drop_copy_)) {
     return *(*iter).second;
+  }
   throw RuntimeError{R"(Unknown account="{}")"sv, account};
 }
 
