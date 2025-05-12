@@ -22,7 +22,7 @@ Account NO_SECURITY;  // XXX not const...
 namespace {
 template <typename R>
 R create_accounts(auto &config) {
-  using result_type = std::remove_cvref<R>::type;
+  using result_type = std::remove_cvref_t<R>;
   result_type result;
   for (auto &[_, account] : config.accounts) {
     auto obj = std::make_unique<Account>(config, account.name);
@@ -45,7 +45,7 @@ auto &get_account(auto &accounts, auto &master_account) {
 
 template <typename R>
 R create_request(auto &config) {
-  using result_type = std::remove_cvref<R>::type;
+  using result_type = std::remove_cvref_t<R>;
   result_type result;
   for (auto &[_, account] : config.accounts) {
     result.try_emplace(static_cast<std::string_view>(account.name), Request{});
@@ -55,7 +55,7 @@ R create_request(auto &config) {
 
 template <typename R>
 R create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &request_by_account) {
-  using result_type = std::remove_cvref<R>::type;
+  using result_type = std::remove_cvref_t<R>;
   result_type result;
   for (auto &[_, item] : accounts) {
     auto &account = *item;
@@ -68,7 +68,7 @@ R create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &accoun
 
 template <typename R>
 R create_drop_copy(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &request_by_account) {
-  using result_type = std::remove_cvref<R>::type;
+  using result_type = std::remove_cvref_t<R>;
   result_type result;
   for (auto &[_, item] : accounts) {
     auto &account = *item;
@@ -81,7 +81,7 @@ R create_drop_copy(auto &gateway, auto &context, auto &stream_id, auto &accounts
 
 template <typename R>
 R create_market_data(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &master_account, auto &shared) {
-  using result_type = std::remove_cvref<R>::type;
+  using result_type = std::remove_cvref_t<R>;
   result_type result;
   ++stream_id;
   auto index = std::size(result);
