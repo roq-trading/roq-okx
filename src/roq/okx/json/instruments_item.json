@@ -133,6 +133,14 @@
     {
       "name": "futureSettlement",
       "type": "std/bool"
+    },
+    {
+      "name": "contTdSwTime",
+      "type": "std/string_view"
+    },
+    {
+      "name": "openType",
+      "type": "std/string_view"
     }
   ]
 }
