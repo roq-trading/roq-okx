@@ -226,8 +226,8 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
       if (std::empty(item.base_ccy)) {
         switch (item.ct_type) {
           using enum json::ContractType::type_t;
-          case UNDEFINED__:
-          case UNKNOWN__:
+          case _UNDEFINED:
+          case _UNKNOWN:
             break;
           case LINEAR:
             return item.ct_val_ccy;
@@ -241,8 +241,8 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
       if (std::empty(item.quote_ccy)) {
         switch (item.ct_type) {
           using enum json::ContractType::type_t;
-          case UNDEFINED__:
-          case UNKNOWN__:
+          case _UNDEFINED:
+          case _UNKNOWN:
             break;
           case LINEAR:
             return item.settle_ccy;
@@ -308,8 +308,8 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
     // but still avoid not reducing too much
     switch (item.inst_type) {
       using enum json::InstrumentType::type_t;
-      case UNDEFINED__:
-      case UNKNOWN__:
+      case _UNDEFINED:
+      case _UNKNOWN:
       case SPOT:
       case MARGIN:
         break;

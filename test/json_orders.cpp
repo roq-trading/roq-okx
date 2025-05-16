@@ -171,7 +171,7 @@ TEST_CASE("json_orders_parser", "[json_orders]") {
       CHECK(d0.ccy == ""sv);
       CHECK(d0.cl_ord_id == "abcABC125"sv);
       CHECK(d0.code == 0);
-      CHECK(d0.exec_type == json::OrderFlowType::UNDEFINED__);
+      CHECK(d0.exec_type == json::OrderFlowType::_UNDEFINED);
       CHECK(d0.fee == 0.0_a);
       CHECK(d0.fee_ccy == "BTC"sv);
       CHECK(d0.fill_fee == 0.0_a);
@@ -197,7 +197,7 @@ TEST_CASE("json_orders_parser", "[json_orders]") {
       CHECK(d0.side == json::Side::BUY);
       CHECK(std::isnan(d0.sl_ord_px) == true);
       CHECK(std::isnan(d0.sl_trigger_px) == true);
-      CHECK(d0.sl_trigger_px_type == json::TriggerPriceType::UNDEFINED__);
+      CHECK(d0.sl_trigger_px_type == json::TriggerPriceType::_UNDEFINED);
       CHECK(d0.source == ""sv);
       CHECK(d0.state == json::OrderState::LIVE);
       CHECK(d0.sz == 1.0_a);
@@ -206,7 +206,7 @@ TEST_CASE("json_orders_parser", "[json_orders]") {
       CHECK(d0.tgt_ccy == ""sv);
       CHECK(std::isnan(d0.tp_ord_px) == true);
       CHECK(std::isnan(d0.tp_trigger_px) == true);
-      CHECK(d0.tp_trigger_px_type == json::TriggerPriceType::UNDEFINED__);
+      CHECK(d0.tp_trigger_px_type == json::TriggerPriceType::_UNDEFINED);
       CHECK(d0.trade_id == ""sv);
       CHECK(d0.u_time == 1640182694746ms);
     }
