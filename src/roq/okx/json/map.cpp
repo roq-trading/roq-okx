@@ -20,9 +20,9 @@ template <>
 constexpr Helper<okx::json::InstrumentState>::operator std::optional<roq::TradingStatus>() const {
   switch (std::get<0>(args_)) {
     using enum okx::json::InstrumentState::type_t;
-    case _UNDEFINED:
+    case UNDEFINED_INTERNAL:
       return roq::TradingStatus::UNDEFINED;
-    case _UNKNOWN:
+    case UNKNOWN_INTERNAL:
       return roq::TradingStatus::UNDEFINED;
     case LIVE:
       return roq::TradingStatus::OPEN;
@@ -40,7 +40,7 @@ constexpr Helper<okx::json::InstrumentState>::operator std::optional<roq::Tradin
   return {};
 }
 
-static_assert(Helper{okx::json::InstrumentState{okx::json::InstrumentState::_UNDEFINED}} == roq::TradingStatus::UNDEFINED);
+static_assert(Helper{okx::json::InstrumentState{okx::json::InstrumentState::UNDEFINED_INTERNAL}} == roq::TradingStatus::UNDEFINED);
 static_assert(Helper{okx::json::InstrumentState{okx::json::InstrumentState::LIVE}} == roq::TradingStatus::OPEN);
 static_assert(Helper{okx::json::InstrumentState{okx::json::InstrumentState::SUSPENDED}} == roq::TradingStatus::HALT);
 static_assert(Helper{okx::json::InstrumentState{okx::json::InstrumentState::PREOPEN}} == roq::TradingStatus::PRE_OPEN);
@@ -61,9 +61,9 @@ template <>
 constexpr Helper<okx::json::InstrumentType>::operator std::optional<roq::SecurityType>() const {
   switch (std::get<0>(args_)) {
     using enum okx::json::InstrumentType::type_t;
-    case _UNDEFINED:
+    case UNDEFINED_INTERNAL:
       return roq::SecurityType::UNDEFINED;
-    case _UNKNOWN:
+    case UNKNOWN_INTERNAL:
       return roq::SecurityType::UNDEFINED;
     case SPOT:
       return roq::SecurityType::SPOT;
@@ -79,7 +79,7 @@ constexpr Helper<okx::json::InstrumentType>::operator std::optional<roq::Securit
   return {};
 }
 
-static_assert(Helper{okx::json::InstrumentType{okx::json::InstrumentType::_UNDEFINED}} == roq::SecurityType::UNDEFINED);
+static_assert(Helper{okx::json::InstrumentType{okx::json::InstrumentType::UNDEFINED_INTERNAL}} == roq::SecurityType::UNDEFINED);
 static_assert(Helper{okx::json::InstrumentType{okx::json::InstrumentType::SPOT}} == roq::SecurityType::SPOT);
 static_assert(Helper{okx::json::InstrumentType{okx::json::InstrumentType::MARGIN}} == roq::SecurityType::SPOT);
 static_assert(Helper{okx::json::InstrumentType{okx::json::InstrumentType::SWAP}} == roq::SecurityType::SWAP);
@@ -99,9 +99,9 @@ template <>
 constexpr Helper<okx::json::OptionType>::operator std::optional<roq::OptionType>() const {
   switch (std::get<0>(args_)) {
     using enum okx::json::OptionType::type_t;
-    case _UNDEFINED:
+    case UNDEFINED_INTERNAL:
       return roq::OptionType::UNDEFINED;
-    case _UNKNOWN:
+    case UNKNOWN_INTERNAL:
       return roq::OptionType::UNDEFINED;
     case CALL:
       return roq::OptionType::CALL;
@@ -111,7 +111,7 @@ constexpr Helper<okx::json::OptionType>::operator std::optional<roq::OptionType>
   return {};
 }
 
-static_assert(Helper{okx::json::OptionType{okx::json::OptionType::_UNDEFINED}} == roq::OptionType::UNDEFINED);
+static_assert(Helper{okx::json::OptionType{okx::json::OptionType::UNDEFINED_INTERNAL}} == roq::OptionType::UNDEFINED);
 static_assert(Helper{okx::json::OptionType{okx::json::OptionType::CALL}} == roq::OptionType::CALL);
 static_assert(Helper{okx::json::OptionType{okx::json::OptionType::PUT}} == roq::OptionType::PUT);
 
@@ -128,9 +128,9 @@ template <>
 constexpr Helper<okx::json::OrderFlowType>::operator std::optional<roq::Liquidity>() const {
   switch (std::get<0>(args_)) {
     using enum okx::json::OrderFlowType::type_t;
-    case _UNDEFINED:
+    case UNDEFINED_INTERNAL:
       return roq::Liquidity::UNDEFINED;
-    case _UNKNOWN:
+    case UNKNOWN_INTERNAL:
       return roq::Liquidity::UNDEFINED;
     case MAKER:
       return roq::Liquidity::MAKER;
@@ -140,7 +140,7 @@ constexpr Helper<okx::json::OrderFlowType>::operator std::optional<roq::Liquidit
   return {};
 }
 
-static_assert(Helper{okx::json::OrderFlowType{okx::json::OrderFlowType::_UNDEFINED}} == roq::Liquidity::UNDEFINED);
+static_assert(Helper{okx::json::OrderFlowType{okx::json::OrderFlowType::UNDEFINED_INTERNAL}} == roq::Liquidity::UNDEFINED);
 static_assert(Helper{okx::json::OrderFlowType{okx::json::OrderFlowType::MAKER}} == roq::Liquidity::MAKER);
 static_assert(Helper{okx::json::OrderFlowType{okx::json::OrderFlowType::TAKER}} == roq::Liquidity::TAKER);
 
@@ -157,9 +157,9 @@ template <>
 constexpr Helper<okx::json::OrderState>::operator std::optional<roq::OrderStatus>() const {
   switch (std::get<0>(args_)) {
     using enum okx::json::OrderState::type_t;
-    case _UNDEFINED:
+    case UNDEFINED_INTERNAL:
       return roq::OrderStatus::UNDEFINED;
-    case _UNKNOWN:
+    case UNKNOWN_INTERNAL:
       return roq::OrderStatus::UNDEFINED;
     case CANCELED:
       return roq::OrderStatus::CANCELED;
@@ -173,7 +173,7 @@ constexpr Helper<okx::json::OrderState>::operator std::optional<roq::OrderStatus
   return {};
 }
 
-static_assert(Helper{okx::json::OrderState{okx::json::OrderState::_UNDEFINED}} == roq::OrderStatus::UNDEFINED);
+static_assert(Helper{okx::json::OrderState{okx::json::OrderState::UNDEFINED_INTERNAL}} == roq::OrderStatus::UNDEFINED);
 static_assert(Helper{okx::json::OrderState{okx::json::OrderState::CANCELED}} == roq::OrderStatus::CANCELED);
 static_assert(Helper{okx::json::OrderState{okx::json::OrderState::LIVE}} == roq::OrderStatus::WORKING);
 static_assert(Helper{okx::json::OrderState{okx::json::OrderState::PARTIALLY_FILLED}} == roq::OrderStatus::WORKING);
@@ -192,9 +192,9 @@ template <>
 constexpr Helper<okx::json::Side>::operator std::optional<roq::Side>() const {
   switch (std::get<0>(args_)) {
     using enum okx::json::Side::type_t;
-    case _UNDEFINED:
+    case UNDEFINED_INTERNAL:
       return roq::Side::UNDEFINED;
-    case _UNKNOWN:
+    case UNKNOWN_INTERNAL:
       return roq::Side::UNDEFINED;
     case BUY:
       return roq::Side::BUY;
@@ -204,7 +204,7 @@ constexpr Helper<okx::json::Side>::operator std::optional<roq::Side>() const {
   return {};
 }
 
-static_assert(Helper{okx::json::Side{okx::json::Side::_UNDEFINED}} == roq::Side::UNDEFINED);
+static_assert(Helper{okx::json::Side{okx::json::Side::UNDEFINED_INTERNAL}} == roq::Side::UNDEFINED);
 static_assert(Helper{okx::json::Side{okx::json::Side::BUY}} == roq::Side::BUY);
 static_assert(Helper{okx::json::Side{okx::json::Side::SELL}} == roq::Side::SELL);
 
@@ -224,7 +224,7 @@ constexpr Helper<roq::Side>::operator std::optional<okx::json::Side>() const {
   switch (std::get<0>(args_)) {
     using enum roq::Side;
     case UNDEFINED:
-      return okx::json::Side::_UNDEFINED;
+      return okx::json::Side::UNDEFINED_INTERNAL;
     case BUY:
       return okx::json::Side::BUY;
     case SELL:

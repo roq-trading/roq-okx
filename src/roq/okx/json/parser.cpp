@@ -24,15 +24,15 @@ bool Parser::dispatch(Handler &handler, std::string_view const &message, std::sp
   Frame frame{message, buffer};
   switch (frame.op) {
     using enum Operation::type_t;
-    case _UNDEFINED:
+    case UNDEFINED_INTERNAL:
       switch (frame.event) {
         using enum EventType::type_t;
-        case _UNDEFINED:
+        case UNDEFINED_INTERNAL:
           switch (frame.arg.channel) {
             using enum Channel::type_t;
-            case _UNDEFINED:
+            case UNDEFINED_INTERNAL:
               break;
-            case _UNKNOWN:
+            case UNKNOWN_INTERNAL:
               assert(false);
               break;
             case STATUS:
@@ -88,7 +88,7 @@ bool Parser::dispatch(Handler &handler, std::string_view const &message, std::sp
               return true;
           }
           break;
-        case _UNKNOWN:
+        case UNKNOWN_INTERNAL:
           assert(false);
           break;
         case ERROR: {
@@ -131,7 +131,7 @@ bool Parser::dispatch(Handler &handler, std::string_view const &message, std::sp
         }
       }
       break;
-    case _UNKNOWN:
+    case UNKNOWN_INTERNAL:
       assert(false);
       break;
     case ORDER:

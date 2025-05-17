@@ -107,7 +107,7 @@ TEST_CASE("json_instruments_parser", "[json_instruments]") {
       CHECK(d0.base_ccy == "BCD"sv);
       CHECK(d0.category == "2"sv);
       CHECK(std::isnan(d0.ct_mult) == true);
-      CHECK(d0.ct_type == json::ContractType::_UNDEFINED);
+      CHECK(d0.ct_type == json::ContractType::UNDEFINED_INTERNAL);
       CHECK(std::isnan(d0.ct_val) == true);
       CHECK(d0.ct_val_ccy == ""sv);
       CHECK(d0.exp_time == 0ms);
@@ -117,7 +117,7 @@ TEST_CASE("json_instruments_parser", "[json_instruments]") {
       CHECK(d0.list_time == 0ms);
       CHECK(d0.lot_sz == 0.0001_a);
       CHECK(d0.min_sz == 1.0_a);
-      CHECK(d0.opt_type == json::OptionType::_UNDEFINED);
+      CHECK(d0.opt_type == json::OptionType::UNDEFINED_INTERNAL);
       CHECK(d0.quote_ccy == "BTC"sv);
       CHECK(d0.settle_ccy == ""sv);
       CHECK(d0.state == json::InstrumentState::LIVE);
