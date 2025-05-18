@@ -15,7 +15,7 @@ namespace roq {
 namespace okx {
 
 struct Account final {
-  Account() {}
+  Account() = default;
   Account(Config const &, std::string_view const &name);
 
   Account(Account const &) = delete;

@@ -114,7 +114,6 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
   void check_response_positions();
   void check_response_orders();
 
- private:
   Handler &handler_;
   // config
   uint16_t const stream_id_;

@@ -723,11 +723,14 @@ void MarketData::operator()(Trace<json::BooksL2Tbt> const &event, std::string_vi
     shared_.bids.clear();
     shared_.asks.clear();
     auto emplace_back = [](auto &result, auto &item) {
+      auto const max_number_of_orders = std::numeric_limits<decltype(MBPUpdate::number_of_orders)>::max();
+      static_assert(max_number_of_orders == 65535);
+      auto number_of_orders = std::min<decltype(item.orders)>(item.orders, max_number_of_orders);
       auto mbp_update = MBPUpdate{
           .price = item.price,
           .quantity = item.size,
           .implied_quantity = NaN,
-          .number_of_orders = utils::safe_cast{std::min(item.orders, 65535u)},
+          .number_of_orders = utils::safe_cast(number_of_orders),
           .update_action = {},
           .price_level = {},
       };
