@@ -58,14 +58,14 @@ TEST_CASE("json_cancel_order_ack_parser_success", "[json_cancel_order_ack]") {
       CHECK(cancel_order_ack.code == 0);
       auto &data = cancel_order_ack.data;
       REQUIRE(std::size(data) == 1);
-      auto &d0 = data[0];
-      CHECK(d0.cl_ord_id == "3MAAF2IDAAAQAAGSKMZCT5A3"sv);
-      CHECK(d0.ord_id == "393940260828377089"sv);
-      CHECK(d0.s_code == 0);
-      CHECK(d0.s_msg == ""sv);
-      CHECK(d0.tag == ""sv);
+      auto &data_0 = data[0];
+      CHECK(data_0.cl_ord_id == "3MAAF2IDAAAQAAGSKMZCT5A3"sv);
+      CHECK(data_0.ord_id == "393940260828377089"sv);
+      CHECK(data_0.s_code == 0);
+      CHECK(std::empty(data_0.s_msg));
+      CHECK(std::empty(data_0.tag));
       CHECK(cancel_order_ack.id == "2000003"sv);
-      CHECK(cancel_order_ack.msg == ""sv);
+      CHECK(std::empty(cancel_order_ack.msg));
       CHECK(cancel_order_ack.op == json::Operation::CANCEL_ORDER);
     }
 

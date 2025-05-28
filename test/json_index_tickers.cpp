@@ -51,15 +51,15 @@ TEST_CASE("json_index_tickers_parser", "[json_index_tickers]") {
       auto &[trace_info, trades] = event;
       auto &data = trades.data;
       REQUIRE(std::size(data) == 1);
-      auto &d0 = data[0];
-      CHECK(d0.inst_id == "BTC-USDT"sv);
-      CHECK(d0.idx_px == 41756.7_a);
-      CHECK(d0.open24h == 42427.3_a);
-      CHECK(d0.high24h == 42560.7_a);
-      CHECK(d0.low24h == 41147.5_a);
-      CHECK(d0.sod_utc0 == 41663.1_a);
-      CHECK(d0.sod_utc8 == 41984.2_a);
-      CHECK(d0.ts == 1642643951284ms);
+      auto &data_0 = data[0];
+      CHECK(data_0.inst_id == "BTC-USDT"sv);
+      CHECK(data_0.idx_px == 41756.7_a);
+      CHECK(data_0.open24h == 42427.3_a);
+      CHECK(data_0.high24h == 42560.7_a);
+      CHECK(data_0.low24h == 41147.5_a);
+      CHECK(data_0.sod_utc0 == 41663.1_a);
+      CHECK(data_0.sod_utc8 == 41984.2_a);
+      CHECK(data_0.ts == 1642643951284ms);
     }
     void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
     void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }

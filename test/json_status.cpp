@@ -42,8 +42,8 @@ TEST_CASE("json_status_parser", "[json_status]") {
       auto &[trace_info, status] = event;
       CHECK(status.begin == 1639645200000ms);
       CHECK(status.end == 1639647600000ms);
-      CHECK(status.href == ""sv);
-      CHECK(status.sche_desc == ""sv);
+      CHECK(std::empty(status.href));
+      CHECK(std::empty(status.sche_desc));
       CHECK(status.service_type == 0);
       CHECK(status.state == json::State::COMPLETED);
       CHECK(status.system == "unified"sv);

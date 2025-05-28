@@ -101,29 +101,29 @@ TEST_CASE("json_instruments_parser", "[json_instruments]") {
       auto &[trace_info, instruments] = event;
       auto &data = instruments.data;
       REQUIRE(std::size(data) == 3);
-      // d0
-      auto &d0 = data[0];
-      CHECK(d0.alias == ""sv);
-      CHECK(d0.base_ccy == "BCD"sv);
-      CHECK(d0.category == "2"sv);
-      CHECK(std::isnan(d0.ct_mult) == true);
-      CHECK(d0.ct_type == json::ContractType::UNDEFINED_INTERNAL);
-      CHECK(std::isnan(d0.ct_val) == true);
-      CHECK(d0.ct_val_ccy == ""sv);
-      CHECK(d0.exp_time == 0ms);
-      CHECK(d0.inst_id == "BCD-BTC"sv);
-      CHECK(d0.inst_type == json::InstrumentType::SPOT);
-      CHECK(std::isnan(d0.lever) == true);
-      CHECK(d0.list_time == 0ms);
-      CHECK(d0.lot_sz == 0.0001_a);
-      CHECK(d0.min_sz == 1.0_a);
-      CHECK(d0.opt_type == json::OptionType::UNDEFINED_INTERNAL);
-      CHECK(d0.quote_ccy == "BTC"sv);
-      CHECK(d0.settle_ccy == ""sv);
-      CHECK(d0.state == json::InstrumentState::LIVE);
-      CHECK(std::isnan(d0.stk) == true);
-      CHECK(d0.tick_sz == 0.0000001_a);
-      CHECK(d0.uly == ""sv);
+      // data_0
+      auto &data_0 = data[0];
+      CHECK(std::empty(data_0.alias));
+      CHECK(data_0.base_ccy == "BCD"sv);
+      CHECK(data_0.category == "2"sv);
+      CHECK(std::isnan(data_0.ct_mult) == true);
+      CHECK(data_0.ct_type == json::ContractType::UNDEFINED_INTERNAL);
+      CHECK(std::isnan(data_0.ct_val) == true);
+      CHECK(std::empty(data_0.ct_val_ccy));
+      CHECK(data_0.exp_time == 0ms);
+      CHECK(data_0.inst_id == "BCD-BTC"sv);
+      CHECK(data_0.inst_type == json::InstrumentType::SPOT);
+      CHECK(std::isnan(data_0.lever) == true);
+      CHECK(data_0.list_time == 0ms);
+      CHECK(data_0.lot_sz == 0.0001_a);
+      CHECK(data_0.min_sz == 1.0_a);
+      CHECK(data_0.opt_type == json::OptionType::UNDEFINED_INTERNAL);
+      CHECK(data_0.quote_ccy == "BTC"sv);
+      CHECK(std::empty(data_0.settle_ccy));
+      CHECK(data_0.state == json::InstrumentState::LIVE);
+      CHECK(std::isnan(data_0.stk) == true);
+      CHECK(data_0.tick_sz == 0.0000001_a);
+      CHECK(std::empty(data_0.uly));
     }
     void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
     void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }

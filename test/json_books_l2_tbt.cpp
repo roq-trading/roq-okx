@@ -54,21 +54,21 @@ TEST_CASE("json_books_l2_tbt_parser", "[json_books_l2_tbt]") {
       CHECK(action == json::Action::SNAPSHOT);
       auto &asks = books_l2_tbt.asks;
       REQUIRE(std::size(asks) == 2);
-      // a0
-      auto &a0 = asks[0];
-      CHECK(a0.price == 50441.1_a);
-      CHECK(a0.size == 24.0_a);
-      CHECK(a0.liquidated_orders == 0);
-      CHECK(a0.orders == 1);
+      // ask_0
+      auto &ask_0 = asks[0];
+      CHECK(ask_0.price == 50441.1_a);
+      CHECK(ask_0.size == 24.0_a);
+      CHECK(ask_0.liquidated_orders == 0);
+      CHECK(ask_0.orders == 1);
       // a1
       auto &bids = books_l2_tbt.bids;
       REQUIRE(std::size(bids) == 2);
-      // b0
-      auto &b0 = bids[0];
-      CHECK(b0.price == 50441_a);
-      CHECK(b0.size == 199.0_a);
-      CHECK(b0.liquidated_orders == 0);
-      CHECK(b0.orders == 3);
+      // bid_0
+      auto &bid_0 = bids[0];
+      CHECK(bid_0.price == 50441_a);
+      CHECK(bid_0.size == 199.0_a);
+      CHECK(bid_0.liquidated_orders == 0);
+      CHECK(bid_0.orders == 3);
     }
     void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
     void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
@@ -140,21 +140,21 @@ TEST_CASE("json_books_l2_tbt_parser_books5", "[json_books_l2_tbt]") {
       CHECK(action == json::Action::SNAPSHOT);
       auto &asks = books_l2_tbt.asks;
       REQUIRE(std::size(asks) == 5);
-      // a0
-      auto &a0 = asks[0];
-      CHECK(a0.price == 0.773_a);
-      CHECK(a0.size == 2.160647_a);
-      CHECK(a0.liquidated_orders == 0);
-      CHECK(a0.orders == 2);
+      // ask_0
+      auto &ask_0 = asks[0];
+      CHECK(ask_0.price == 0.773_a);
+      CHECK(ask_0.size == 2.160647_a);
+      CHECK(ask_0.liquidated_orders == 0);
+      CHECK(ask_0.orders == 2);
       // a1...
       auto &bids = books_l2_tbt.bids;
       REQUIRE(std::size(bids) == 5);
-      // b0
-      auto &b0 = bids[0];
-      CHECK(b0.price == 0.771_a);
-      CHECK(b0.size == 1111.147468_a);
-      CHECK(b0.liquidated_orders == 0);
-      CHECK(b0.orders == 5);
+      // bid_0
+      auto &bid_0 = bids[0];
+      CHECK(bid_0.price == 0.771_a);
+      CHECK(bid_0.size == 1111.147468_a);
+      CHECK(bid_0.liquidated_orders == 0);
+      CHECK(bid_0.orders == 5);
       // b1...
     }
     void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }

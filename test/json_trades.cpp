@@ -45,13 +45,13 @@ TEST_CASE("json_trades_parser", "[json_trades]") {
       auto &[trace_info, trades] = event;
       auto &data = trades.data;
       REQUIRE(std::size(data) == 1);
-      auto &d0 = data[0];
-      CHECK(d0.inst_id == "BTC-USD-220325"sv);
-      CHECK(d0.trade_id == "7789395"sv);
-      CHECK(d0.px == 50387.4_a);
-      CHECK(d0.sz == 5.0_a);
-      CHECK(d0.side == json::Side::BUY);
-      CHECK(d0.ts == 1640157052811ms);
+      auto &data_0 = data[0];
+      CHECK(data_0.inst_id == "BTC-USD-220325"sv);
+      CHECK(data_0.trade_id == "7789395"sv);
+      CHECK(data_0.px == 50387.4_a);
+      CHECK(data_0.sz == 5.0_a);
+      CHECK(data_0.side == json::Side::BUY);
+      CHECK(data_0.ts == 1640157052811ms);
     }
     void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
     void operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override { FAIL(); }

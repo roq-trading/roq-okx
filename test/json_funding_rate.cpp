@@ -49,12 +49,12 @@ TEST_CASE("json_funding_rate_parser", "[json_funding_rate]") {
       auto &[trace_info, trades] = event;
       auto &data = trades.data;
       REQUIRE(std::size(data) == 1);
-      auto &d0 = data[0];
-      CHECK(d0.funding_rate == -0.00006384_a);
-      CHECK(d0.funding_time == 1642665600000ms);
-      CHECK(d0.inst_id == "BTC-USD-SWAP"sv);
-      CHECK(d0.inst_type == json::InstrumentType::SWAP);
-      CHECK(d0.next_funding_rate == -0.00005_a);
+      auto &data_0 = data[0];
+      CHECK(data_0.funding_rate == -0.00006384_a);
+      CHECK(data_0.funding_time == 1642665600000ms);
+      CHECK(data_0.inst_id == "BTC-USD-SWAP"sv);
+      CHECK(data_0.inst_type == json::InstrumentType::SWAP);
+      CHECK(data_0.next_funding_rate == -0.00005_a);
     }
     void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
     void operator()(Trace<json::Login> const &) override { FAIL(); }

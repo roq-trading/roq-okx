@@ -58,15 +58,15 @@ TEST_CASE("json_amend_order_ack_parser_success", "[json_amend_order_ack]") {
       CHECK(amend_order_ack.code == 0);
       auto &data = amend_order_ack.data;
       REQUIRE(std::size(data) == 1);
-      auto &d0 = data[0];
-      CHECK(d0.cl_ord_id == "CMAAF2IDAAAQAAFQDIHPD4Y3"sv);
-      CHECK(d0.ord_id == "393936310213439488"sv);
-      CHECK(d0.req_id == ""sv);
-      CHECK(d0.s_code == 0);
-      CHECK(d0.s_msg == ""sv);
-      CHECK(d0.tag == ""sv);
+      auto &data_0 = data[0];
+      CHECK(data_0.cl_ord_id == "CMAAF2IDAAAQAAFQDIHPD4Y3"sv);
+      CHECK(data_0.ord_id == "393936310213439488"sv);
+      CHECK(std::empty(data_0.req_id));
+      CHECK(data_0.s_code == 0);
+      CHECK(std::empty(data_0.s_msg));
+      CHECK(std::empty(data_0.tag));
       CHECK(amend_order_ack.id == "2000002"sv);
-      CHECK(amend_order_ack.msg == ""sv);
+      CHECK(std::empty(amend_order_ack.msg));
       CHECK(amend_order_ack.op == json::Operation::AMEND_ORDER);
     }
     void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }

@@ -57,14 +57,14 @@ TEST_CASE("json_order_ack_parser_success", "[json_order_ack]") {
       CHECK(order_ack.code == 0);
       auto &data = order_ack.data;
       REQUIRE(std::size(data) == 1);
-      auto &d0 = data[0];
-      CHECK(d0.cl_ord_id == "abcABC123"sv);
-      CHECK(d0.ord_id == "393513242072608785"sv);
-      CHECK(d0.s_code == 0);
-      CHECK(d0.s_msg == ""sv);
-      CHECK(d0.tag == ""sv);
+      auto &data_0 = data[0];
+      CHECK(data_0.cl_ord_id == "abcABC123"sv);
+      CHECK(data_0.ord_id == "393513242072608785"sv);
+      CHECK(data_0.s_code == 0);
+      CHECK(std::empty(data_0.s_msg));
+      CHECK(std::empty(data_0.tag));
       CHECK(order_ack.id == "1000001"sv);
-      CHECK(order_ack.msg == ""sv);
+      CHECK(std::empty(order_ack.msg));
       CHECK(order_ack.op == json::Operation::ORDER);
     }
     void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
@@ -125,14 +125,14 @@ TEST_CASE("json_order_ack_parser_failure", "[json_order_ack]") {
       CHECK(order_ack.code == 1);
       auto &data = order_ack.data;
       REQUIRE(std::size(data) == 1);
-      auto &d0 = data[0];
-      CHECK(d0.cl_ord_id == "abcABC125"sv);
-      CHECK(d0.ord_id == ""sv);
-      CHECK(d0.s_code == 51016);
-      CHECK(d0.s_msg == "Duplicated client order ID"sv);
-      CHECK(d0.tag == ""sv);
+      auto &data_0 = data[0];
+      CHECK(data_0.cl_ord_id == "abcABC125"sv);
+      CHECK(std::empty(data_0.ord_id));
+      CHECK(data_0.s_code == 51016);
+      CHECK(data_0.s_msg == "Duplicated client order ID"sv);
+      CHECK(std::empty(data_0.tag));
       CHECK(order_ack.id == "2000001"sv);
-      CHECK(order_ack.msg == ""sv);
+      CHECK(std::empty(order_ack.msg));
       CHECK(order_ack.op == json::Operation::ORDER);
     }
     void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }

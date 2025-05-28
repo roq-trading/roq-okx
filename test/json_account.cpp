@@ -127,34 +127,34 @@ TEST_CASE("json_account_parser", "[json_account]") {
     void operator()(Trace<json::Account> const &event) override {
       ++count_;
       auto &[trace_info, account] = event;
-      CHECK(account.adj_eq == ""sv);
+      CHECK(std::empty(account.adj_eq));
       auto &details = account.details;
       CHECK(std::size(account.details) == 3);
       // d0
-      auto &d0 = details[0];
-      CHECK(std::isnan(d0.avail_bal) == true);
-      CHECK(d0.avail_eq == 0.0121475_a);
-      CHECK(d0.cash_bal == 0.0121475_a);
-      CHECK(d0.ccy == "BTC"sv);
-      CHECK(d0.coin_usd_price == 49079.0_a);
-      CHECK(std::isnan(d0.cross_liab) == true);
-      CHECK(d0.dis_eq == 596.1871525_a);
-      CHECK(d0.eq == 0.0121475_a);
-      CHECK(d0.eq_usd == 596.1871525_a);
-      CHECK(d0.frozen_bal == 0.0_a);
-      CHECK(std::isnan(d0.interest) == true);
-      CHECK(d0.iso_eq == 0.0_a);
-      CHECK(std::isnan(d0.iso_liab) == true);
-      CHECK(d0.iso_upl == 0.0_a);
-      CHECK(std::isnan(d0.liab) == true);
-      CHECK(std::isnan(d0.max_loan) == true);
-      CHECK(std::isnan(d0.mgn_ratio) == true);
-      CHECK(d0.notional_lever == 0.0_a);
-      CHECK(d0.ord_frozen == 0.0_a);
-      CHECK(d0.stgy_eq == 0.0_a);
-      CHECK(d0.twap == 0.0_a);
-      CHECK(d0.u_time == 1640088676388ms);
-      CHECK(d0.upl == 0.0_a);
+      auto &detail_0 = details[0];
+      CHECK(std::isnan(detail_0.avail_bal) == true);
+      CHECK(detail_0.avail_eq == 0.0121475_a);
+      CHECK(detail_0.cash_bal == 0.0121475_a);
+      CHECK(detail_0.ccy == "BTC"sv);
+      CHECK(detail_0.coin_usd_price == 49079.0_a);
+      CHECK(std::isnan(detail_0.cross_liab) == true);
+      CHECK(detail_0.dis_eq == 596.1871525_a);
+      CHECK(detail_0.eq == 0.0121475_a);
+      CHECK(detail_0.eq_usd == 596.1871525_a);
+      CHECK(detail_0.frozen_bal == 0.0_a);
+      CHECK(std::isnan(detail_0.interest) == true);
+      CHECK(detail_0.iso_eq == 0.0_a);
+      CHECK(std::isnan(detail_0.iso_liab) == true);
+      CHECK(detail_0.iso_upl == 0.0_a);
+      CHECK(std::isnan(detail_0.liab) == true);
+      CHECK(std::isnan(detail_0.max_loan) == true);
+      CHECK(std::isnan(detail_0.mgn_ratio) == true);
+      CHECK(detail_0.notional_lever == 0.0_a);
+      CHECK(detail_0.ord_frozen == 0.0_a);
+      CHECK(detail_0.stgy_eq == 0.0_a);
+      CHECK(detail_0.twap == 0.0_a);
+      CHECK(detail_0.u_time == 1640088676388ms);
+      CHECK(detail_0.upl == 0.0_a);
       // d1
       // d2
       // ...
