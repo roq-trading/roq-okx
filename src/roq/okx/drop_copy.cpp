@@ -672,6 +672,7 @@ void DropCopy::operator()(Trace<json::Account> const &event) {
           .margin_mode = {},
           .balance = item.cash_bal,
           .hold = item.frozen_bal,
+          .borrowed = NaN,
           .external_account = {},
           .update_type = {},
           .exchange_time_utc = {},
