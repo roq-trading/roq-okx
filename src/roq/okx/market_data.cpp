@@ -309,11 +309,12 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols) {
     return result;
   };
   subscribe(get_books_channel(!std::empty(account_)), "instId"sv, symbols);
+  subscribe("index-tickers"sv, "instId"sv, symbols);
   for (auto &symbol : symbols) {
     log::info(R"(DEBUG SUBSCRIBE stream_id={}, inst_id="{}")"sv, stream_id_, static_cast<std::string_view>(symbol));
     if (shared_.settings.misc.include_bad_subscriptions ||
         shared_.extended_symbols.find(static_cast<std::string_view>(symbol)) != shared_.extended_symbols.end()) {
-      subscribe("index-tickers"sv, "instId"sv, symbol);
+      // subscribe("index-tickers"sv, "instId"sv, symbol);
       subscribe("funding-rate"sv, "instId"sv, symbol);
     }
   }
