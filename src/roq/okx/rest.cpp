@@ -303,7 +303,6 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
         .sending_time_utc = {},
     };
     create_trace_and_dispatch(handler_, trace_info, market_status, true);
-    /*
     // trying to reduce the number of symbols where we next extra subscriptions
     // but still avoid not reducing too much
     switch (item.inst_type) {
@@ -315,13 +314,13 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
         break;
       case SWAP:
       case FUTURES:
-        if (shared_.extended_symbols.emplace(symbol).second)
+        if (shared_.extended_symbols.emplace(symbol).second) {
           log::info<2>(R"(DEBUG: symbol="{}")"sv, symbol);
+        }
         break;
       case OPTION:
         break;
     }
-    */
   }
   log::info("Instruments {} / {}"sv, counter, std::size(instruments.data));
   if (!std::empty(symbols)) {

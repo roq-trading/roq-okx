@@ -532,7 +532,7 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
           break;
       }
     }
-    log::info("Instruments {} / {}"sv, counter, std::size(instruments.data));
+    log::info<1>("Instruments {} / {}"sv, counter, std::size(instruments.data));
     if (!std::empty(symbols)) {
       auto symbols_update = SymbolsUpdate{
           .symbols = symbols,
@@ -820,7 +820,7 @@ void MarketData::operator()(Trace<json::FundingRate> const &event) {
           .symbol = item.inst_id,
           .statistics = statistics,
           .update_type = UpdateType::INCREMENTAL,
-          .exchange_time_utc = {},
+          .exchange_time_utc = item.ts,
           .exchange_sequence = {},
           .sending_time_utc = {},
       };

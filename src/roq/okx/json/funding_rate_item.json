@@ -25,6 +25,50 @@
     {
       "name": "nextFundingTime",
       "type": "std/milliseconds"
+    },
+    {
+      "name": "fundingRateType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "formulaType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "impactValue",
+      "type": "std/double"
+    },
+    {
+      "name": "interestRate",
+      "type": "std/double"
+    },
+    {
+      "name": "maxFundingRate",
+      "type": "std/double"
+    },
+    {
+      "name": "minFundingRate",
+      "type": "std/double"
+    },
+    {
+      "name": "method",
+      "type": "std/string_view"
+    },
+    {
+      "name": "premium",
+      "type": "std/double"
+    },
+    {
+      "name": "settFundingRate",
+      "type": "std/double"
+    },
+    {
+      "name": "settState",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ts",
+      "type": "std/milliseconds"
     }
   ]
 }
