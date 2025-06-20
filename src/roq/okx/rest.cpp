@@ -270,7 +270,7 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
         .min_notional = NaN,
         .min_trade_vol = item.min_sz,
         .max_trade_vol = NaN,
-        .trade_vol_step_size = NaN,
+        .trade_vol_step_size = item.lot_sz,
         .option_type = map(item.opt_type),
         .strike_currency = {},
         .strike_price = item.stk,
