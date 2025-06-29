@@ -4,6 +4,8 @@ All notable changes will be documented in this file.
 
 ## Head
 
+## 1.0.7 &ndash; 2025-07-02
+
 ### Fixed
 
 * Some subscriptions were incorrectly removed for futures and swaps (#511)
