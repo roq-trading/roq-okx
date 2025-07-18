@@ -523,9 +523,11 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
         .quantity = item.fill_sz,
         .price = item.fill_px,
         .liquidity = map(item.exec_type),
-        .quote_quantity = NaN,
-        .commission_quantity = item.fee,
+        .base_amount = NaN,
+        .quote_amount = NaN,
+        .commission_amount = item.fee,
         .commission_currency = item.fee_ccy,
+        .profit_loss_amount = NaN,
     };
     fmt::format_to(std::back_inserter(fill.external_trade_id), "{}"sv, item.trade_id);
     auto trade_update = TradeUpdate{
