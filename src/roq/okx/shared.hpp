@@ -39,6 +39,11 @@ struct Shared final {
     return dispatcher_(std::forward<Args>(args)...);
   }
 
+  template <typename... Args>
+  auto get_ref_data(Args &&...args) {
+    return dispatcher_.get_ref_data(std::forward<Args>(args)...);
+  }
+
  public:
   std::vector<MBPUpdate> bids, asks;
   std::vector<Trade> trades;

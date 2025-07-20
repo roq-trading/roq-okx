@@ -7,6 +7,7 @@
 
 #include "roq/mask.hpp"
 
+#include "roq/utils/common.hpp"
 #include "roq/utils/safe_cast.hpp"
 #include "roq/utils/update.hpp"
 
@@ -517,6 +518,9 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
   log::info<4>("fills={}"sv, fills);
   for (auto &item : fills.data) {
     log::info<2>("item={}"sv, item);
+    auto side = map(item.side).template get<Side>();
+    auto ref_data = shared_.get_ref_data(shared_.settings.exchange, item.inst_id);
+    auto profit_loss_cost_amount = utils::compute_profit_loss_cost_amount(side, item.fill_sz, item.fill_px, ref_data.multiplier);
     auto fill = Fill{
         .exchange_time_utc = utils::safe_cast(item.fill_time),
         .external_trade_id = {},
@@ -527,7 +531,7 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
         .quote_amount = NaN,
         .commission_amount = item.fee,
         .commission_currency = item.fee_ccy,
-        .profit_loss_cost_amount = NaN,
+        .profit_loss_cost_amount = profit_loss_cost_amount,
     };
     fmt::format_to(std::back_inserter(fill.external_trade_id), "{}"sv, item.trade_id);
     auto trade_update = TradeUpdate{
@@ -536,7 +540,7 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
         .order_id = {},
         .exchange = shared_.settings.exchange,
         .symbol = item.inst_id,
-        .side = map(item.side),
+        .side = side,
         .position_effect = {},
         .margin_mode = {},
         .quantity_type = {},
