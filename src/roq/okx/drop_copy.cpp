@@ -772,10 +772,10 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
               .quantity = item.fill_sz,
               .price = item.fill_px,
               .liquidity = map(item.exec_type),
-              .base_amount = NaN,
-              .quote_amount = NaN,
               .commission_amount = item.fill_fee,
               .commission_currency = item.fill_fee_ccy,
+              .base_amount = NaN,
+              .quote_amount = NaN,
               .profit_loss_amount = profit_loss_amount,
           };
           fmt::format_to(std::back_inserter(fill.external_trade_id), "{}"sv, item.trade_id);
