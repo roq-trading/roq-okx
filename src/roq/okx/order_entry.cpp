@@ -520,7 +520,7 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
     log::info<2>("item={}"sv, item);
     auto side = map(item.side).template get<Side>();
     auto ref_data = shared_.get_ref_data(shared_.settings.exchange, item.inst_id);
-    auto profit_loss_cost_amount = utils::compute_profit_loss_cost_amount(side, item.fill_sz, item.fill_px, ref_data.multiplier);
+    auto profit_loss_amount = utils::compute_profit_loss_amount(side, item.fill_sz, item.fill_px, ref_data.multiplier);
     auto fill = Fill{
         .exchange_time_utc = utils::safe_cast(item.fill_time),
         .external_trade_id = {},
@@ -531,7 +531,7 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
         .quote_amount = NaN,
         .commission_amount = item.fee,
         .commission_currency = item.fee_ccy,
-        .profit_loss_cost_amount = profit_loss_cost_amount,
+        .profit_loss_amount = profit_loss_amount,
     };
     fmt::format_to(std::back_inserter(fill.external_trade_id), "{}"sv, item.trade_id);
     auto trade_update = TradeUpdate{
