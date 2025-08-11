@@ -69,6 +69,7 @@ TEST_CASE("json_order_ack_parser_success", "[json_order_ack]") {
     }
     void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::Candle> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};
@@ -137,6 +138,7 @@ TEST_CASE("json_order_ack_parser_failure", "[json_order_ack]") {
     }
     void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::Candle> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};

@@ -6,6 +6,7 @@ set(SOURCES
     account.cpp
     api.cpp
     application.cpp
+    business.cpp
     config.cpp
     drop_copy.cpp
     gateway.cpp

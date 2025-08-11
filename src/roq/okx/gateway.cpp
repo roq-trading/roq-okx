@@ -90,6 +90,13 @@ R create_market_data(auto &gateway, auto &context, auto &stream_id, auto &accoun
   result.emplace_back(std::move(obj));
   return result;
 }
+
+auto create_business(auto &gateway, auto &settings, auto &context, auto &stream_id, auto &shared) {
+  if (settings.download.time_series_lookback.count()) {
+    return std::make_unique<Business>(gateway, context, stream_id, shared);
+  }
+  return std::unique_ptr<Business>();
+}
 }  // namespace
 
 // === IMPLEMENTATION ===
@@ -99,7 +106,8 @@ Gateway::Gateway(server::Dispatcher &dispatcher, Settings const &settings, Confi
       shared_{dispatcher, settings}, request_{create_request<decltype(request_)>(config)}, rest_{*this, context_, ++stream_id_, shared_},
       order_entry_{create_order_entry<decltype(order_entry_)>(*this, context_, ++stream_id_, accounts_, shared_, request_)},
       drop_copy_{create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_, request_)},
-      market_data_{create_market_data<decltype(market_data_)>(*this, context_, stream_id_, accounts_, master_account_, shared_)} {
+      market_data_{create_market_data<decltype(market_data_)>(*this, context_, stream_id_, accounts_, master_account_, shared_)},
+      business_{create_business(*this, settings, context_, stream_id_, shared_)} {
 }
 
 void Gateway::operator()(Event<Start> const &event) {
@@ -171,6 +179,10 @@ void Gateway::operator()(Trace<StatisticsUpdate> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
+void Gateway::operator()(Trace<TimeSeriesUpdate> const &event, bool is_last) {
+  dispatcher_(event, is_last);
+}
+
 void Gateway::operator()(Trace<TradeUpdate> const &event, bool is_last, uint8_t user_id, std::string_view const &request_id) {
   dispatcher_(event, is_last, user_id, request_id);
 }
@@ -189,6 +201,9 @@ void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
   for (auto &item : market_data_) {
     (*item).subscribe(start_from);
   }
+  if (business_) {
+    (*business_).subscribe(start_from);
+  }
 }
 
 void Gateway::operator()(MarketData::SymbolsUpdate &symbols_update) {
@@ -196,6 +211,9 @@ void Gateway::operator()(MarketData::SymbolsUpdate &symbols_update) {
   ensure_symbol_slices(size);
   for (auto &item : market_data_) {
     (*item).subscribe(start_from);
+  }
+  if (business_) {
+    (*business_).subscribe(start_from);
   }
 }
 
@@ -267,6 +285,9 @@ void Gateway::dispatch_helper(auto &self, Args &&...args) {
   }
   for (auto &item : self.market_data_) {
     helper(*item);
+  }
+  if (self.business_) {
+    helper(*self.business_);
   }
 }
 

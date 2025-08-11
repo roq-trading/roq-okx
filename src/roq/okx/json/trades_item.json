@@ -30,6 +30,10 @@
     {
       "name": "count",
       "type": "std/uint32"
+    },
+    {
+      "name": "seqId",
+      "type": "std/uint64"
     }
   ]
 }

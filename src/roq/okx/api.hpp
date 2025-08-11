@@ -12,6 +12,7 @@ namespace okx {
 struct API final {
   struct {
     std::string_view instruments;
+    std::string_view candles;
   } market_data;
 
   struct {

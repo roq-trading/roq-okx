@@ -1,0 +1,15 @@
+{
+  "name": "roq/okx/json/Candle",
+  "type": "comp",
+  "values": [
+    {
+      "name": "arg",
+      "type": "roq/okx/json/Arg"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/json/CandlesItem",
+      "array": "std/span"
+    }
+  ]
+}

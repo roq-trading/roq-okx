@@ -13,6 +13,7 @@
 #include "roq/utils/container.hpp"
 
 #include "roq/core/symbols.hpp"
+#include "roq/core/timer_queue.hpp"
 
 #include "roq/core/limit/rate_limiter.hpp"
 
@@ -64,6 +65,10 @@ struct Shared final {
 
   // experimental
   utils::unordered_set<std::string> extended_symbols;
+
+  core::TimerQueue<std::string> time_series_request_queue;
+
+  std::vector<Bar> bars;
 };
 
 }  // namespace okx

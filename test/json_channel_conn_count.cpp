@@ -52,6 +52,7 @@ TEST_CASE("json_channel_conn_count_parser", "[json_channel_conn_count]") {
     void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::Candle> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};

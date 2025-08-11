@@ -14,6 +14,7 @@
 #include "roq/io/context.hpp"
 
 #include "roq/okx/account.hpp"
+#include "roq/okx/business.hpp"
 #include "roq/okx/config.hpp"
 #include "roq/okx/drop_copy.hpp"
 #include "roq/okx/market_data.hpp"
@@ -26,7 +27,12 @@
 namespace roq {
 namespace okx {
 
-struct Gateway final : public server::Handler, public Rest::Handler, public OrderEntry::Handler, public DropCopy::Handler, public MarketData::Handler {
+struct Gateway final : public server::Handler,
+                       public Rest::Handler,
+                       public OrderEntry::Handler,
+                       public DropCopy::Handler,
+                       public MarketData::Handler,
+                       public Business::Handler {
   Gateway(server::Dispatcher &, Settings const &, Config const &, io::Context &);
 
   Gateway(Gateway const &) = delete;
@@ -63,6 +69,7 @@ struct Gateway final : public server::Handler, public Rest::Handler, public Orde
   void operator()(Trace<MarketByPriceUpdate> const &, bool is_last) override;
   void operator()(Trace<TradeSummary> const &, bool is_last) override;
   void operator()(Trace<StatisticsUpdate> const &, bool is_last) override;
+  void operator()(Trace<TimeSeriesUpdate> const &, bool is_last) override;
   void operator()(Trace<TradeUpdate> const &, bool is_last, uint8_t user_id, std::string_view const &request_id) override;
   void operator()(Trace<FundsUpdate> const &, bool is_last) override;
   void operator()(Trace<PositionUpdate> const &, bool is_last) override;
@@ -99,6 +106,7 @@ struct Gateway final : public server::Handler, public Rest::Handler, public Orde
   utils::unordered_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
   utils::unordered_map<std::string, std::unique_ptr<DropCopy>> drop_copy_;
   std::vector<std::unique_ptr<MarketData>> market_data_;
+  std::unique_ptr<Business> business_;
   // cache
   std::vector<MBPUpdate> bids_, asks_;
 };

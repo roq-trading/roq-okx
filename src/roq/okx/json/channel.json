@@ -55,6 +55,9 @@
     },
     {
       "name": "orders"
+    },
+    {
+      "name": "candle1m"
     }
   ]
 }

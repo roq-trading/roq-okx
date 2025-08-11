@@ -85,6 +85,8 @@ Rest::Rest(Handler &handler, io::Context &context, uint16_t stream_id, Shared &s
       profile_{
           .instruments = create_metrics(shared.settings, name_, "instruments"sv),
           .instruments_ack = create_metrics(shared.settings, name_, "instruments_ack"sv),
+          .candles = create_metrics(shared.settings, name_, "candles"sv),
+          .candles_ack = create_metrics(shared.settings, name_, "candles_ack"sv),
       },
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
@@ -115,6 +117,8 @@ void Rest::operator()(metrics::Writer &writer) const {
       // profile
       .write(profile_.instruments, metrics::Type::PROFILE)
       .write(profile_.instruments_ack, metrics::Type::PROFILE)
+      .write(profile_.candles, metrics::Type::PROFILE)
+      .write(profile_.candles_ack, metrics::Type::PROFILE)
       // latency
       .write(latency_.ping, metrics::Type::LATENCY);
 }
@@ -331,6 +335,84 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
   }
 }
 
+// candles
+
+void Rest::get_candles(std::string_view const &symbol) {
+  profile_.candles([&]() {
+    auto query = fmt::format("?instId={}&bar=1m&limit={}"sv, symbol, shared_.settings.download.time_series_limit);
+    auto request = web::rest::Request{
+        .method = web::http::Method::GET,
+        .path = shared_.api.market_data.candles,
+        .query = query,
+        .accept = web::http::Accept::APPLICATION_JSON,
+        .content_type = {},
+        .headers = {},
+        .body = {},
+        .quality_of_service = {},
+    };
+    auto callback = [this, symbol = std::string{symbol}]([[maybe_unused]] auto &request_id, auto &response) {
+      TraceInfo trace_info;
+      Trace event{trace_info, response};
+      get_candles_ack(event, symbol);
+    };
+    (*connection_)("candles"sv, request, callback);
+  });
+}
+
+void Rest::get_candles_ack(Trace<web::rest::Response> const &event, std::string_view const &symbol) {
+  profile_.candles_ack([&]() {
+    auto handle_success = [&](auto &body) {
+      json::Candles candles{body, decode_buffer_};
+      Trace event_2{event, candles};
+      (*this)(event_2, symbol);
+    };
+    auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
+      log::warn(R"(error={}, text="{}")"sv, error, text);
+      // XXX WHAT ???
+    };
+    process_response(event, handle_success, handle_error);
+  });
+}
+
+void Rest::operator()(Trace<json::Candles> const &event, std::string_view const &symbol) {
+  auto &[trace_info, candles] = event;
+  log::info<4>("candles={}"sv, candles);
+  auto &bars = shared_.bars;
+  bars.clear();
+  for (auto &item : candles.data) {
+    if (!item.confirm) {
+      continue;
+    }
+    auto bar = Bar{
+        .begin_time_utc = item.timestamp,
+        .open_price = item.open,
+        .high_price = item.highest,
+        .low_price = item.lowest,
+        .close_price = item.close,
+        .quantity = item.volume,
+        .base_amount = NaN,
+        .quote_amount = item.volume_ccy_quote,
+        .number_of_trades = {},
+        .vwap = NaN,
+    };
+    bars.emplace_back(std::move(bar));
+  }
+  if (!std::empty(bars)) {
+    auto time_series_update = TimeSeriesUpdate{
+        .stream_id = stream_id_,
+        .exchange = shared_.settings.exchange,
+        .symbol = symbol,
+        .data_source = DataSource::TRADE_SUMMARY,
+        .interval = Interval::_60,
+        .origin = Origin::EXCHANGE,
+        .bars = bars,
+        .update_type = UpdateType::SNAPSHOT,
+        .exchange_time_utc = {},
+    };
+    create_trace_and_dispatch(handler_, trace_info, time_series_update, true);
+  }
+}
+
 // request
 
 void Rest::check_request_queue([[maybe_unused]] std::chrono::nanoseconds now) {
@@ -341,6 +423,9 @@ void Rest::check_request_queue([[maybe_unused]] std::chrono::nanoseconds now) {
     get_instruments("FUTURES"sv);
     download_instruments_.spot = download_instruments_.swap = download_instruments_.futures = true;
   }
+  auto can_request = [&](auto now) { return shared_.rate_limiter.can_request(now); };
+  auto request = [&](auto &symbol) { get_candles(symbol); };
+  shared_.time_series_request_queue.dispatch(can_request, request, now);
 }
 
 // helpers

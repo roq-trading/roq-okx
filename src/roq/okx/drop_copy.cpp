@@ -889,6 +889,10 @@ void DropCopy::operator()(Trace<json::CancelOrderAck> const &event) {
   });
 }
 
+void DropCopy::operator()(Trace<json::Candle> const &) {
+  log::fatal("Unexpected"sv);
+}
+
 void DropCopy::cancel_all_orders(std::span<std::pair<std::string_view, std::string_view>> const &symbol_and_external_order_ids) {
   for (auto &[symbol, external_order_id] : symbol_and_external_order_ids) {
     auto message = fmt::format(

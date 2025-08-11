@@ -1,0 +1,42 @@
+{
+  "name": "roq/okx/json/CandlesItem",
+  "type": "array_item",
+  "values": [
+    {
+      "name": "timestamp",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "open",
+      "type": "std/double"
+    },
+    {
+      "name": "highest",
+      "type": "std/double"
+    },
+    {
+      "name": "lowest",
+      "type": "std/double"
+    },
+    {
+      "name": "close",
+      "type": "std/double"
+    },
+    {
+      "name": "volume",
+      "type": "std/double"
+    },
+    {
+      "name": "volume_ccy",
+      "type": "std/double"
+    },
+    {
+      "name": "volume_ccy_quote",
+      "type": "std/double"
+    },
+    {
+      "name": "confirm",
+      "type": "std/int32"
+    }
+  ]
+}

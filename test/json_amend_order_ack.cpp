@@ -70,6 +70,7 @@ TEST_CASE("json_amend_order_ack_parser_success", "[json_amend_order_ack]") {
       CHECK(amend_order_ack.op == json::Operation::AMEND_ORDER);
     }
     void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::Candle> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};

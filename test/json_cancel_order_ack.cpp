@@ -68,6 +68,7 @@ TEST_CASE("json_cancel_order_ack_parser_success", "[json_cancel_order_ack]") {
       CHECK(std::empty(cancel_order_ack.msg));
       CHECK(cancel_order_ack.op == json::Operation::CANCEL_ORDER);
     }
+    void operator()(Trace<json::Candle> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};

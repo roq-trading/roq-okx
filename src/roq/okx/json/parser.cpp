@@ -6,6 +6,8 @@
 
 #include "roq/logging.hpp"
 
+#include "roq/core/json/array_parser.hpp"
+
 #include "roq/okx/json/action.hpp"
 #include "roq/okx/json/arg.hpp"
 #include "roq/okx/json/event_type.hpp"
@@ -17,6 +19,27 @@ using namespace std::literals;
 namespace roq {
 namespace okx {
 namespace json {
+
+// === HELPERS ===
+
+namespace {
+auto create_candle(auto &message, auto &buffer) {
+  Candle result;
+  core::json::Parser parser{message};
+  auto root = parser.root();
+  for (auto [key, value] : std::get<core::json::Object>(root)) {
+    if (key == "arg"sv) {
+      result.arg = value;
+    } else if (key == "data"sv) {
+      if (!core::json::is_null(value)) {
+        core::json::Buffer buffer_2{buffer};
+        result.data = core::json::ArrayParser<decltype(result.data), core::json::Array>::parse(buffer_2, std::get<core::json::Array>(value));
+      }
+    }
+  }
+  return result;
+}
+}  // namespace
 
 // === IMPLEMENTATION ===
 
@@ -86,6 +109,11 @@ bool Parser::dispatch(Handler &handler, std::string_view const &message, std::sp
             case ORDERS:
               dispatch_event_frame<Orders>(handler, message, buffer, trace_info);
               return true;
+            case CANDLE1M: {
+              auto candle = create_candle(message, buffer);
+              create_trace_and_dispatch(handler, trace_info, candle);
+              return true;
+            }
           }
           break;
         case UNKNOWN_INTERNAL:

@@ -25,4 +25,6 @@ $PREFIX ./roq-okx \
   --rest_uri "https://www.$URI" \
   --ws_public_uri "wss://ws.$URI:8443/ws/v5/public" \
   --ws_private_uri "wss://ws.$URI:8443/ws/v5/private" \
+  --ws_business_uri "wss://ws.$URI:8443/ws/v5/business" \
+  --download_time_series_lookback "2h" \
   $@

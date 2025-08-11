@@ -81,6 +81,7 @@ TEST_CASE("json_books_l2_tbt_parser", "[json_books_l2_tbt]") {
     void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::Candle> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};
@@ -168,6 +169,7 @@ TEST_CASE("json_books_l2_tbt_parser_books5", "[json_books_l2_tbt]") {
     void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::Candle> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};

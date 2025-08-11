@@ -141,6 +141,13 @@
     {
       "name": "openType",
       "type": "std/string_view"
+    },
+    {
+      "name": "instIdCode",
+      "type": "std/uint32"
+    },
+    {
+      "name": "tradeQuoteCcyList"
     }
   ]
 }

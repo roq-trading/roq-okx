@@ -24,7 +24,7 @@
 #include "roq/okx/json/tickers.hpp"
 #include "roq/okx/json/trades.hpp"
 
-#include "roq/okx/json/action.hpp"
+#include "roq/okx/json/candle.hpp"
 
 #include "roq/okx/json/account.hpp"
 #include "roq/okx/json/balance_and_position.hpp"
@@ -36,6 +36,8 @@
 #include "roq/okx/json/amend_order_ack.hpp"
 #include "roq/okx/json/cancel_order_ack.hpp"
 #include "roq/okx/json/order_ack.hpp"
+
+#include "roq/okx/json/action.hpp"
 
 namespace roq {
 namespace okx {
@@ -73,6 +75,8 @@ struct Parser final {
     virtual void operator()(Trace<json::OrderAck> const &) = 0;
     virtual void operator()(Trace<json::AmendOrderAck> const &) = 0;
     virtual void operator()(Trace<json::CancelOrderAck> const &) = 0;
+    // - business
+    virtual void operator()(Trace<json::Candle> const &) = 0;
   };
 
   static bool dispatch(Handler &, std::string_view const &message, std::span<std::byte> const &, TraceInfo const &);

@@ -20,9 +20,12 @@ set(AUTOGEN_SCHEMAS
     books_l2_tbt.json
     cancel_order_ack_item.json
     cancel_order_ack.json
+    candle.json
+    candles_item.json
+    candles.json
     category.json
-    channel.json
     channel_conn_count.json
+    channel.json
     contract_type.json
     error.json
     estimated_price_item.json

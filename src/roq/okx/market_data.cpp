@@ -623,7 +623,8 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
     log::info<3>("event={{trades={}, trace_info={}}}"sv, trades, trace_info);
     (*connection_).touch(trace_info.source_receive_time);
     shared_.trades.clear();
-    auto emplace_back = [](auto &result, auto &value) {
+    uint64_t exchange_sequence = {};
+    auto emplace_back = [&exchange_sequence](auto &result, auto &value) {
       auto trade = Trade{
           .side = map(value.side),
           .price = value.px,
@@ -633,6 +634,7 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
           .maker_order_id = {},
       };
       result.emplace_back(std::move(trade));
+      exchange_sequence = std::max(exchange_sequence, value.seq_id);
     };
     std::string_view symbol;
     std::chrono::nanoseconds exchange_time_utc = {};
@@ -645,12 +647,13 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
             .symbol = symbol,
             .trades = shared_.trades,
             .exchange_time_utc = exchange_time_utc,
-            .exchange_sequence = {},
+            .exchange_sequence = exchange_sequence,
             .sending_time_utc = {},
         };
         create_trace_and_dispatch(handler_, trace_info, trade_summary, false);
         shared_.trades.clear();
         exchange_time_utc = {};
+        exchange_sequence = {};
       }
       utils::update_max(exchange_time_utc, item.ts);
       emplace_back(shared_.trades, item);
@@ -663,7 +666,7 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
           .symbol = symbol,
           .trades = shared_.trades,
           .exchange_time_utc = exchange_time_utc,
-          .exchange_sequence = {},
+          .exchange_sequence = exchange_sequence,
           .sending_time_utc = {},
       };
       create_trace_and_dispatch(handler_, trace_info, trade_summary, true);
@@ -869,6 +872,10 @@ void MarketData::operator()(Trace<json::AmendOrderAck> const &) {
 }
 
 void MarketData::operator()(Trace<json::CancelOrderAck> const &) {
+  log::fatal("Unexpected"sv);
+}
+
+void MarketData::operator()(Trace<json::Candle> const &) {
   log::fatal("Unexpected"sv);
 }
 

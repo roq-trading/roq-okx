@@ -15,6 +15,7 @@ API API::create(Settings const &) {
   return {
       .market_data{
           .instruments = "/api/v5/public/instruments"sv,
+          .candles = "/api/v5/market/candles"sv,
       },
       .simple{
           .account_balance = "/api/v5/account/balance"sv,

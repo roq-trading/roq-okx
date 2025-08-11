@@ -86,6 +86,7 @@ TEST_CASE("json_balance_and_position_parser", "[json_balance_and_position]") {
     void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::Candle> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};
@@ -185,6 +186,7 @@ TEST_CASE("json_balance_and_position_sample_2", "[json_balance_and_position]") {
     void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::Candle> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};

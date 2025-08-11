@@ -15,9 +15,12 @@ books_l2_item.hpp
 books_l2_tbt.hpp
 cancel_order_ack_item.hpp
 cancel_order_ack.hpp
+candle.hpp
+candles_item.hpp
+candles.hpp
 category.hpp
-channel.hpp
 channel_conn_count.hpp
+channel.hpp
 contract_type.hpp
 error.hpp
 estimated_price_item.hpp
@@ -80,9 +83,12 @@ books_l2_item.cpp
 books_l2_tbt.cpp
 cancel_order_ack_item.cpp
 cancel_order_ack.cpp
+candle.cpp
+candles_item.cpp
+candles.cpp
 category.cpp
-channel.cpp
 channel_conn_count.cpp
+channel.cpp
 contract_type.cpp
 error.cpp
 estimated_price_item.cpp

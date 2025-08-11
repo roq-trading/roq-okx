@@ -28,6 +28,18 @@
       "description": "Host (when URI is an IP address)"
     },
     {
+      "name": "business_uri",
+      "type": "roq/io/web/URI",
+      "validator": "roq/core/flags/URI",
+      "default": "wss://ws.okx.com:8443/ws/v5/market",
+      "description": "Exchange end-point"
+    },
+    {
+      "name": "business_host",
+      "type": "std/string",
+      "description": "Host (when URI is an IP address)"
+    },
+    {
       "name": "ping_freq",
       "type": "std/nanoseconds",
       "validator": "roq/flags/validators/TimePeriod",

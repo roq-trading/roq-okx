@@ -143,6 +143,7 @@ TEST_CASE("json_instruments_parser", "[json_instruments]") {
     void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
     void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
+    void operator()(Trace<json::Candle> const &) override { FAIL(); }
 
    private:
     size_t count_ = {};
