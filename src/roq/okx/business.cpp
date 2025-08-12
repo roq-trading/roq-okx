@@ -355,12 +355,13 @@ void Business::operator()(Trace<json::Candle> const &event) {
   auto &bars = shared_.bars;
   bars.clear();
   for (auto &item : candle.data) {
-    if (!item.confirm) {
+    auto confirmed = item.confirm != 0;
+    if (!confirmed) {
       continue;
     }
     auto bar = Bar{
         .begin_time_utc = item.timestamp,
-        .confirmed = item.confirm,
+        .confirmed = confirmed,
         .open_price = item.open,
         .high_price = item.highest,
         .low_price = item.lowest,
