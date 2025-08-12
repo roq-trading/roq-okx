@@ -360,6 +360,7 @@ void Business::operator()(Trace<json::Candle> const &event) {
     }
     auto bar = Bar{
         .begin_time_utc = item.timestamp,
+        .confirmed = item.confirm,
         .open_price = item.open,
         .high_price = item.highest,
         .low_price = item.lowest,
