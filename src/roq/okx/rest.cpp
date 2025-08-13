@@ -380,12 +380,13 @@ void Rest::operator()(Trace<json::Candles> const &event, std::string_view const 
   auto &bars = shared_.bars;
   bars.clear();
   for (auto &item : candles.data) {
-    if (!item.confirm) {
+    auto confirmed = item.confirm != 0 ? true : false;
+    if (confirmed && !shared_.settings.time_series.realtime) {
       continue;
     }
     auto bar = Bar{
         .begin_time_utc = utils::safe_cast(item.timestamp),
-        .confirmed = true,
+        .confirmed = confirmed,
         .open_price = item.open,
         .high_price = item.highest,
         .low_price = item.lowest,
@@ -404,11 +405,11 @@ void Rest::operator()(Trace<json::Candles> const &event, std::string_view const 
         .exchange = shared_.settings.exchange,
         .symbol = symbol,
         .data_source = DataSource::TRADE_SUMMARY,
-        .interval = Interval::_60,
+        .interval = shared_.settings_time_series_interval,
         .origin = Origin::EXCHANGE,
         .bars = bars,
         .update_type = UpdateType::SNAPSHOT,
-        .exchange_time_utc = {},
+        .exchange_time_utc = {},  // XXX FIXME
     };
     create_trace_and_dispatch(handler_, trace_info, time_series_update, true);
   }

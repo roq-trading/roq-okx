@@ -27,4 +27,7 @@ $PREFIX ./roq-okx \
   --ws_private_uri "wss://ws.$URI:8443/ws/v5/private" \
   --ws_business_uri "wss://ws.$URI:8443/ws/v5/business" \
   --download_time_series_lookback "2h" \
+  --time_series_interval "60s" \
+  --time_series_realtime true \
+  --time_series_gateway_lookback "12h" \
   $@

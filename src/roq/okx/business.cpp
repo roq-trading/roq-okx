@@ -356,7 +356,7 @@ void Business::operator()(Trace<json::Candle> const &event) {
   bars.clear();
   for (auto &item : candle.data) {
     auto confirmed = item.confirm != 0;
-    if (!confirmed) {
+    if (!confirmed && !shared_.settings.time_series.realtime) {
       continue;
     }
     auto bar = Bar{
@@ -380,11 +380,11 @@ void Business::operator()(Trace<json::Candle> const &event) {
         .exchange = shared_.settings.exchange,
         .symbol = candle.arg.inst_id,
         .data_source = DataSource::TRADE_SUMMARY,
-        .interval = Interval::_60,
+        .interval = shared_.settings_time_series_interval,
         .origin = Origin::EXCHANGE,
         .bars = bars,
         .update_type = UpdateType::INCREMENTAL,
-        .exchange_time_utc = {},
+        .exchange_time_utc = {},  // XXX FIXME
     };
     create_trace_and_dispatch(handler_, trace_info, time_series_update, true);
   }
