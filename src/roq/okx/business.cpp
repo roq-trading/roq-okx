@@ -199,7 +199,7 @@ void Business::subscribe(std::span<Symbol const> const &symbols) {
   if (std::empty(symbols)) {
     return;
   }
-  if (shared_.settings.download.time_series_lookback.count()) {
+  if (shared_.settings.download.time_series && shared_.settings.time_series.lookback.count()) {
     subscribe("candle1m"sv, "instId"sv, symbols);
     for (auto &symbol : symbols) {
       shared_.time_series_request_queue.emplace_back(symbol);
@@ -380,7 +380,7 @@ void Business::operator()(Trace<json::Candle> const &event) {
         .exchange = shared_.settings.exchange,
         .symbol = candle.arg.inst_id,
         .data_source = DataSource::TRADE_SUMMARY,
-        .interval = shared_.settings_time_series_interval,
+        .interval = shared_.settings.time_series.interval,
         .origin = Origin::EXCHANGE,
         .bars = bars,
         .update_type = UpdateType::INCREMENTAL,

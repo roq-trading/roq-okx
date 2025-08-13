@@ -92,7 +92,7 @@ R create_market_data(auto &gateway, auto &context, auto &stream_id, auto &accoun
 }
 
 auto create_business(auto &gateway, auto &settings, auto &context, auto &stream_id, auto &shared) {
-  if (settings.download.time_series_lookback.count()) {
+  if (settings.download.time_series && settings.time_series.lookback.count()) {
     return std::make_unique<Business>(gateway, context, stream_id, shared);
   }
   return std::unique_ptr<Business>();
