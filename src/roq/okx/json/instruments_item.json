@@ -148,6 +148,9 @@
     },
     {
       "name": "tradeQuoteCcyList"
+    },
+    {
+      "name": "preMktSwTime"
     }
   ]
 }

@@ -251,6 +251,26 @@
     },
     {
       "name": "linkedAlgoOrd"
+    },
+    {
+      "name": "fillPxUsd",
+      "type": "std/double"
+    },
+    {
+      "name": "fillPxVol",
+      "type": "std/double"
+    },
+    {
+      "name": "pxType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "pxUsd",
+      "type": "std/double"
+    },
+    {
+      "name": "pxVol",
+      "type": "std/double"
     }
   ]
 }
