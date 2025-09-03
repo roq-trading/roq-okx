@@ -18,7 +18,7 @@ TEST_CASE("json_orders_download_empty", "[json_orders]") {
                  R"("data":[],)"
                  R"("msg":"")"
                  R"(})";
-  std::vector<std::byte> buffer(8192);
+  core::json::BufferStack buffer{8192, 1};
   json::Orders obj{message, buffer};
   CHECK(obj.code == 0);
   REQUIRE(std::size(obj.data) == 0);
@@ -69,7 +69,7 @@ TEST_CASE("json_orders_download", "[json_orders]") {
                  R"(],)"
                  R"("msg":"")"
                  R"(})";
-  std::vector<std::byte> buffer(8192);
+  core::json::BufferStack buffer{8192, 1};
   json::Orders obj{message, buffer};
   CHECK(obj.code == 0);
   REQUIRE(std::size(obj.data) == 1);
@@ -218,7 +218,7 @@ TEST_CASE("json_orders_parser", "[json_orders]") {
    private:
     size_t count_ = {};
   } handler;
-  std::vector<std::byte> buffer(8192);
+  core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
   auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
   CHECK(res == true);
@@ -335,7 +335,7 @@ TEST_CASE("json_orders_parser_2", "[json_orders]") {
    private:
     size_t count_ = {};
   } handler;
-  std::vector<std::byte> buffer(8192);
+  core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
   auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
   CHECK(res == true);

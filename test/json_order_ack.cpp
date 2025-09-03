@@ -74,7 +74,7 @@ TEST_CASE("json_order_ack_parser_success", "[json_order_ack]") {
    private:
     size_t count_ = {};
   } handler;
-  std::vector<std::byte> buffer(8192);
+  core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
   auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
   CHECK(res == true);
@@ -143,7 +143,7 @@ TEST_CASE("json_order_ack_parser_failure", "[json_order_ack]") {
    private:
     size_t count_ = {};
   } handler;
-  std::vector<std::byte> buffer(8192);
+  core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
   auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
   CHECK(res == true);
