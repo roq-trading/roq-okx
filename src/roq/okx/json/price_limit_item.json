@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/PriceLimitItem",
-  "type": "item",
+  "type": "dictionary",
   "values": [
     {
       "name": "instType",

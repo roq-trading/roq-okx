@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/BboTbt",
-  "type": "comp",
+  "type": "dictionary",
   "values": [
     {
       "name": "bids",

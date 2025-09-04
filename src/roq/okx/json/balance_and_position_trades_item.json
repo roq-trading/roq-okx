@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/BalanceAndPositionTradesItem",
-  "type": "item",
+  "type": "dictionary",
   "values": [
     {
       "name": "instId",

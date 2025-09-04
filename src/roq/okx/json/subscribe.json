@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/Subscribe",
-  "type": "item",
+  "type": "dictionary",
   "values": [
     {
       "name": "channel",

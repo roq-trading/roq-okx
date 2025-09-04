@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/CancelOrderAck",
-  "type": "comp",
+  "type": "dictionary",
   "values": [
     {
       "name": "code",

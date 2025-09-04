@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/AccountItem",
-  "type": "item",
+  "type": "dictionary",
   "values": [
     {
       "name": "availBal",

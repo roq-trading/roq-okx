@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/TradesItem",
-  "type": "item",
+  "type": "dictionary",
   "values": [
     {
       "name": "instId",

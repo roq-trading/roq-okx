@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/TickersItem",
-  "type": "item",
+  "type": "dictionary",
   "values": [
     {
       "name": "instType",

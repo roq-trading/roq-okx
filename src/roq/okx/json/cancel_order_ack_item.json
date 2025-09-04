@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/CancelOrderAckItem",
-  "type": "item",
+  "type": "dictionary",
   "values": [
     {
       "name": "clOrdId",

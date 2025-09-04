@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/BooksL2Tbt",
-  "type": "comp",
+  "type": "dictionary",
   "values": [
     {
       "name": "bids",

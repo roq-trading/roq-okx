@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/Account",
-  "type": "comp",
+  "type": "dictionary",
   "values": [
     {
       "name": "adjEq",

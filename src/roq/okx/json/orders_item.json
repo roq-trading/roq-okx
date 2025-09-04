@@ -1,6 +1,6 @@
 {
   "name": "roq/okx/json/OrdersItem",
-  "type": "item",
+  "type": "dictionary",
   "values": [
     {
       "name": "accFillSz",
