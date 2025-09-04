@@ -29,7 +29,7 @@ auto create_candle(auto &message, auto &buffer_stack) {
   auto root = parser.root();
   for (auto [key, value] : std::get<core::json::Object>(root)) {
     if (key == "arg"sv) {
-      result.arg = value;
+      new (&result.arg) Arg{value, buffer_stack};
     } else if (key == "data"sv) {
       if (!core::json::is_null(value)) {
         result.data = core::json::ArrayParser<decltype(result.data), core::json::Array>::parse(buffer_stack, std::get<core::json::Array>(value));
