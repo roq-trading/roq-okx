@@ -8,8 +8,6 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/okx/json/arg.hpp"
-
 #include "roq/okx/json/error.hpp"
 #include "roq/okx/json/subscribe.hpp"
 #include "roq/okx/json/unsubscribe.hpp"
@@ -81,17 +79,7 @@ struct Parser final {
     virtual void operator()(Trace<json::Candle> const &) = 0;
   };
 
-  static bool dispatch(Handler &, std::string_view const &message, core::json::BufferStack &, TraceInfo const &);
-
- private:
-  template <typename T, typename... Args>
-  static void dispatch_event(auto &handler, auto &message, auto &buffer, auto &trace_info, Args &&...);
-
-  template <typename T, typename... Args>
-  static void dispatch_event_array(auto &handler, auto &message, auto &buffer, auto &trace_info, Args &&...);
-
-  template <typename T, typename... Args>
-  static void dispatch_event_frame(auto &handler, auto &message, auto &buffer, auto &trace_info, Args &&...);
+  static bool dispatch(Handler &, std::string_view const &message, core::json::BufferStack &, TraceInfo const &, bool allow_unknown_event_types = false);
 };
 
 }  // namespace json

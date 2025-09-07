@@ -20,17 +20,63 @@ namespace roq {
 namespace okx {
 namespace json {
 
+// === CONSTANTS ===
+
+namespace {
+auto const ARG = "arg"sv;
+auto const DATA = "data"sv;
+}  // namespace
+
 // === HELPERS ===
 
 namespace {
+// note! each item of data dispatched independently
+template <typename T, typename... Args>
+void dispatch_event(auto &handler, auto &message, auto &buffer_stack, auto &trace_info, Args &&...args) {
+  core::json::Parser parser{message};
+  auto root = parser.root();
+  for (auto [key, value] : std::get<core::json::Object>(root)) {
+    if (key != DATA) {
+      continue;
+    }
+    for (auto item : std::get<core::json::Array>(value)) {
+      T obj{item, buffer_stack};
+      create_trace_and_dispatch(handler, trace_info, obj, args...);  // XXX FIXME TODO std::forward ???
+    }
+    break;
+  }
+}
+
+// note! data as an array -- can *not* be nested
+template <typename T, typename... Args>
+void dispatch_event_array(auto &handler, auto &message, auto &buffer_stack, auto &trace_info, Args &&...args) {
+  core::json::Parser parser{message};
+  auto root = parser.root();
+  for (auto [key, value] : std::get<core::json::Object>(root)) {
+    if (key != DATA) {
+      continue;
+    }
+    T obj{value, buffer_stack};
+    create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
+    break;
+  }
+}
+
+// note! the entire message
+template <typename T, typename... Args>
+void dispatch_event_frame(auto &handler, auto &message, auto &buffer_stack, auto &trace_info, Args &&...args) {
+  T obj{message, buffer_stack};
+  create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
+}
+
 auto create_candle(auto &message, auto &buffer_stack) {
   Candle result;
   core::json::Parser parser{message};
   auto root = parser.root();
   for (auto [key, value] : std::get<core::json::Object>(root)) {
-    if (key == "arg"sv) {
+    if (key == ARG) {
       new (&result.arg) Arg{value, buffer_stack};
-    } else if (key == "data"sv) {
+    } else if (key == DATA) {
       if (!core::json::is_null(value)) {
         result.data = core::json::ArrayParser<decltype(result.data), core::json::Array>::parse(buffer_stack, std::get<core::json::Array>(value));
       }
@@ -42,7 +88,8 @@ auto create_candle(auto &message, auto &buffer_stack) {
 
 // === IMPLEMENTATION ===
 
-bool Parser::dispatch(Handler &handler, std::string_view const &message, core::json::BufferStack &buffer_stack, TraceInfo const &trace_info) {
+bool Parser::dispatch(
+    Handler &handler, std::string_view const &message, core::json::BufferStack &buffer_stack, TraceInfo const &trace_info, bool allow_unknown_event_types) {
   Frame frame{message, buffer_stack};
   switch (frame.op) {
     using enum Operation::type_t;
@@ -55,7 +102,9 @@ bool Parser::dispatch(Handler &handler, std::string_view const &message, core::j
             case UNDEFINED_INTERNAL:
               break;
             case UNKNOWN_INTERNAL:
-              assert(false);
+              if (allow_unknown_event_types) {
+                return false;
+              }
               break;
             case STATUS:
               dispatch_event<Status>(handler, message, buffer_stack, trace_info);
@@ -116,20 +165,22 @@ bool Parser::dispatch(Handler &handler, std::string_view const &message, core::j
           }
           break;
         case UNKNOWN_INTERNAL:
-          assert(false);
+          if (allow_unknown_event_types) {
+            return false;
+          }
           break;
         case ERROR: {
           Error error;
           error.code = frame.code;
           error.msg = frame.msg;
-          create_trace_and_dispatch(handler, trace_info, std::as_const(error));
+          create_trace_and_dispatch(handler, trace_info, error);
           return true;
         }
         case LOGIN: {
           Login login;
           login.code = frame.code;
           login.msg = frame.msg;
-          create_trace_and_dispatch(handler, trace_info, std::as_const(login));
+          create_trace_and_dispatch(handler, trace_info, login);
           return true;
         }
         case SUBSCRIBE: {
@@ -137,7 +188,7 @@ bool Parser::dispatch(Handler &handler, std::string_view const &message, core::j
           subscribe.channel = frame.arg.channel;
           subscribe.inst_type = frame.arg.inst_type;
           subscribe.inst_id = frame.arg.inst_id;
-          create_trace_and_dispatch(handler, trace_info, std::as_const(subscribe));
+          create_trace_and_dispatch(handler, trace_info, subscribe);
           return true;
         }
         case UNSUBSCRIBE: {
@@ -145,7 +196,7 @@ bool Parser::dispatch(Handler &handler, std::string_view const &message, core::j
           unsubscribe.channel = frame.arg.channel;
           unsubscribe.inst_type = frame.arg.inst_type;
           unsubscribe.inst_id = frame.arg.inst_id;
-          create_trace_and_dispatch(handler, trace_info, std::as_const(unsubscribe));
+          create_trace_and_dispatch(handler, trace_info, unsubscribe);
           return true;
         }
         case CHANNEL_CONN_COUNT: {
@@ -153,13 +204,15 @@ bool Parser::dispatch(Handler &handler, std::string_view const &message, core::j
           channel_conn_count.channel = frame.channel;
           channel_conn_count.conn_count = frame.conn_count;
           channel_conn_count.conn_id = frame.conn_id;
-          create_trace_and_dispatch(handler, trace_info, std::as_const(channel_conn_count));
+          create_trace_and_dispatch(handler, trace_info, channel_conn_count);
           return true;
         }
       }
       break;
     case UNKNOWN_INTERNAL:
-      assert(false);
+      if (allow_unknown_event_types) {
+        return false;
+      }
       break;
     case ORDER:
     case BATCH_ORDERS:
@@ -174,46 +227,7 @@ bool Parser::dispatch(Handler &handler, std::string_view const &message, core::j
       dispatch_event_frame<CancelOrderAck>(handler, message, buffer_stack, trace_info);
       return true;
   }
-  return false;
-}
-
-// note! each item of data dispatched independently
-template <typename T, typename... Args>
-void Parser::dispatch_event(auto &handler, auto &message, auto &buffer_stack, auto &trace_info, Args &&...args) {
-  core::json::Parser parser{message};
-  auto root = parser.root();
-  for (auto [key, value] : std::get<core::json::Object>(root)) {
-    if (key != "data"sv) {
-      continue;
-    }
-    for (auto item : std::get<core::json::Array>(value)) {
-      T obj{item, buffer_stack};
-      create_trace_and_dispatch(handler, trace_info, obj, args...);  // XXX FIXME TODO std::forward ???
-    }
-    break;
-  }
-}
-
-// note! data as an array -- can *not* be nested
-template <typename T, typename... Args>
-void Parser::dispatch_event_array(auto &handler, auto &message, auto &buffer_stack, auto &trace_info, Args &&...args) {
-  core::json::Parser parser{message};
-  auto root = parser.root();
-  for (auto [key, value] : std::get<core::json::Object>(root)) {
-    if (key != "data"sv) {
-      continue;
-    }
-    T obj{value, buffer_stack};
-    create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
-    break;
-  }
-}
-
-// note! the entire message
-template <typename T, typename... Args>
-void Parser::dispatch_event_frame(auto &handler, auto &message, auto &buffer_stack, auto &trace_info, Args &&...args) {
-  T obj{message, buffer_stack};
-  create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
+  log::fatal(R"(Unexpected: message="{}")"sv, message);
 }
 
 }  // namespace json

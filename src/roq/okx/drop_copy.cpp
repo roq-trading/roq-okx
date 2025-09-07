@@ -50,7 +50,7 @@ auto const SUPPORTS = Mask{
     SupportType::FUNDS,
 };
 
-uint64_t const REQUEST_ID = 1000000;
+uint64_t const REQUEST_ID = 1'000'000;
 
 size_t const MAX_DECODE_BUFFER_DEPTH = 1;
 }  // namespace
@@ -566,10 +566,10 @@ void DropCopy::subscribe(std::string_view const &channel, std::string_view const
 
 void DropCopy::parse(std::string_view const &message) {
   profile_.parse([&]() {
-    auto log_message = [&]() { log::warn(R"(message="{}")"sv, message); };
+    auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info)) {
+      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
         log_message();
       }
     } catch (...) {
