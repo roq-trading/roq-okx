@@ -233,6 +233,10 @@ void OrderEntry::get_balance() {
 
 void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
   profile_.balance_ack([&]() {
+    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
+      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+      // XXX WHAT ???
+    };
     auto handle_success = [&]([[maybe_unused]] auto &body) {
       /*
       json::Orders orders{body, decode_buffer_};
@@ -242,11 +246,7 @@ void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
       download_balance_ = false;
       request_.respond_balance = clock::get_system();  // ack
     };
-    auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
-      log::warn(R"(error={}, text="{}")"sv, error, text);
-      // XXX WHAT ???
-    };
-    process_response(event, handle_success, handle_error);
+    process_response(event, handle_error, handle_success);
   });
 }
 
@@ -329,18 +329,22 @@ void OrderEntry::get_positions() {
 
 void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
   profile_.positions_ack([&]() {
+    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
+      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+      // XXX WHAT ???
+    };
     auto handle_success = [&](auto &body) {
       json::PositionsRest positions{body, decode_buffer_};
-      Trace event_2{event, positions};
-      (*this)(event_2);
+      if (positions.code == 0) {
+        Trace event_2{event, positions};
+        (*this)(event_2);
+      } else {
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(positions.code), positions.msg);
+      }
       download_positions_ = false;
       request_.respond_positions = clock::get_system();  // ack
     };
-    auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
-      log::warn(R"(error={}, text="{}")"sv, error, text);
-      // XXX WHAT ???
-    };
-    process_response(event, handle_success, handle_error);
+    process_response(event, handle_error, handle_success);
   });
 }
 
@@ -396,18 +400,22 @@ void OrderEntry::get_orders() {
 
 void OrderEntry::get_orders_ack(Trace<web::rest::Response> const &event) {
   profile_.orders_ack([&]() {
+    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
+      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+      // XXX WHAT ???
+    };
     auto handle_success = [&](auto &body) {
       json::Orders orders{body, decode_buffer_};
-      Trace event_2{event, orders};
-      (*this)(event_2);
+      if (orders.code == 0) {
+        Trace event_2{event, orders};
+        (*this)(event_2);
+      } else {
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders.code), orders.msg);
+      }
       download_orders_ = false;
       request_.respond_orders = clock::get_system();  // ack
     };
-    auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
-      log::warn(R"(error={}, text="{}")"sv, error, text);
-      // XXX WHAT ???
-    };
-    process_response(event, handle_success, handle_error);
+    process_response(event, handle_error, handle_success);
   });
 }
 
@@ -499,19 +507,23 @@ void OrderEntry::get_fills() {
 
 void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
   profile_.fills_ack([&]() {
+    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
+      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+      // XXX WHAT ???
+    };
     auto handle_success = [&](auto &body) {
       json::Fills fills{body, decode_buffer_};
-      Trace event_2{event, fills};
-      (*this)(event_2);
+      if (fills.code == 0) {
+        Trace event_2{event, fills};
+        (*this)(event_2);
+      } else {
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(fills.code), fills.msg);
+      }
       // download_orders_ = false;
       // request_.respond_orders = clock::get_system();  // ack
       download_trades_is_first_ = false;
     };
-    auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
-      log::warn(R"(error={}, text="{}")"sv, error, text);
-      // XXX WHAT ???
-    };
-    process_response(event, handle_success, handle_error);
+    process_response(event, handle_error, handle_success);
   });
 }
 
@@ -564,8 +576,7 @@ void OrderEntry::operator()(Trace<json::Fills> const &event) {
 
 // helpers
 
-template <typename SuccessHandler, typename ErrorHandler>
-void OrderEntry::process_response(web::rest::Response const &response, SuccessHandler success_handler, ErrorHandler error_handler) {
+void OrderEntry::process_response(web::rest::Response const &response, auto error_handler, auto success_handler) {
   try {
     auto [status, category, body] = response.result();
     switch (category) {

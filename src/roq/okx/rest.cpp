@@ -194,10 +194,18 @@ void Rest::get_instruments(std::string_view const &type) {
 
 void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::string_view const &type) {
   profile_.instruments_ack([&]() {
+    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
+      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+      // XXX WHAT ???
+    };
     auto handle_success = [&](auto &body) {
       json::InstrumentsRest instruments{body, decode_buffer_};
-      Trace event_2{event, instruments};
-      (*this)(event_2);
+      if (instruments.code == 0) {
+        Trace event_2{event, instruments};
+        (*this)(event_2);
+      } else {
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(instruments.code), instruments.msg);
+      }
       if (type == "SPOT"sv) {
         download_instruments_.spot = false;
       } else if (type == "SWAP"sv) {
@@ -210,11 +218,7 @@ void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::str
         // shared_.instruments.response = clock::get_system();
       }
     };
-    auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
-      log::warn(R"(error={}, text="{}")"sv, error, text);
-      // XXX WHAT ???
-    };
-    process_response(event, handle_success, handle_error);
+    process_response(event, handle_error, handle_success);
   });
 }
 
@@ -363,16 +367,20 @@ void Rest::get_candles(std::string_view const &symbol) {
 
 void Rest::get_candles_ack(Trace<web::rest::Response> const &event, std::string_view const &symbol) {
   profile_.candles_ack([&]() {
-    auto handle_success = [&](auto &body) {
-      json::Candles candles{body, decode_buffer_};
-      Trace event_2{event, candles};
-      (*this)(event_2, symbol);
-    };
-    auto handle_error = [&]([[maybe_unused]] auto origin, [[maybe_unused]] auto status, auto error, auto text) {
-      log::warn(R"(error={}, text="{}")"sv, error, text);
+    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
+      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       // XXX WHAT ???
     };
-    process_response(event, handle_success, handle_error);
+    auto handle_success = [&](auto &body) {
+      json::Candles candles{body, decode_buffer_};
+      if (candles.code == 0) {
+        Trace event_2{event, candles};
+        (*this)(event_2, symbol);
+      } else {
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(candles.code), candles.msg);
+      }
+    };
+    process_response(event, handle_error, handle_success);
   });
 }
 
@@ -434,8 +442,7 @@ void Rest::check_request_queue([[maybe_unused]] std::chrono::nanoseconds now) {
 
 // helpers
 
-template <typename SuccessHandler, typename ErrorHandler>
-void Rest::process_response(web::rest::Response const &response, SuccessHandler success_handler, ErrorHandler error_handler) {
+void Rest::process_response(web::rest::Response const &response, auto error_handler, auto success_handler) {
   try {
     auto [status, category, body] = response.result();
     switch (category) {

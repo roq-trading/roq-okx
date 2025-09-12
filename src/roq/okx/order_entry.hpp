@@ -75,8 +75,7 @@ struct OrderEntry final : public web::rest::Client::Handler {
   void get_fills_ack(Trace<web::rest::Response> const &);
   void operator()(Trace<json::Fills> const &);
 
-  template <typename SuccessHandler, typename ErrorHandler>
-  void process_response(web::rest::Response const &, SuccessHandler, ErrorHandler);
+  void process_response(web::rest::Response const &, auto error_handler, auto success_handler);
 
  private:
   Handler &handler_;
