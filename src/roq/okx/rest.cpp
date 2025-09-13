@@ -447,21 +447,25 @@ void Rest::process_response(web::rest::Response const &response, auto error_hand
     auto [status, category, body] = response.result();
     switch (category) {
       using enum web::http::Category;
-      case SUCCESS:  // 2xx
+      case UNKNOWN:
+      case INFORMATIONAL_RESPONSE:
+        response.expect(web::http::Status::OK);  // throws
+        break;
+      case SUCCESS:
         success_handler(body);
         break;
-      case CLIENT_ERROR: {  // 4xx
+      case REDIRECTION:
+        log::fatal("Unexpected: URL is being redirected"sv);
+      case CLIENT_ERROR: {
         auto text = fmt::format("{}"sv, status);
         error_handler(Origin::EXCHANGE, RequestStatus::REJECTED, Error::UNKNOWN, text);
         break;
       }
-      case SERVER_ERROR: {  // 5xx
+      case SERVER_ERROR: {
         auto text = fmt::format("{}"sv, status);
         error_handler(Origin::EXCHANGE, RequestStatus::ERROR, Error::UNKNOWN, text);
         break;
       }
-      default:
-        response.expect(web::http::Status::OK);  // throws
     }
   } catch (NetworkError &e) {
     log::warn(R"(Exception type={}, what="{}")"sv, typeid(e).name(), e.what());
