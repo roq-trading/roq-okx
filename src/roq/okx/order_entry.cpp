@@ -33,6 +33,8 @@ auto const NAME = "dc"sv;
 auto const SUPPORTS = Mask<SupportType>{};
 
 size_t const MAX_DECODE_BUFFER_DEPTH = 1;
+
+size_t const DOWNLOAD_TRADES_LIMIT = 100;
 }  // namespace
 
 // === HELPERS ===
@@ -473,6 +475,7 @@ void OrderEntry::get_fills() {
     auto lookback = get_download_trades_lookback(shared_.settings, download_trades_is_first_);
     log::info<1>("Download trades: lookback={}"sv, lookback);
     auto begin = std::chrono::duration_cast<std::chrono::milliseconds>(now - lookback);
+    auto limit = shared_.settings.download.trades_limit ? shared_.settings.download.trades_limit : DOWNLOAD_TRADES_LIMIT;
     // XXX FIXME doesn't look like begin/end is actually being used
     auto body = fmt::format(
         R"({{)"
@@ -482,7 +485,7 @@ void OrderEntry::get_fills() {
         R"(}})"sv,
         begin.count(),
         now.count(),
-        shared_.settings.download.trades_limit);
+        limit);
     auto method = web::http::Method::GET;
     auto path = shared_.api.simple.trade_fills;
     auto headers = account_.create_headers(method, path, body);

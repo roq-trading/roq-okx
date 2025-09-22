@@ -11,7 +11,7 @@ namespace okx {
 
 Settings::Settings(args::Parser const &args)
     : server::flags::Settings{args, ROQ_PACKAGE_NAME, ROQ_BUILD_NUMBER}, flags::Flags{flags::Flags::create()}, misc{flags::Misc::create()},
-      rest{flags::REST::create()}, ws{flags::WS::create()}, download{flags::Download::create()}, mbp{flags::MBP::create()}, request{flags::Request::create()} {
+      rest{flags::REST::create()}, ws{flags::WS::create()}, mbp{flags::MBP::create()}, request{flags::Request::create()} {
   log::info("settings={}"sv, *this);
 }
 
