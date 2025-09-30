@@ -72,7 +72,7 @@ TEST_CASE("json_funding_rate_parser", "[json_funding_rate]") {
   } handler;
   core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
+  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
   CHECK(res == true);
   CHECK(handler.get_count() == 1);
 }

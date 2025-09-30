@@ -93,7 +93,7 @@ TEST_CASE("json_balance_and_position_parser", "[json_balance_and_position]") {
   } handler;
   core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
+  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
   CHECK(res == true);
   CHECK(handler.get_count() == 1);
 }
@@ -193,7 +193,7 @@ TEST_CASE("json_balance_and_position_sample_2", "[json_balance_and_position]") {
   } handler;
   core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
+  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
   CHECK(res == true);
   CHECK(handler.get_count() == 1);
 }

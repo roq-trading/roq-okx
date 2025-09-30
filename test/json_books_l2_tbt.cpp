@@ -88,7 +88,7 @@ TEST_CASE("json_books_l2_tbt_parser", "[json_books_l2_tbt]") {
   } handler;
   core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
+  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
   CHECK(res == true);
   CHECK(handler.get_count() == 1);
 }
@@ -176,7 +176,7 @@ TEST_CASE("json_books_l2_tbt_parser_books5", "[json_books_l2_tbt]") {
   } handler;
   core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
+  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
   CHECK(res == true);
   CHECK(handler.get_count() == 1);
 }

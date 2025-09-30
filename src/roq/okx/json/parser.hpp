@@ -79,7 +79,7 @@ struct Parser final {
     virtual void operator()(Trace<json::Candle> const &) = 0;
   };
 
-  static bool dispatch(Handler &, std::string_view const &message, core::json::BufferStack &, TraceInfo const &, bool allow_unknown_event_types = false);
+  static bool dispatch(Handler &, std::string_view const &message, core::json::BufferStack &, TraceInfo const &, bool allow_unknown_event_types);
 };
 
 }  // namespace json

@@ -220,7 +220,7 @@ TEST_CASE("json_orders_parser", "[json_orders]") {
   } handler;
   core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
+  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
   CHECK(res == true);
   CHECK(handler.get_count() == 1);
 }
@@ -337,7 +337,7 @@ TEST_CASE("json_orders_parser_2", "[json_orders]") {
   } handler;
   core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
+  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
   CHECK(res == true);
   CHECK(handler.get_count() == 1);
 }

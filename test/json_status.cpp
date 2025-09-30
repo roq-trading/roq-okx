@@ -76,7 +76,7 @@ TEST_CASE("json_status_parser", "[json_status]") {
   } handler;
   core::json::BufferStack buffer{8192, 1};
   TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info);
+  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
   CHECK(res == true);
   CHECK(handler.get_count() == 1);
 }

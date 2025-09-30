@@ -15,7 +15,7 @@ CONFIG_FILE="$ROQ_CONFIG_PATH/roq-okx/$CONFIG.toml"
 FLAGFILE="../../../share/flags/prod/flags.cfg"
 
 $PREFIX ./roq-okx \
-  --name "okx" \
+  --name "$NAME" \
   --config_file "$CONFIG_FILE" \
   --flagfile "$FLAGFILE" \
   --cache_dir "$HOME/var/lib/roq/cache" \
