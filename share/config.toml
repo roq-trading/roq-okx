@@ -1,3 +1,5 @@
+# config template for the roq-okx gateway
+
 symbols = [
   "^BTC-USD[A-Z]$",      # spot
   "^BTC-USD[A-Z]-SWAP$"  # swap
