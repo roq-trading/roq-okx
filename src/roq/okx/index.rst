@@ -188,7 +188,7 @@ Environments
 
    .. code-block:: shell
 
-      $ $CONDA_PREFIX/share/roq-okx/flags/prod/flags.cfg
+      $ --flagfile $CONDA_PREFIX/share/roq-okx/flags/prod/flags.cfg
 
    .. include:: flags/prod/flags.cfg
      :code: ini
@@ -197,7 +197,7 @@ Environments
 
    .. code-block:: shell
 
-      $ $CONDA_PREFIX/share/roq-okx/flags/test/flags.cfg
+      $ --flagfile $CONDA_PREFIX/share/roq-okx/flags/test/flags.cfg
 
    .. include:: flags/test/flags.cfg
      :code: ini
@@ -208,7 +208,7 @@ Configuration
 
 .. code-block:: shell
 
-   $ $CONDA_PREFIX/share/roq-okx/config.toml
+   $ --flagfile $CONDA_PREFIX/share/roq-okx/config.toml
 
 .. important::
 
