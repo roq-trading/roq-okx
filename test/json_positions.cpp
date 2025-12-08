@@ -2,7 +2,7 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/okx/json/parser.hpp"
+#include "parser_tester.hpp"
 
 using namespace roq;
 using namespace roq::okx;
@@ -12,7 +12,9 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-TEST_CASE("json_positions_parser", "[json_positions]") {
+using value_type = json::Positions;
+
+TEST_CASE("simple", "[json_positions]") {
   auto message =
       // R"({"arg":{"channel":"positions","instType":"ANY","uid":"33594834598109184"},"data":[]}")";
       R"({)"
@@ -66,88 +68,54 @@ TEST_CASE("json_positions_parser", "[json_positions]") {
       R"(})"
       R"(])"
       R"(})";
-  struct MyHandler final : public json::Parser::Handler {
-    auto get_count() const { return count_; }
-
-   protected:
-    void operator()(Trace<json::Error> const &) override { FAIL(); }
-    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Status> const &) override { FAIL(); }
-    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
-    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
-    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::Tickers> const &) override { FAIL(); }
-    void operator()(Trace<json::Trades> const &) override { FAIL(); }
-    void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override { FAIL(); }
-    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
-    void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
-    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
-    void operator()(Trace<json::Login> const &) override { FAIL(); }
-    void operator()(Trace<json::Account> const &) override { FAIL(); }
-    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
-    void operator()(Trace<json::Positions> const &event) override {
-      ++count_;
-      auto &[trace_info, positions] = event;
-      auto &data = positions.data;
-      REQUIRE(std::size(data) == 1);
-      auto &data_0 = data[0];
-      CHECK(data_0.adl == 1);
-      CHECK(std::isnan(data_0.avail_pos) == true);
-      CHECK(data_0.avg_px == 43684.0_a);
-      CHECK(std::isnan(data_0.base_bal) == true);
-      CHECK(data_0.c_time == 1644330337903ms);
-      CHECK(data_0.ccy == "USDT"sv);
-      CHECK(std::isnan(data_0.delta_bs) == true);
-      CHECK(std::isnan(data_0.delta_pa) == true);
-      CHECK(std::isnan(data_0.gamma_bs) == true);
-      CHECK(std::isnan(data_0.gamma_pa) == true);
-      CHECK(data_0.imr == 43.69104315276841_a);
-      CHECK(data_0.inst_id == "BTC-USDT-SWAP"sv);
-      CHECK(data_0.inst_type == json::InstrumentType::SWAP);
-      CHECK(data_0.interest == 0.0_a);
-      CHECK(data_0.last == 43692.1_a);
-      CHECK(data_0.lever == 10.0_a);
-      CHECK(std::isnan(data_0.liab) == true);
-      CHECK(std::empty(data_0.liab_ccy));
-      CHECK(data_0.liq_px == 23739.456120525683_a);
-      CHECK(std::isnan(data_0.margin) == true);
-      CHECK(data_0.mark_px == 43691.043152768407_a);
-      CHECK(data_0.mgn_mode == json::MarginMode::CROSS);
-      CHECK(data_0.mgn_ratio == 102.02149323145969_a);
-      CHECK(data_0.mmr == 1.7476417261107364_a);
-      CHECK(data_0.notional_usd == 437.3735565851034_a);
-      CHECK(std::isnan(data_0.opt_val) == true);
-      CHECK(data_0.p_time == 1644330793928ms);
-      CHECK(data_0.pos == 1.0_a);
-      CHECK(std::empty(data_0.pos_ccy));
-      CHECK(data_0.pos_id == "325382268437037058"sv);
-      CHECK(data_0.pos_side == json::PositionSide::NET);
-      CHECK(std::isnan(data_0.quote_bal) == true);
-      CHECK(std::isnan(data_0.theta_bs) == true);
-      CHECK(std::isnan(data_0.theta_pa) == true);
-      CHECK(data_0.trade_id == "186646171"sv);
-      CHECK(data_0.u_time == 1644330337903ms);
-      CHECK(data_0.upl == 0.0704315276840498_a);
-      CHECK(data_0.upl_ratio == 0.0016122957532283_a);
-      CHECK(std::isnan(data_0.usd_px) == true);
-      CHECK(std::isnan(data_0.vega_bs) == true);
-      CHECK(std::isnan(data_0.vega_pa) == true);
-    }
-    void operator()(Trace<json::Orders> const &) override { FAIL(); }
-    void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::Candle> const &) override { FAIL(); }
-
-   private:
-    size_t count_ = {};
-  } handler;
-  core::json::BufferStack buffer{8192, 1};
-  TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
-  CHECK(res == true);
-  CHECK(handler.get_count() == 1);
+  auto helper = [](value_type const &obj) {
+    CHECK(obj.arg.channel == json::Channel::POSITIONS);
+    CHECK(obj.arg.inst_type == "ANY"sv);
+    CHECK(obj.arg.uid == "187956862690435072"sv);
+    auto &data = obj.data;
+    REQUIRE(std::size(data) == 1);
+    auto &data_0 = data[0];
+    CHECK(data_0.adl == 1);
+    CHECK(std::isnan(data_0.avail_pos) == true);
+    CHECK(data_0.avg_px == 43684.0_a);
+    CHECK(std::isnan(data_0.base_bal) == true);
+    CHECK(data_0.c_time == 1644330337903ms);
+    CHECK(data_0.ccy == "USDT"sv);
+    CHECK(std::isnan(data_0.delta_bs) == true);
+    CHECK(std::isnan(data_0.delta_pa) == true);
+    CHECK(std::isnan(data_0.gamma_bs) == true);
+    CHECK(std::isnan(data_0.gamma_pa) == true);
+    CHECK(data_0.imr == 43.69104315276841_a);
+    CHECK(data_0.inst_id == "BTC-USDT-SWAP"sv);
+    CHECK(data_0.inst_type == json::InstrumentType::SWAP);
+    CHECK(data_0.interest == 0.0_a);
+    CHECK(data_0.last == 43692.1_a);
+    CHECK(data_0.lever == 10.0_a);
+    CHECK(std::isnan(data_0.liab) == true);
+    CHECK(std::empty(data_0.liab_ccy));
+    CHECK(data_0.liq_px == 23739.456120525683_a);
+    CHECK(std::isnan(data_0.margin) == true);
+    CHECK(data_0.mark_px == 43691.043152768407_a);
+    CHECK(data_0.mgn_mode == json::MarginMode::CROSS);
+    CHECK(data_0.mgn_ratio == 102.02149323145969_a);
+    CHECK(data_0.mmr == 1.7476417261107364_a);
+    CHECK(data_0.notional_usd == 437.3735565851034_a);
+    CHECK(std::isnan(data_0.opt_val) == true);
+    CHECK(data_0.p_time == 1644330793928ms);
+    CHECK(data_0.pos == 1.0_a);
+    CHECK(std::empty(data_0.pos_ccy));
+    CHECK(data_0.pos_id == "325382268437037058"sv);
+    CHECK(data_0.pos_side == json::PositionSide::NET);
+    CHECK(std::isnan(data_0.quote_bal) == true);
+    CHECK(std::isnan(data_0.theta_bs) == true);
+    CHECK(std::isnan(data_0.theta_pa) == true);
+    CHECK(data_0.trade_id == "186646171"sv);
+    CHECK(data_0.u_time == 1644330337903ms);
+    CHECK(data_0.upl == 0.0704315276840498_a);
+    CHECK(data_0.upl_ratio == 0.0016122957532283_a);
+    CHECK(std::isnan(data_0.usd_px) == true);
+    CHECK(std::isnan(data_0.vega_bs) == true);
+    CHECK(std::isnan(data_0.vega_pa) == true);
+  };
+  ParserTester<value_type>::dispatch(helper, message, 8192, 2);
 }

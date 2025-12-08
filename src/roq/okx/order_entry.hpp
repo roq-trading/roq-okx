@@ -23,10 +23,10 @@
 #include "roq/okx/request.hpp"
 #include "roq/okx/shared.hpp"
 
-// #include "roq/okx/json/balance.hpp"
-#include "roq/okx/json/fills.hpp"
-#include "roq/okx/json/orders.hpp"
-#include "roq/okx/json/positions_rest.hpp"
+// #include "roq/okx/json/balance_ack.hpp"
+#include "roq/okx/json/fills_ack.hpp"
+#include "roq/okx/json/orders_pending_ack.hpp"
+#include "roq/okx/json/positions_ack.hpp"
 
 namespace roq {
 namespace okx {
@@ -53,27 +53,39 @@ struct OrderEntry final : public web::rest::Client::Handler {
   void operator()(metrics::Writer &) const;
 
  protected:
+  // web::rest::Client::Handler
+
   void operator()(Trace<web::rest::Client::Connected> const &) override;
   void operator()(Trace<web::rest::Client::Disconnected> const &) override;
   void operator()(Trace<web::rest::Client::Latency> const &) override;
 
   void operator()(ConnectionStatus);
 
+  // balance
+
   void get_balance();
   void get_balance_ack(Trace<web::rest::Response> const &);
-  // void operator()(Trace<json::Balance> const &);
+  // void operator()(Trace<json::BalanceAck> const &);
+
+  // positions
 
   void get_positions();
   void get_positions_ack(Trace<web::rest::Response> const &);
-  void operator()(Trace<json::PositionsRest> const &);
+  void operator()(Trace<json::PositionsAck> const &);
 
-  void get_orders();
-  void get_orders_ack(Trace<web::rest::Response> const &);
-  void operator()(Trace<json::Orders> const &);
+  // orders-pending
+
+  void get_orders_pending();
+  void get_orders_pending_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<json::OrdersPendingAck> const &);
+
+  // fills
 
   void get_fills();
   void get_fills_ack(Trace<web::rest::Response> const &);
-  void operator()(Trace<json::Fills> const &);
+  void operator()(Trace<json::FillsAck> const &);
+
+  // helpers
 
   void process_response(web::rest::Response const &, auto error_handler, auto success_handler);
 
@@ -91,7 +103,7 @@ struct OrderEntry final : public web::rest::Client::Handler {
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile balance, balance_ack, positions, positions_ack, orders, orders_ack, fills, fills_ack;
+    utils::metrics::Profile balance, balance_ack, positions, positions_ack, orders_pending, orders_pending_ack, fills, fills_ack;
   } profile_;
   struct {
     utils::metrics::Latency ping;

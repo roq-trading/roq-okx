@@ -32,7 +32,7 @@ auto const NAME = "dc"sv;
 
 auto const SUPPORTS = Mask<SupportType>{};
 
-size_t const MAX_DECODE_BUFFER_DEPTH = 1;
+size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 
 size_t const DOWNLOAD_TRADES_LIMIT = 100;
 }  // namespace
@@ -101,8 +101,8 @@ OrderEntry::OrderEntry(Handler &handler, io::Context &context, uint16_t stream_i
           .balance_ack = create_metrics(shared.settings, name_, "balance_ack"sv),
           .positions = create_metrics(shared.settings, name_, "positions"sv),
           .positions_ack = create_metrics(shared.settings, name_, "positions_ack"sv),
-          .orders = create_metrics(shared.settings, name_, "orders"sv),
-          .orders_ack = create_metrics(shared.settings, name_, "orders_ack"sv),
+          .orders_pending = create_metrics(shared.settings, name_, "orders_pending"sv),
+          .orders_pending_ack = create_metrics(shared.settings, name_, "orders_pending_ack"sv),
           .fills = create_metrics(shared.settings, name_, "fills"sv),
           .fills_ack = create_metrics(shared.settings, name_, "fills_ack"sv),
       },
@@ -140,7 +140,7 @@ void OrderEntry::operator()(Event<Timer> const &event) {
   if (ready() && !download_orders_) {
     if (request_.respond_orders < request_.request_orders) {
       log::info<1>("Download orders..."sv);
-      get_orders();
+      get_orders_pending();
       get_fills();
       download_orders_ = true;
     }
@@ -156,8 +156,8 @@ void OrderEntry::operator()(metrics::Writer &writer) const {
       .write(profile_.balance_ack, metrics::Type::PROFILE)
       .write(profile_.positions, metrics::Type::PROFILE)
       .write(profile_.positions_ack, metrics::Type::PROFILE)
-      .write(profile_.orders, metrics::Type::PROFILE)
-      .write(profile_.orders_ack, metrics::Type::PROFILE)
+      .write(profile_.orders_pending, metrics::Type::PROFILE)
+      .write(profile_.orders_pending_ack, metrics::Type::PROFILE)
       .write(profile_.fills, metrics::Type::PROFILE)
       .write(profile_.fills_ack, metrics::Type::PROFILE)
       // latency
@@ -185,6 +185,8 @@ void OrderEntry::operator()(ConnectionStatus status) {
     create_trace_and_dispatch(handler_, trace_info, stream_status);
   }
 }
+
+// web::rest::Client::Handler
 
 void OrderEntry::operator()(Trace<web::rest::Client::Connected> const &) {
   (*this)(ConnectionStatus::READY);
@@ -229,7 +231,7 @@ void OrderEntry::get_balance() {
       Trace event{trace_info, response};
       get_balance_ack(event);
     };
-    (*connection_)("account-balance"sv, request, callback);
+    (*connection_)("balance"sv, request, callback);
   });
 }
 
@@ -241,8 +243,8 @@ void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
     };
     auto handle_success = [&]([[maybe_unused]] auto &body) {
       /*
-      json::Orders orders{body, decode_buffer_};
-      Trace event_2{event, orders};
+      json::BalanceAck balance_ack{body, decode_buffer_};
+      Trace event_2{event, balance_ack};
       (*this)(event_2);
       */
       download_balance_ = false;
@@ -253,54 +255,9 @@ void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
 }
 
 /*
-void OrderEntry::operator()(Trace<json::Balance> const &event) {
-  auto &[trace_info, orders] = event;
-  log::info<4>("orders={}"sv, orders);
-  for (auto &item : orders.data) {
-    log::info<2>("item={}"sv, item);
-    auto side = json::map(item.side);
-    auto order_status = json::map(item.state);
-    auto order_update = server::oms::OrderUpdate{
-        .account = account_.name,
-        .exchange = shared_.settings.exchange,
-        .symbol = item.inst_id,
-        .side = side,
-        .position_effect = {},
-        .margin_mode = {},
-        .max_show_quantity = NaN,
-        .order_type = {},
-        .time_in_force = {},
-        .execution_instructions = {},
-        .create_time_utc = {},
-        .update_time_utc = utils::safe_cast(item.u_time),
-        .external_account = {},
-        .external_order_id = item.ord_id,
-        .client_order_id = {},
-        .order_status = order_status,
-        .quantity = item.sz,
-        .price = item.px,
-        .stop_price = NaN,
-        .leverage = NaN,
-        .remaining_quantity = NaN,
-        .traded_quantity = item.acc_fill_sz,
-        .average_traded_price = item.avg_px,
-        .last_traded_quantity = item.fill_sz,
-        .last_traded_price = item.fill_px,
-        .last_liquidity = {},
-        .routing_id = {},
-        .max_request_version = {},
-        .max_response_version = {},
-        .max_accepted_version = {},
-        .update_type = UpdateType::SNAPSHOT,
-        .sending_time_utc = {},
-    };
-    if (shared_.update_order(
-            item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
-    } else {
-      log::warn("*** EXTERNAL ORDER ***"sv);
-      log::warn("item={}"sv, item);
-    }
-  }
+void OrderEntry::operator()(Trace<json::BalanceAck> const &event) {
+  auto &[trace_info, balance_ack] = event;
+  log::info<4>("balance_ack={}"sv, balance_ack);
 }
 */
 
@@ -326,7 +283,7 @@ void OrderEntry::get_positions() {
       Trace event{trace_info, response};
       get_positions_ack(event);
     };
-    (*connection_)("account-positions"sv, request, callback);
+    (*connection_)("positions"sv, request, callback);
   });
 }
 
@@ -337,12 +294,12 @@ void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
       // XXX WHAT ???
     };
     auto handle_success = [&](auto &body) {
-      json::PositionsRest positions{body, decode_buffer_};
-      if (positions.code == 0) {
-        Trace event_2{event, positions};
+      json::PositionsAck positions_ack{body, decode_buffer_};
+      if (positions_ack.code == 0) {
+        Trace event_2{event, positions_ack};
         (*this)(event_2);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(positions.code), positions.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(positions_ack.code), positions_ack.msg);
       }
       download_positions_ = false;
       request_.respond_positions = clock::get_system();  // ack
@@ -351,10 +308,10 @@ void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
   });
 }
 
-void OrderEntry::operator()(Trace<json::PositionsRest> const &event) {
-  auto &[trace_info, positions] = event;
-  log::info<4>("positions={}"sv, positions);
-  for (auto &item : positions.data) {
+void OrderEntry::operator()(Trace<json::PositionsAck> const &event) {
+  auto &[trace_info, positions_ack] = event;
+  log::info<4>("positions_ack={}"sv, positions_ack);
+  for (auto &item : positions_ack.data) {
     log::info<2>("item={}"sv, item);
     auto long_quantity = std::max(0.0, item.pos);
     auto short_quantity = std::max(0.0, -item.pos);
@@ -377,8 +334,8 @@ void OrderEntry::operator()(Trace<json::PositionsRest> const &event) {
 
 // orders-pending
 
-void OrderEntry::get_orders() {
-  profile_.orders([&]() {
+void OrderEntry::get_orders_pending() {
+  profile_.orders_pending([&]() {
     auto method = web::http::Method::GET;
     auto path = shared_.api.simple.trade_orders_pending;
     auto headers = account_.create_headers(method, path, {});
@@ -395,25 +352,25 @@ void OrderEntry::get_orders() {
     auto callback = [this]([[maybe_unused]] auto &request_id, auto &response) {
       TraceInfo trace_info;
       Trace event{trace_info, response};
-      get_orders_ack(event);
+      get_orders_pending_ack(event);
     };
-    (*connection_)("trade-orders-pending"sv, request, callback);
+    (*connection_)("orders-pending"sv, request, callback);
   });
 }
 
-void OrderEntry::get_orders_ack(Trace<web::rest::Response> const &event) {
-  profile_.orders_ack([&]() {
+void OrderEntry::get_orders_pending_ack(Trace<web::rest::Response> const &event) {
+  profile_.orders_pending_ack([&]() {
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       // XXX WHAT ???
     };
     auto handle_success = [&](auto &body) {
-      json::Orders orders{body, decode_buffer_};
-      if (orders.code == 0) {
-        Trace event_2{event, orders};
+      json::OrdersPendingAck orders_pending_ack{body, decode_buffer_};
+      if (orders_pending_ack.code == 0) {
+        Trace event_2{event, orders_pending_ack};
         (*this)(event_2);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders.code), orders.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders_pending_ack.code), orders_pending_ack.msg);
       }
       download_orders_ = false;
       request_.respond_orders = clock::get_system();  // ack
@@ -422,10 +379,10 @@ void OrderEntry::get_orders_ack(Trace<web::rest::Response> const &event) {
   });
 }
 
-void OrderEntry::operator()(Trace<json::Orders> const &event) {
-  auto &[trace_info, orders] = event;
-  log::info<4>("orders={}"sv, orders);
-  for (auto &item : orders.data) {
+void OrderEntry::operator()(Trace<json::OrdersPendingAck> const &event) {
+  auto &[trace_info, orders_pending_ack] = event;
+  log::info<4>("orders_pending_ack={}"sv, orders_pending_ack);
+  for (auto &item : orders_pending_ack.data) {
     log::info<2>("item={}"sv, item);
     auto order_update = server::oms::OrderUpdate{
         .account = account_.name,
@@ -469,7 +426,7 @@ void OrderEntry::operator()(Trace<json::Orders> const &event) {
   }
 }
 
-// trade fills
+// fills
 
 void OrderEntry::get_fills() {
   profile_.fills([&]() {
@@ -506,7 +463,7 @@ void OrderEntry::get_fills() {
       Trace event{trace_info, response};
       get_fills_ack(event);
     };
-    (*connection_)("trade-fills"sv, request, callback);
+    (*connection_)("fills"sv, request, callback);
   });
 }
 
@@ -517,12 +474,12 @@ void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
       // XXX WHAT ???
     };
     auto handle_success = [&](auto &body) {
-      json::Fills fills{body, decode_buffer_};
-      if (fills.code == 0) {
-        Trace event_2{event, fills};
+      json::FillsAck fills_ack{body, decode_buffer_};
+      if (fills_ack.code == 0) {
+        Trace event_2{event, fills_ack};
         (*this)(event_2);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(fills.code), fills.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(fills_ack.code), fills_ack.msg);
       }
       // download_orders_ = false;
       // request_.respond_orders = clock::get_system();  // ack
@@ -532,10 +489,10 @@ void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
   });
 }
 
-void OrderEntry::operator()(Trace<json::Fills> const &event) {
-  auto &[trace_info, fills] = event;
-  log::info<4>("fills={}"sv, fills);
-  for (auto &item : fills.data) {
+void OrderEntry::operator()(Trace<json::FillsAck> const &event) {
+  auto &[trace_info, fills_ack] = event;
+  log::info<4>("fills_ack={}"sv, fills_ack);
+  for (auto &item : fills_ack.data) {
     log::info<2>("item={}"sv, item);
     auto side = map(item.side).template get<Side>();
     auto ref_data = shared_.get_ref_data(shared_.settings.exchange, item.inst_id);

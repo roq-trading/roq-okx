@@ -52,7 +52,7 @@ auto const SUPPORTS = Mask{
 
 uint64_t const REQUEST_ID = 1'000'000;
 
-size_t const MAX_DECODE_BUFFER_DEPTH = 1;
+size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 }  // namespace
 
 // === HELPERS ===
@@ -418,6 +418,8 @@ uint16_t DropCopy::operator()(Event<CancelAllOrders> const &event, [[maybe_unuse
   return stream_id_;
 }
 
+// web::socket::Client::Handler
+
 void DropCopy::operator()(web::socket::Client::Connected const &) {
 }
 
@@ -579,18 +581,20 @@ void DropCopy::parse(std::string_view const &message) {
   });
 }
 
+// json::Parser::Handler
+
 void DropCopy::operator()(Trace<json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
-    log::fatal("event={{error={}, trace_info={}}}"sv, error, trace_info);
+    log::fatal("error={}"sv, error);
   });
 }
 
 void DropCopy::operator()(Trace<json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
-    log::info<1>("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
-    if (subscribe.channel == json::Channel::ORDERS) {
+    log::info<1>("subscribe={}"sv, subscribe);
+    if (subscribe.arg.channel == json::Channel::ORDERS) {
       download_.check(DropCopyState::SUBSCRIBE);
     }
   });
@@ -599,7 +603,7 @@ void DropCopy::operator()(Trace<json::Subscribe> const &event) {
 void DropCopy::operator()(Trace<json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
-    log::info<1>("event={{unsubscribe={}, trace_info={}}}"sv, unsubscribe, trace_info);
+    log::info<1>("unsubscribe={}"sv, unsubscribe);
   });
 }
 
@@ -639,25 +643,25 @@ void DropCopy::operator()(Trace<json::FundingRate> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) {
+void DropCopy::operator()(Trace<json::BboTbt> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) {
+void DropCopy::operator()(Trace<json::BooksL2Tbt> const &) {
   log::fatal("Unexpected"sv);
 }
 
 void DropCopy::operator()(Trace<json::ChannelConnCount> const &event) {
   profile_.channel_conn_count([&]() {
     auto &[trace_info, channel_conn_count] = event;
-    log::info<1>("event={{channel_conn_count={}, trace_info={}}}"sv, channel_conn_count, trace_info);
+    log::info<1>("channel_conn_count={}"sv, channel_conn_count);
   });
 }
 
 void DropCopy::operator()(Trace<json::Login> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
-    log::info<1>("event={{login={}, trace_info={}}}"sv, login, trace_info);
+    log::info<1>("login={}"sv, login);
     auto state = DropCopyState::LOGIN;
     download_.check_relaxed(state);
   });
@@ -666,22 +670,24 @@ void DropCopy::operator()(Trace<json::Login> const &event) {
 void DropCopy::operator()(Trace<json::Account> const &event) {
   profile_.account([&]() {
     auto &[trace_info, account] = event;
-    log::info<1>("event={{account={}, trace_info={}}}"sv, account, trace_info);
-    for (auto &item : account.details) {
-      auto funds_update = FundsUpdate{
-          .stream_id = stream_id_,
-          .account = account_.name,
-          .currency = item.ccy,
-          .margin_mode = {},
-          .balance = item.cash_bal,
-          .hold = item.frozen_bal,
-          .borrowed = NaN,
-          .external_account = {},
-          .update_type = {},
-          .exchange_time_utc = {},
-          .sending_time_utc = {},
-      };
-      create_trace_and_dispatch(handler_, trace_info, funds_update, true);
+    log::info<1>("account={}"sv, account);
+    for (auto &item : account.data) {
+      for (auto &item_2 : item.details) {
+        auto funds_update = FundsUpdate{
+            .stream_id = stream_id_,
+            .account = account_.name,
+            .currency = item_2.ccy,
+            .margin_mode = {},
+            .balance = item_2.cash_bal,
+            .hold = item_2.frozen_bal,
+            .borrowed = NaN,
+            .external_account = {},
+            .update_type = {},
+            .exchange_time_utc = {},
+            .sending_time_utc = {},
+        };
+        create_trace_and_dispatch(handler_, trace_info, funds_update, true);
+      }
     }
   });
 }
@@ -689,14 +695,14 @@ void DropCopy::operator()(Trace<json::Account> const &event) {
 void DropCopy::operator()(Trace<json::BalanceAndPosition> const &event) {
   profile_.balance_and_position([&]() {
     auto &[trace_info, balance_and_position] = event;
-    log::info<1>("event={{balance_and_position={}, trace_info={}}}"sv, balance_and_position, trace_info);
+    log::info<1>("balance_and_position={}"sv, balance_and_position);
   });
 }
 
 void DropCopy::operator()(Trace<json::Positions> const &event) {
   profile_.positions([&]() {
     auto &[trace_info, positions] = event;
-    log::info<1>("event={{positions={}, trace_info={}}}"sv, positions, trace_info);
+    log::info<1>("positions={}"sv, positions);
     for (auto &item : positions.data) {
       auto long_quantity = std::max(0.0, item.pos);
       auto short_quantity = std::max(0.0, -item.pos);
@@ -721,7 +727,7 @@ void DropCopy::operator()(Trace<json::Positions> const &event) {
 void DropCopy::operator()(Trace<json::Orders> const &event) {
   profile_.orders([&]() {
     auto &[trace_info, orders] = event;
-    log::info<1>("event={{orders={}, trace_info={}}}"sv, orders, trace_info);
+    log::info<1>("orders={}"sv, orders);
     for (auto &item : orders.data) {
       log::info<2>("item={}"sv, item);
       if (item.amend_result < 0) {
@@ -814,10 +820,10 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
   });
 }
 
-void DropCopy::operator()(Trace<json::OrderAck> const &event) {
+void DropCopy::operator()(Trace<json::Order> const &event) {
   profile_.order_ack([&]() {
     auto &[trace_info, order_ack] = event;
-    log::info<1>("event={{order_ack={}, trace_info={}}}"sv, order_ack, trace_info);
+    log::info<1>("order_ack={}"sv, order_ack);
     auto order_status = order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : order_ack.data) {
       auto error = json::guess_error(item.s_code);
@@ -840,10 +846,10 @@ void DropCopy::operator()(Trace<json::OrderAck> const &event) {
   });
 }
 
-void DropCopy::operator()(Trace<json::AmendOrderAck> const &event) {
+void DropCopy::operator()(Trace<json::AmendOrder> const &event) {
   profile_.amend_order_ack([&]() {
     auto &[trace_info, amend_order_ack] = event;
-    log::info<1>("event={{amend_order_ack={}, trace_info={}}}"sv, amend_order_ack, trace_info);
+    log::info<1>("amend_order_ack={}"sv, amend_order_ack);
     auto order_status = amend_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : amend_order_ack.data) {
       auto error = json::guess_error(item.s_code);
@@ -866,10 +872,10 @@ void DropCopy::operator()(Trace<json::AmendOrderAck> const &event) {
   });
 }
 
-void DropCopy::operator()(Trace<json::CancelOrderAck> const &event) {
+void DropCopy::operator()(Trace<json::CancelOrder> const &event) {
   profile_.cancel_order_ack([&]() {
     auto &[trace_info, cancel_order_ack] = event;
-    log::info<1>("event={{cancel_order_ack={}, trace_info={}}}"sv, cancel_order_ack, trace_info);
+    log::info<1>("cancel_order_ack={}"sv, cancel_order_ack);
     auto order_status = cancel_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : cancel_order_ack.data) {
       auto error = json::guess_error(item.s_code);

@@ -66,6 +66,8 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
   void subscribe(size_t start_from = 0);
 
  protected:
+  // web::socket::Client::Handler
+
   void operator()(web::socket::Client::Connected const &) override;
   void operator()(web::socket::Client::Disconnected const &) override;
   void operator()(web::socket::Client::Ready const &) override;
@@ -91,6 +93,8 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
 
   void parse(std::string_view const &message);
 
+  // json::Parser::Handler
+
   void operator()(Trace<json::Error> const &) override;
   void operator()(Trace<json::Subscribe> const &) override;
   void operator()(Trace<json::Unsubscribe> const &) override;
@@ -102,8 +106,8 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
   void operator()(Trace<json::MarkPrice> const &) override;
   void operator()(Trace<json::Tickers> const &) override;
   void operator()(Trace<json::Trades> const &) override;
-  void operator()(Trace<json::BboTbt> const &, std::string_view const &inst_id) override;
-  void operator()(Trace<json::BooksL2Tbt> const &, std::string_view const &inst_id, json::Action) override;
+  void operator()(Trace<json::BboTbt> const &) override;
+  void operator()(Trace<json::BooksL2Tbt> const &) override;
   void operator()(Trace<json::IndexTickers> const &) override;
   void operator()(Trace<json::FundingRate> const &) override;
 
@@ -113,14 +117,17 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
   void operator()(Trace<json::BalanceAndPosition> const &) override;
   void operator()(Trace<json::Positions> const &) override;
   void operator()(Trace<json::Orders> const &) override;
-  void operator()(Trace<json::OrderAck> const &) override;
-  void operator()(Trace<json::AmendOrderAck> const &) override;
-  void operator()(Trace<json::CancelOrderAck> const &) override;
+  void operator()(Trace<json::Order> const &) override;
+  void operator()(Trace<json::AmendOrder> const &) override;
+  void operator()(Trace<json::CancelOrder> const &) override;
 
   void operator()(Trace<json::Candle> const &) override;
 
+  // helpers
+
   void check_subscribe_queue(std::chrono::nanoseconds now);
 
+ private:
   Handler &handler_;
   // config
   uint16_t const stream_id_;

@@ -1,0 +1,43 @@
+{
+  "name": "roq/okx/json/TradesDataItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "instId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "tradeId",
+      "type": "std/string_view",
+      "comment": "we need the string"
+    },
+    {
+      "name": "px",
+      "type": "std/double"
+    },
+    {
+      "name": "sz",
+      "type": "std/double"
+    },
+    {
+      "name": "side",
+      "type": "roq/okx/json/Side"
+    },
+    {
+      "name": "ts",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "count",
+      "type": "std/uint32"
+    },
+    {
+      "name": "seqId",
+      "type": "std/uint64"
+    },
+    {
+      "name": "source",
+      "type": "std/int32"
+    }
+  ]
+}

@@ -2,7 +2,7 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/okx/json/parser.hpp"
+#include "parser_tester.hpp"
 
 using namespace roq;
 using namespace roq::okx;
@@ -12,88 +12,38 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-TEST_CASE("json_tickers_parser", "[json_tickers]") {
+using value_type = json::Tickers;
+
+TEST_CASE("simple", "[json_tickers]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"tickers",)"
-                 R"("instId":"BTC-USD-220325"},)"
+                 R"("instId":"BTC-USD")"
+                 R"(},)"
                  R"("data":[{)"
-                 R"("instType":"FUTURES",)"
-                 R"("instId":"BTC-USD-220325",)"
-                 R"("last":"50326.8",)"
-                 R"("lastSz":"1",)"
-                 R"("askPx":"50330.5",)"
-                 R"("askSz":"19",)"
-                 R"("bidPx":"50330.4",)"
-                 R"("bidSz":"51",)"
-                 R"("open24h":"49905.2",)"
-                 R"("high24h":"50900",)"
-                 R"("low24h":"49474",)"
-                 R"("sodUtc0":"50107.5",)"
-                 R"("sodUtc8":"49646.5",)"
-                 R"("volCcy24h":"7544.4991",)"
-                 R"("vol24h":"3778623",)"
-                 R"("ts":"1640156513987")"
+                 R"("instType":"SPOT",)"
+                 R"("instId":"BTC-USD",)"
+                 R"("last":"91517.2",)"
+                 R"("lastSz":"0.00269444",)"
+                 R"("askPx":"91527.3",)"
+                 R"("askSz":"1.54613591",)"
+                 R"("bidPx":"91527.2",)"
+                 R"("bidSz":"0.0135",)"
+                 R"("open24h":"88979.1",)"
+                 R"("high24h":"92327.7",)"
+                 R"("low24h":"87758.1",)"
+                 R"("sodUtc0":"90420.2",)"
+                 R"("sodUtc8":"89574.2",)"
+                 R"("volCcy24h":"30744587.593360288",)"
+                 R"("vol24h":"338.86622649",)"
+                 R"("ts":"1765201256914")"
                  R"(})"
                  R"(])"
                  R"(})";
-  struct MyHandler final : public json::Parser::Handler {
-    auto get_count() const { return count_; }
-
-   protected:
-    void operator()(Trace<json::Error> const &) override { FAIL(); }
-    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Status> const &) override { FAIL(); }
-    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
-    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
-    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::Tickers> const &event) override {
-      ++count_;
-      auto &[trace_info, tickers] = event;
-      auto &data = tickers.data;
-      REQUIRE(std::size(data) == 1);
-      auto &data_0 = data[0];
-      CHECK(data_0.inst_type == json::InstrumentType::FUTURES);
-      CHECK(data_0.inst_id == "BTC-USD-220325"sv);
-      CHECK(data_0.last == 50326.8_a);
-      CHECK(data_0.last_sz == 1.0_a);
-      CHECK(data_0.ask_px == 50330.5_a);
-      CHECK(data_0.ask_sz == 19.0_a);
-      CHECK(data_0.bid_px == 50330.4_a);
-      CHECK(data_0.bid_sz == 51.0_a);
-      CHECK(data_0.open24h == 49905.2_a);
-      CHECK(data_0.high24h == 50900.0_a);
-      CHECK(data_0.low24h == 49474.0_a);
-      CHECK(data_0.sod_utc0 == 50107.5_a);
-      CHECK(data_0.sod_utc8 == 49646.5_a);
-      CHECK(data_0.vol_ccy24h == 7544.4991_a);
-      CHECK(data_0.vol24h == 3778623.0_a);
-      CHECK(data_0.ts == 1640156513987ms);
-    }
-    void operator()(Trace<json::Trades> const &) override { FAIL(); }
-    void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override { FAIL(); }
-    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
-    void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
-    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
-    void operator()(Trace<json::Login> const &) override { FAIL(); }
-    void operator()(Trace<json::Account> const &) override { FAIL(); }
-    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
-    void operator()(Trace<json::Positions> const &) override { FAIL(); }
-    void operator()(Trace<json::Orders> const &) override { FAIL(); }
-    void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::Candle> const &) override { FAIL(); }
-
-   private:
-    size_t count_ = {};
-  } handler;
-  core::json::BufferStack buffer{8192, 1};
-  TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
-  CHECK(res == true);
-  CHECK(handler.get_count() == 1);
+  auto helper = [](value_type const &obj) {
+    CHECK(obj.arg.channel == json::Channel::TICKERS);
+    CHECK(obj.arg.inst_id == "BTC-USD"sv);
+    REQUIRE(std::size(obj.data) == 1);
+  };
+  ParserTester<value_type>::dispatch(helper, message, 8192, 1);
 }

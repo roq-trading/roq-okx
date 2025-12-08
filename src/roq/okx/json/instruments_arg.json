@@ -1,0 +1,14 @@
+{
+  "name": "roq/okx/json/InstrumentsArg",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "channel",
+      "type": "roq/okx/json/Channel"
+    },
+    {
+      "name": "instType",
+      "type": "std/string_view"
+    }
+  ]
+}

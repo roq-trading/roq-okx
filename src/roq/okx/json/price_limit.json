@@ -1,10 +1,14 @@
 {
   "name": "roq/okx/json/PriceLimit",
-  "type": "array",
+  "type": "dictionary",
   "values": [
     {
+      "name": "arg",
+      "type": "roq/okx/json/PriceLimitArg"
+    },
+    {
       "name": "data",
-      "type": "roq/okx/json/PriceLimitItem",
+      "type": "roq/okx/json/PriceLimitDataItem",
       "array": "std/span"
     }
   ]

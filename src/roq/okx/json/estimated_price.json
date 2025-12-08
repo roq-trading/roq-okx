@@ -1,10 +1,14 @@
 {
   "name": "roq/okx/json/EstimatedPrice",
-  "type": "array",
+  "type": "dictionary",
   "values": [
     {
+      "name": "arg",
+      "type": "roq/okx/json/EstimatedPriceArg"
+    },
+    {
       "name": "data",
-      "type": "roq/okx/json/EstimatedPriceItem",
+      "type": "roq/okx/json/EstimatedPriceDataItem",
       "array": "std/span"
     }
   ]

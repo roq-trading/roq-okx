@@ -3,26 +3,12 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "pTime",
-      "type": "std/milliseconds"
+      "name": "arg",
+      "type": "roq/okx/json/BalanceAndPositionArg"
     },
     {
-      "name": "eventType",
-      "type": "std/string_view"
-    },
-    {
-      "name": "balData",
-      "type": "roq/okx/json/BalanceAndPositionBalanceItem",
-      "array": "std/span"
-    },
-    {
-      "name": "posData",
-      "type": "roq/okx/json/BalanceAndPositionPositionItem",
-      "array": "std/span"
-    },
-    {
-      "name": "trades",
-      "type": "roq/okx/json/BalanceAndPositionTradesItem",
+      "name": "data",
+      "type": "roq/okx/json/BalanceAndPositionDataItem",
       "array": "std/span"
     }
   ]

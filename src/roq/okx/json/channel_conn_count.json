@@ -3,6 +3,10 @@
   "type": "dictionary",
   "values": [
     {
+      "name": "event",
+      "type": "roq/okx/json/EventType"
+    },
+    {
       "name": "channel",
       "type": "roq/okx/json/Channel"
     },

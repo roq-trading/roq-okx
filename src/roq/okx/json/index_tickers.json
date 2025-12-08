@@ -1,10 +1,14 @@
 {
   "name": "roq/okx/json/IndexTickers",
-  "type": "array",
+  "type": "dictionary",
   "values": [
     {
+      "name": "arg",
+      "type": "roq/okx/json/IndexTickersArg"
+    },
+    {
       "name": "data",
-      "type": "roq/okx/json/IndexTickersItem",
+      "type": "roq/okx/json/IndexTickersDataItem",
       "array": "std/span"
     }
   ]

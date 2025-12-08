@@ -24,8 +24,8 @@
 
 #include "roq/okx/shared.hpp"
 
-#include "roq/okx/json/candles.hpp"
-#include "roq/okx/json/instruments_rest.hpp"
+#include "roq/okx/json/candles_ack.hpp"
+#include "roq/okx/json/instruments_ack.hpp"
 
 namespace roq {
 namespace okx {
@@ -58,6 +58,8 @@ struct Rest final : public web::rest::Client::Handler {
   void operator()(metrics::Writer &) const;
 
  protected:
+  // web::rest::Client::Handler
+
   void operator()(Trace<web::rest::Client::Connected> const &) override;
   void operator()(Trace<web::rest::Client::Disconnected> const &) override;
   void operator()(Trace<web::rest::Client::Latency> const &) override;
@@ -66,13 +68,19 @@ struct Rest final : public web::rest::Client::Handler {
 
   bool downloading() const { return download_instruments_.spot || download_instruments_.swap || download_instruments_.futures; }
 
+  // instruments
+
   void get_instruments(std::string_view const &type);
   void get_instruments_ack(Trace<web::rest::Response> const &, std::string_view const &type);
-  void operator()(Trace<json::InstrumentsRest> const &);
+  void operator()(Trace<json::InstrumentsAck> const &);
+
+  // candles
 
   void get_candles(std::string_view const &symbol);
   void get_candles_ack(Trace<web::rest::Response> const &, std::string_view const &symbol);
-  void operator()(Trace<json::Candles> const &, std::string_view const &symbol);
+  void operator()(Trace<json::CandlesAck> const &, std::string_view const &symbol);
+
+  // helpers
 
   void check_request_queue(std::chrono::nanoseconds now);
 

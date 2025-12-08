@@ -2,7 +2,7 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/okx/json/parser.hpp"
+#include "parser_tester.hpp"
 
 using namespace roq;
 using namespace roq::okx;
@@ -12,88 +12,73 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-TEST_CASE("json_books_l2_tbt_parser", "[json_books_l2_tbt]") {
+using value_type = json::BooksL2Tbt;
+
+// note! truncated
+TEST_CASE("books_snapshot", "[json_books_l2_tbt]") {
   auto message = R"({)"
                  R"("arg":{)"
-                 R"("channel":"books-l2-tbt",)"
-                 R"("instId":"BTC-USD-220325"},)"
+                 R"("channel":"books",)"
+                 R"("instId":"NEAR-USDT")"
+                 R"(},)"
                  R"("action":"snapshot",)"
                  R"("data":[{)"
                  R"("asks":[)"
-                 R"(["50441.1","24","0","1"],)"
-                 R"(["50449.1","152","0","3"])"
+                 R"(["1.783","411.15719291","0","3"],)"
+                 R"(["1.784","5842.06737585","0","13"],)"
+                 R"(["2.194","1.02075576","0","1"])"
                  R"(],)"
                  R"("bids":[)"
-                 R"(["50441","199","0","3"],)"
-                 R"(["50438.2","49","0","1"])"
+                 R"(["1.782","2173.46443964","0","8"],)"
+                 R"(["1.781","14620.34390321","0","30"],)"
+                 R"(["1.32","541.81794985","0","4"])"
                  R"(],)"
-                 R"("ts":"1640158295741",)"
-                 R"("checksum":-386306878)"
+                 R"("ts":"1765201257005",)"
+                 R"("checksum":-1197821412,)"
+                 R"("seqId":9690930615,)"
+                 R"("prevSeqId":-1)"
                  R"(})"
                  R"(])"
                  R"(})";
-  struct MyHandler final : public json::Parser::Handler {
-    auto get_count() const { return count_; }
-
-   protected:
-    void operator()(Trace<json::Error> const &) override { FAIL(); }
-    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Status> const &) override { FAIL(); }
-    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
-    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
-    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::Tickers> const &) override { FAIL(); }
-    void operator()(Trace<json::Trades> const &) override { FAIL(); }
-    void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(Trace<json::BooksL2Tbt> const &event, std::string_view const &inst_id, json::Action action) override {
-      ++count_;
-      auto &[trace_info, books_l2_tbt] = event;
-      CHECK(inst_id == "BTC-USD-220325"sv);
-      CHECK(action == json::Action::SNAPSHOT);
-      auto &asks = books_l2_tbt.asks;
-      REQUIRE(std::size(asks) == 2);
-      // ask_0
-      auto &ask_0 = asks[0];
-      CHECK(ask_0.price == 50441.1_a);
-      CHECK(ask_0.size == 24.0_a);
-      CHECK(ask_0.liquidated_orders == 0);
-      CHECK(ask_0.orders == 1);
-      // a1
-      auto &bids = books_l2_tbt.bids;
-      REQUIRE(std::size(bids) == 2);
-      // bid_0
-      auto &bid_0 = bids[0];
-      CHECK(bid_0.price == 50441_a);
-      CHECK(bid_0.size == 199.0_a);
-      CHECK(bid_0.liquidated_orders == 0);
-      CHECK(bid_0.orders == 3);
-    }
-    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
-    void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
-    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
-    void operator()(Trace<json::Login> const &) override { FAIL(); }
-    void operator()(Trace<json::Account> const &) override { FAIL(); }
-    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
-    void operator()(Trace<json::Positions> const &) override { FAIL(); }
-    void operator()(Trace<json::Orders> const &) override { FAIL(); }
-    void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::Candle> const &) override { FAIL(); }
-
-   private:
-    size_t count_ = {};
-  } handler;
-  core::json::BufferStack buffer{8192, 1};
-  TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
-  CHECK(res == true);
-  CHECK(handler.get_count() == 1);
+  auto helper = [](value_type const &obj) {
+    CHECK(obj.arg.channel == json::Channel::BOOKS);
+    CHECK(obj.arg.inst_id == "NEAR-USDT"sv);
+    CHECK(obj.action == json::Action::SNAPSHOT);
+    REQUIRE(std::size(obj.data) == 1);
+  };
+  ParserTester<value_type>::dispatch(helper, message, 8192, 3);
 }
 
-TEST_CASE("json_books_l2_tbt_parser_books5", "[json_books_l2_tbt]") {
+TEST_CASE("books_update", "[json_books_l2_tbt]") {
+  auto message = R"({)"
+                 R"("arg":{)"
+                 R"("channel":"books",)"
+                 R"("instId":"NEAR-USDT")"
+                 R"(},)"
+                 R"("action":"update",)"
+                 R"("data":[{)"
+                 R"("asks":[],)"
+                 R"("bids":[)"
+                 R"(["1.781","14694.07509503","0","31"],)"
+                 R"(["1.78","12102.991384","0","32"])"
+                 R"(],)"
+                 R"("ts":"1765201257205",)"
+                 R"("checksum":1923732318,)"
+                 R"("seqId":9690930617,)"
+                 R"("prevSeqId":9690930615)"
+                 R"(})"
+                 R"(])"
+                 R"(})";
+  auto helper = [](value_type const &obj) {
+    CHECK(obj.arg.channel == json::Channel::BOOKS);
+    CHECK(obj.arg.inst_id == "NEAR-USDT"sv);
+    CHECK(obj.action == json::Action::UPDATE);
+    REQUIRE(std::size(obj.data) == 1);
+  };
+  ParserTester<value_type>::dispatch(helper, message, 8192, 3);
+}
+
+TEST_CASE("books5", "[json_books_l2_tbt]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"books5",)"
@@ -119,64 +104,29 @@ TEST_CASE("json_books_l2_tbt_parser_books5", "[json_books_l2_tbt]") {
                  R"(})"
                  R"(])"
                  R"(})";
-  struct MyHandler final : public json::Parser::Handler {
-    auto get_count() const { return count_; }
-
-   protected:
-    void operator()(Trace<json::Error> const &) override { FAIL(); }
-    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Status> const &) override { FAIL(); }
-    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
-    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
-    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::Tickers> const &) override { FAIL(); }
-    void operator()(Trace<json::Trades> const &) override { FAIL(); }
-    void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(Trace<json::BooksL2Tbt> const &event, std::string_view const &inst_id, json::Action action) override {
-      ++count_;
-      auto &[trace_info, books_l2_tbt] = event;
-      CHECK(inst_id == "PERP-USDT"sv);
-      CHECK(action == json::Action::SNAPSHOT);
-      auto &asks = books_l2_tbt.asks;
-      REQUIRE(std::size(asks) == 5);
-      // ask_0
-      auto &ask_0 = asks[0];
-      CHECK(ask_0.price == 0.773_a);
-      CHECK(ask_0.size == 2.160647_a);
-      CHECK(ask_0.liquidated_orders == 0);
-      CHECK(ask_0.orders == 2);
-      // a1...
-      auto &bids = books_l2_tbt.bids;
-      REQUIRE(std::size(bids) == 5);
-      // bid_0
-      auto &bid_0 = bids[0];
-      CHECK(bid_0.price == 0.771_a);
-      CHECK(bid_0.size == 1111.147468_a);
-      CHECK(bid_0.liquidated_orders == 0);
-      CHECK(bid_0.orders == 5);
-      // b1...
-    }
-    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
-    void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
-    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
-    void operator()(Trace<json::Login> const &) override { FAIL(); }
-    void operator()(Trace<json::Account> const &) override { FAIL(); }
-    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
-    void operator()(Trace<json::Positions> const &) override { FAIL(); }
-    void operator()(Trace<json::Orders> const &) override { FAIL(); }
-    void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::Candle> const &) override { FAIL(); }
-
-   private:
-    size_t count_ = {};
-  } handler;
-  core::json::BufferStack buffer{8192, 1};
-  TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
-  CHECK(res == true);
-  CHECK(handler.get_count() == 1);
+  auto helper = [](value_type const &obj) {
+    CHECK(obj.arg.channel == json::Channel::BOOKS5);
+    CHECK(obj.arg.inst_id == "PERP-USDT"sv);
+    CHECK(obj.action == json::Action::UNDEFINED_INTERNAL);
+    REQUIRE(std::size(obj.data) == 1);
+    auto &asks = obj.data[0].asks;
+    REQUIRE(std::size(asks) == 5);
+    // ask_0
+    auto &ask_0 = asks[0];
+    CHECK(ask_0.price == 0.773_a);
+    CHECK(ask_0.size == 2.160647_a);
+    CHECK(ask_0.liquidated_orders == 0);
+    CHECK(ask_0.orders == 2);
+    // a1...
+    auto &bids = obj.data[0].bids;
+    REQUIRE(std::size(bids) == 5);
+    // bid_0
+    auto &bid_0 = bids[0];
+    CHECK(bid_0.price == 0.771_a);
+    CHECK(bid_0.size == 1111.147468_a);
+    CHECK(bid_0.liquidated_orders == 0);
+    CHECK(bid_0.orders == 5);
+    // b1...
+  };
+  ParserTester<value_type>::dispatch(helper, message, 8192, 3);
 }

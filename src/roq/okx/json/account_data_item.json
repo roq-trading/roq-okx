@@ -1,0 +1,55 @@
+{
+  "name": "roq/okx/json/AccountDataItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "adjEq",
+      "type": "std/string_view"
+    },
+    {
+      "name": "details",
+      "type": "roq/okx/json/AccountItem",
+      "array": "std/span"
+    },
+    {
+      "name": "imr",
+      "type": "std/double"
+    },
+    {
+      "name": "isoEq",
+      "type": "std/double"
+    },
+    {
+      "name": "mgnRatio",
+      "type": "std/double"
+    },
+    {
+      "name": "mmr",
+      "type": "std/double"
+    },
+    {
+      "name": "notionalUsd",
+      "type": "std/double"
+    },
+    {
+      "name": "ordFroz",
+      "type": "std/double"
+    },
+    {
+      "name": "totalEq",
+      "type": "std/double"
+    },
+    {
+      "name": "uTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "borrowFroz",
+      "type": "std/double"
+    },
+    {
+      "name": "upl",
+      "type": "std/double"
+    }
+  ]
+}

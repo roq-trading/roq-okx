@@ -3,11 +3,19 @@
   "type": "dictionary",
   "values": [
     {
+      "name": "event",
+      "type": "roq/okx/json/EventType"
+    },
+    {
       "name": "code",
       "type": "std/int32"
     },
     {
       "name": "msg",
+      "type": "std/string_view"
+    },
+    {
+      "name": "connId",
       "type": "std/string_view"
     }
   ]

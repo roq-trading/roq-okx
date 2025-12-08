@@ -3,35 +3,21 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "bids",
-      "type": "roq/okx/json/BooksL2Item",
+      "name": "event",
+      "type": "roq/okx/json/EventType"
+    },
+    {
+      "name": "arg",
+      "type": "roq/okx/json/BooksL2TbtArg"
+    },
+    {
+      "name": "action",
+      "type": "roq/okx/json/Action"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/json/BooksL2TbtDataItem",
       "array": "std/span"
-    },
-    {
-      "name": "asks",
-      "type": "roq/okx/json/BooksL2Item",
-      "array": "std/span"
-    },
-    {
-      "name": "instId",
-      "type": "std/string_view"
-    },
-    {
-      "name": "ts",
-      "type": "std/milliseconds"
-    },
-    {
-      "name": "seqId",
-      "type": "std/int64"
-    },
-    {
-      "name": "prevSeqId",
-      "type": "std/int64",
-      "comment": ", incremental >=0, snapshot -1"
-    },
-    {
-      "name": "checksum",
-      "type": "std/int64"
     }
   ]
 }

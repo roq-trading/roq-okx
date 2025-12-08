@@ -38,7 +38,7 @@ auto const SUPPORTS = Mask{
     SupportType::STATISTICS,
 };
 
-size_t const MAX_DECODE_BUFFER_DEPTH = 1;
+size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 }  // namespace
 
 // === HELPERS ===
@@ -159,6 +159,8 @@ void MarketData::subscribe(size_t start_from) {
     subscribe(shared_.symbols.get_slice(index_, start_from));
   }
 }
+
+// web::socket::Client::Handler
 
 void MarketData::operator()(web::socket::Client::Connected const &) {
 }
@@ -387,18 +389,20 @@ void MarketData::parse(std::string_view const &message) {
   });
 }
 
+// json::Parser::Handler
+
 void MarketData::operator()(Trace<json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
-    log::warn("event={{error={}, trace_info={}}}"sv, error, trace_info);
+    log::warn("error={}"sv, error);
   });
 }
 
 void MarketData::operator()(Trace<json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
-    log::info<1>("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
-    if (subscribe.channel == json::Channel::INSTRUMENTS && subscribe.inst_type == "FUTURES"sv) {
+    log::info<1>("subscribe={}"sv, subscribe);
+    if (subscribe.arg.channel == json::Channel::INSTRUMENTS && subscribe.arg.inst_type == "FUTURES"sv) {
       log::info("Request instruments..."sv);
       shared_.instruments.request = clock::get_system();
     }
@@ -408,17 +412,20 @@ void MarketData::operator()(Trace<json::Subscribe> const &event) {
 void MarketData::operator()(Trace<json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
-    log::info<1>("event={{unsubscribe={}, trace_info={}}}"sv, unsubscribe, trace_info);
+    log::info<1>("unsubscribe={}"sv, unsubscribe);
   });
 }
 
 void MarketData::operator()(Trace<json::Status> const &event) {
   profile_.status([&]() {
     auto &[trace_info, status] = event;
-    log::info("event={{status={}, trace_info={}}}"sv, status, trace_info);
-    if (status.state == json::State::ONGOING) {
-      log::warn("*** DISCONNECT: ONGOING MAINTENANCE ***"sv);
-      (*connection_).close();
+    log::info("status={}"sv, status);
+    for (auto &item : status.data) {
+      if (item.state == json::State::ONGOING) {
+        log::warn("*** DISCONNECT: ONGOING MAINTENANCE ***"sv);
+        (*connection_).close();
+        return;
+      }
     }
   });
 }
@@ -426,7 +433,7 @@ void MarketData::operator()(Trace<json::Status> const &event) {
 void MarketData::operator()(Trace<json::Instruments> const &event) {
   profile_.instruments([&]() {
     auto &[trace_info, instruments] = event;
-    log::info<1>("event={{instruments={}, trace_info={}}}"sv, instruments, trace_info);
+    log::info<1>("instruments={}"sv, instruments);
     (*connection_).touch(trace_info.source_receive_time);
     std::vector<Symbol> symbols;
     symbols.reserve(std::size(instruments.data));
@@ -549,7 +556,7 @@ void MarketData::operator()(Trace<json::Instruments> const &event) {
 void MarketData::operator()(Trace<json::EstimatedPrice> const &event) {
   profile_.estimated_price([&]() {
     auto &[trace_info, estimated_price] = event;
-    log::info<3>("event={{estimated_price={}, trace_info={}}}"sv, estimated_price, trace_info);
+    log::info<3>("estimated_price={}"sv, estimated_price);
     (*connection_).touch(trace_info.source_receive_time);
     log::fatal("HERE"sv);
   });
@@ -558,7 +565,7 @@ void MarketData::operator()(Trace<json::EstimatedPrice> const &event) {
 void MarketData::operator()(Trace<json::PriceLimit> const &event) {
   profile_.price_limit([&]() {
     auto &[trace_info, price_limit] = event;
-    log::info<3>("event={{price_limit={}, trace_info={}}}"sv, price_limit, trace_info);
+    log::info<3>("price_limit={}"sv, price_limit);
     (*connection_).touch(trace_info.source_receive_time);
     log::fatal("HERE"sv);
   });
@@ -567,7 +574,7 @@ void MarketData::operator()(Trace<json::PriceLimit> const &event) {
 void MarketData::operator()(Trace<json::MarkPrice> const &event) {
   profile_.mark_price([&]() {
     auto &[trace_info, mark_price] = event;
-    log::info<3>("event={{mark_price={}, trace_info={}}}"sv, mark_price, trace_info);
+    log::info<3>("mark_price={}"sv, mark_price);
     (*connection_).touch(trace_info.source_receive_time);
     log::fatal("HERE"sv);
   });
@@ -576,7 +583,7 @@ void MarketData::operator()(Trace<json::MarkPrice> const &event) {
 void MarketData::operator()(Trace<json::Tickers> const &event) {
   profile_.tickers([&]() {
     auto &[trace_info, tickers] = event;
-    log::info<3>("event={{tickers={}, trace_info={}}}"sv, tickers, trace_info);
+    log::info<3>("tickers={}"sv, tickers);
     (*connection_).touch(trace_info.source_receive_time);
     for (auto &item : tickers.data) {
       std::array<Statistics, 4> statistics{{
@@ -623,7 +630,7 @@ void MarketData::operator()(Trace<json::Tickers> const &event) {
 void MarketData::operator()(Trace<json::Trades> const &event) {
   profile_.trades([&]() {
     auto &[trace_info, trades] = event;
-    log::info<3>("event={{trades={}, trace_info={}}}"sv, trades, trace_info);
+    log::info<3>("trades={}"sv, trades);
     (*connection_).touch(trace_info.source_receive_time);
     shared_.trades.clear();
     uint64_t exchange_sequence = {};
@@ -677,99 +684,103 @@ void MarketData::operator()(Trace<json::Trades> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::BboTbt> const &event, std::string_view const &inst_id) {
+void MarketData::operator()(Trace<json::BboTbt> const &event) {
   profile_.bbo_tbt([&]() {
     auto &[trace_info, bbo_tbt] = event;
-    log::info<3>("event={{bbo_tbt={}, trace_info={}}}"sv, bbo_tbt, trace_info);
+    log::info<3>("bbo_tbt={}"sv, bbo_tbt);
     (*connection_).touch(trace_info.source_receive_time);
-    auto &bids = bbo_tbt.bids;
-    auto &asks = bbo_tbt.asks;
-    if (std::size(bids) > 1 || std::size(asks) > 1) {
-      log::fatal("Unexpected"sv);
+    for (auto &item : bbo_tbt.data) {
+      auto &bids = item.bids;
+      auto &asks = item.asks;
+      if (std::size(bids) > 1 || std::size(asks) > 1) {
+        log::fatal("Unexpected"sv);
+      }
+      auto top_of_book = TopOfBook{
+          .stream_id = stream_id_,
+          .exchange = shared_.settings.exchange,
+          .symbol = bbo_tbt.arg.inst_id,
+          .layer{
+              .bid_price = std::empty(bids) ? NaN : bids[0].price,
+              .bid_quantity = std::empty(bids) ? NaN : bids[0].size,
+              .ask_price = std::empty(asks) ? NaN : asks[0].price,
+              .ask_quantity = std::empty(asks) ? NaN : asks[0].size,
+          },
+          .update_type = UpdateType::INCREMENTAL,
+          .exchange_time_utc = item.ts,
+          .exchange_sequence = item.seq_id,
+          .sending_time_utc = {},
+      };
+      create_trace_and_dispatch(handler_, trace_info, top_of_book, true);
     }
-    auto top_of_book = TopOfBook{
-        .stream_id = stream_id_,
-        .exchange = shared_.settings.exchange,
-        .symbol = inst_id,
-        .layer{
-            .bid_price = std::empty(bids) ? NaN : bids[0].price,
-            .bid_quantity = std::empty(bids) ? NaN : bids[0].size,
-            .ask_price = std::empty(asks) ? NaN : asks[0].price,
-            .ask_quantity = std::empty(asks) ? NaN : asks[0].size,
-        },
-        .update_type = UpdateType::INCREMENTAL,
-        .exchange_time_utc = bbo_tbt.ts,
-        .exchange_sequence = bbo_tbt.seq_id,
-        .sending_time_utc = {},
-    };
-    create_trace_and_dispatch(handler_, trace_info, top_of_book, true);
   });
 }
 
-void MarketData::operator()(Trace<json::BooksL2Tbt> const &event, std::string_view const &inst_id, json::Action action) {
+void MarketData::operator()(Trace<json::BooksL2Tbt> const &event) {
   profile_.books_l2_tbt([&]() {
     auto &[trace_info, books_l2_tbt] = event;
-    log::info<3>("event={{books_l2_tbt={}, action={}, trace_info={}}}"sv, books_l2_tbt, action, trace_info);
+    log::info<3>(R"(books_l2_tbt={})"sv, books_l2_tbt);
     (*connection_).touch(trace_info.source_receive_time);
-    auto snapshot = [&]() {
-      if (action != json::Action::SNAPSHOT) {
-        return false;
+    for (auto &item : books_l2_tbt.data) {
+      auto snapshot = [&]() {
+        if (books_l2_tbt.action != json::Action::SNAPSHOT) {
+          return false;
+        }
+        assert(item.prev_seq_id == -1);
+        return true;
+      }();
+      assert(item.seq_id >= 0);
+      auto &sequence = sequence_[books_l2_tbt.arg.inst_id];
+      if (item.seq_id <= sequence) {
+        return;
       }
-      assert(books_l2_tbt.prev_seq_id == -1);
-      return true;
-    }();
-    assert(books_l2_tbt.seq_id >= 0);
-    auto &sequence = sequence_[inst_id];
-    if (books_l2_tbt.seq_id <= sequence) {
-      return;
-    }
-    if (books_l2_tbt.prev_seq_id >= 0 && books_l2_tbt.prev_seq_id != sequence) {
-      log::warn<1>(R"(DEBUG inst_id="{}" prev_seq_id={}, have={})"sv, inst_id, books_l2_tbt.prev_seq_id, sequence);
-    }
-    sequence = books_l2_tbt.seq_id;
-    shared_.bids.clear();
-    shared_.asks.clear();
-    auto emplace_back = [](auto &result, auto &item) {
-      auto const max_number_of_orders = std::numeric_limits<decltype(MBPUpdate::number_of_orders)>::max();
-      static_assert(max_number_of_orders == 65535);
-      auto number_of_orders = std::min<decltype(item.orders)>(item.orders, max_number_of_orders);
-      auto mbp_update = MBPUpdate{
-          .price = item.price,
-          .quantity = item.size,
-          .implied_quantity = NaN,
-          .number_of_orders = utils::safe_cast(number_of_orders),
-          .update_action = {},
-          .price_level = {},
+      if (item.prev_seq_id >= 0 && item.prev_seq_id != sequence) {
+        log::warn<1>(R"(DEBUG inst_id="{}" prev_seq_id={}, have={})"sv, books_l2_tbt.arg.inst_id, item.prev_seq_id, sequence);
+      }
+      sequence = item.seq_id;
+      shared_.bids.clear();
+      shared_.asks.clear();
+      auto emplace_back = [](auto &result, auto &item) {
+        auto const max_number_of_orders = std::numeric_limits<decltype(MBPUpdate::number_of_orders)>::max();
+        static_assert(max_number_of_orders == 65535);
+        auto number_of_orders = std::min<decltype(item.orders)>(item.orders, max_number_of_orders);
+        auto mbp_update = MBPUpdate{
+            .price = item.price,
+            .quantity = item.size,
+            .implied_quantity = NaN,
+            .number_of_orders = utils::safe_cast(number_of_orders),
+            .update_action = {},
+            .price_level = {},
+        };
+        result.emplace_back(std::move(mbp_update));
       };
-      result.emplace_back(std::move(mbp_update));
-    };
-    for (auto &item : books_l2_tbt.bids) {
-      emplace_back(shared_.bids, item);
-    }
-    for (auto &item : books_l2_tbt.asks) {
-      emplace_back(shared_.asks, item);
-    }
-    // XXX HANS validate checksum
-    auto update_type = snapshot ? UpdateType::SNAPSHOT : UpdateType::INCREMENTAL;
-    auto market_by_price_update = MarketByPriceUpdate{
-        .stream_id = stream_id_,
-        .exchange = shared_.settings.exchange,
-        .symbol = inst_id,
-        .bids = shared_.bids,
-        .asks = shared_.asks,
-        .update_type = update_type,
-        .exchange_time_utc = books_l2_tbt.ts,
-        .exchange_sequence = utils::safe_cast{books_l2_tbt.seq_id},
-        .sending_time_utc = {},
-        .price_precision = {},
-        .quantity_precision = {},
-        .checksum = {},
-    };
-    log::info<3>("market_by_price_update={}"sv, market_by_price_update);
-    try {
-      create_trace_and_dispatch(handler_, trace_info, market_by_price_update, true);
-    } catch (BadState &) {
-      // resubscribe_order_book_l2(symbol);
+      for (auto &item : item.bids) {
+        emplace_back(shared_.bids, item);
+      }
+      for (auto &item : item.asks) {
+        emplace_back(shared_.asks, item);
+      }
+      // XXX HANS validate checksum
+      auto update_type = snapshot ? UpdateType::SNAPSHOT : UpdateType::INCREMENTAL;
+      auto market_by_price_update = MarketByPriceUpdate{
+          .stream_id = stream_id_,
+          .exchange = shared_.settings.exchange,
+          .symbol = books_l2_tbt.arg.inst_id,
+          .bids = shared_.bids,
+          .asks = shared_.asks,
+          .update_type = update_type,
+          .exchange_time_utc = item.ts,
+          .exchange_sequence = utils::safe_cast{item.seq_id},
+          .sending_time_utc = {},
+          .price_precision = {},
+          .quantity_precision = {},
+          .checksum = {},
+      };
+      log::info<3>("market_by_price_update={}"sv, market_by_price_update);
+      try {
+        create_trace_and_dispatch(handler_, trace_info, market_by_price_update, true);
+      } catch (BadState &) {
+        // resubscribe_order_book_l2(symbol);
+      }
     }
   });
 }
@@ -777,7 +788,7 @@ void MarketData::operator()(Trace<json::BooksL2Tbt> const &event, std::string_vi
 void MarketData::operator()(Trace<json::IndexTickers> const &event) {
   profile_.index_tickers([&]() {
     auto &[trace_info, index_tickers] = event;
-    log::info<3>("event={{index_tickers={}, trace_info={}}}"sv, index_tickers, trace_info);
+    log::info<3>("index_tickers={}"sv, index_tickers);
     (*connection_).touch(trace_info.source_receive_time);
     for (auto &item : index_tickers.data) {
       auto statistics = Statistics{
@@ -804,7 +815,7 @@ void MarketData::operator()(Trace<json::IndexTickers> const &event) {
 void MarketData::operator()(Trace<json::FundingRate> const &event) {
   profile_.funding_rate([&]() {
     auto &[trace_info, funding_rate] = event;
-    log::info<3>("event={{funding_rate={}, trace_info={}}}"sv, funding_rate, trace_info);
+    log::info<3>("funding_rate={}"sv, funding_rate);
     (*connection_).touch(trace_info.source_receive_time);
     for (auto &item : funding_rate.data) {
       std::array<Statistics, 2> statistics{{
@@ -843,7 +854,7 @@ void MarketData::operator()(Trace<json::ChannelConnCount> const &) {
 void MarketData::operator()(Trace<json::Login> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
-    log::info<1>("event={{login={}, trace_info={}}}"sv, login, trace_info);
+    log::info<1>("login={}"sv, login);
     (*connection_).touch(trace_info.source_receive_time);
     auto state = MarketDataState::LOGIN;
     download_.check_relaxed(state);
@@ -866,15 +877,15 @@ void MarketData::operator()(Trace<json::Orders> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::OrderAck> const &) {
+void MarketData::operator()(Trace<json::Order> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::AmendOrderAck> const &) {
+void MarketData::operator()(Trace<json::AmendOrder> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::CancelOrderAck> const &) {
+void MarketData::operator()(Trace<json::CancelOrder> const &) {
   log::fatal("Unexpected"sv);
 }
 
@@ -882,7 +893,7 @@ void MarketData::operator()(Trace<json::Candle> const &) {
   log::fatal("Unexpected"sv);
 }
 
-// request
+// helpers
 
 void MarketData::check_subscribe_queue(std::chrono::nanoseconds now) {
   subscribe_queue_.dispatch([&](auto now) { return shared_.rate_limiter.can_request(now); }, [&](auto &message) { (*connection_).send_text(message); }, now);

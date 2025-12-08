@@ -2,17 +2,9 @@
 
 #include "roq/okx/json/parser.hpp"
 
-#include <utility>
-
 #include "roq/logging.hpp"
 
-#include "roq/core/json/array_parser.hpp"
-
-#include "roq/okx/json/action.hpp"
-#include "roq/okx/json/arg.hpp"
-#include "roq/okx/json/event_type.hpp"
-
-#include "roq/okx/json/frame.hpp"
+#include "roq/utils/hash/fnv.hpp"
 
 using namespace std::literals;
 
@@ -23,66 +15,20 @@ namespace json {
 // === CONSTANTS ===
 
 namespace {
-auto const ARG = "arg"sv;
-auto const DATA = "data"sv;
+constexpr auto const KEY_OP = "op"sv;
+constexpr auto const KEY_EVENT = "event"sv;
+constexpr auto const KEY_ARG = "arg"sv;
+constexpr auto const KEY_CHANNEL = "channel"sv;
 }  // namespace
 
 // === HELPERS ===
 
 namespace {
-// note! each item of data dispatched independently
-template <typename T, typename... Args>
-void dispatch_event(auto &handler, auto &message, auto &buffer_stack, auto &trace_info, Args &&...args) {
-  core::json::Parser parser{message};
-  auto root = parser.root();
-  for (auto [key, value] : std::get<core::json::Object>(root)) {
-    if (key != DATA) {
-      continue;
-    }
-    for (auto item : std::get<core::json::Array>(value)) {
-      T obj{item, buffer_stack};
-      create_trace_and_dispatch(handler, trace_info, obj, args...);  // XXX FIXME TODO std::forward ???
-    }
-    break;
-  }
-}
-
-// note! data as an array -- can *not* be nested
-template <typename T, typename... Args>
-void dispatch_event_array(auto &handler, auto &message, auto &buffer_stack, auto &trace_info, Args &&...args) {
-  core::json::Parser parser{message};
-  auto root = parser.root();
-  for (auto [key, value] : std::get<core::json::Object>(root)) {
-    if (key != DATA) {
-      continue;
-    }
-    T obj{value, buffer_stack};
-    create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
-    break;
-  }
-}
-
-// note! the entire message
-template <typename T, typename... Args>
-void dispatch_event_frame(auto &handler, auto &message, auto &buffer_stack, auto &trace_info, Args &&...args) {
+template <typename T>
+auto dispatch_helper(auto &handler, auto &message, auto &buffer_stack, auto &trace_info) {
   T obj{message, buffer_stack};
-  create_trace_and_dispatch(handler, trace_info, obj, std::forward<Args>(args)...);
-}
-
-auto create_candle(auto &message, auto &buffer_stack) {
-  Candle result;
-  core::json::Parser parser{message};
-  auto root = parser.root();
-  for (auto [key, value] : std::get<core::json::Object>(root)) {
-    if (key == ARG) {
-      new (&result.arg) Arg{value, buffer_stack};
-    } else if (key == DATA) {
-      if (!core::json::is_null(value)) {
-        result.data = core::json::ArrayParser<decltype(result.data), core::json::Array>::parse(buffer_stack, std::get<core::json::Array>(value));
-      }
-    }
-  }
-  return result;
+  create_trace_and_dispatch(handler, trace_info, obj);
+  return true;
 }
 }  // namespace
 
@@ -90,142 +36,137 @@ auto create_candle(auto &message, auto &buffer_stack) {
 
 bool Parser::dispatch(
     Handler &handler, std::string_view const &message, core::json::BufferStack &buffer_stack, TraceInfo const &trace_info, bool allow_unknown_event_types) {
-  Frame frame{message, buffer_stack};
-  switch (frame.op) {
-    using enum Operation::type_t;
-    case UNDEFINED_INTERNAL:
-      switch (frame.event) {
-        using enum EventType::type_t;
-        case UNDEFINED_INTERNAL:
-          switch (frame.arg.channel) {
-            using enum Channel::type_t;
-            case UNDEFINED_INTERNAL:
-              break;
-            case UNKNOWN_INTERNAL:
-              if (allow_unknown_event_types) {
-                return false;
+  auto result = false;
+  auto helper = [&](auto &key, auto &value) {
+    auto key_2 = utils::hash::FNV::compute(key);
+    switch (key_2) {
+      case utils::hash::FNV::compute(KEY_OP): {
+        Operation op{value};
+        switch (op) {
+          using enum Operation::type_t;
+          case UNDEFINED_INTERNAL:
+            log::fatal("Unexpected"sv);
+          case UNKNOWN_INTERNAL:
+            return true;
+          case ORDER:
+          case BATCH_ORDERS:
+            result = dispatch_helper<Order>(handler, message, buffer_stack, trace_info);
+            return true;
+          case AMEND_ORDER:
+          case BATCH_AMEND_ORDERS:
+            result = dispatch_helper<AmendOrder>(handler, message, buffer_stack, trace_info);
+            return true;
+          case CANCEL_ORDER:
+          case BATCH_CANCEL_ORDERS:
+            result = dispatch_helper<CancelOrder>(handler, message, buffer_stack, trace_info);
+            return true;
+        }
+        break;
+      }
+      case utils::hash::FNV::compute(KEY_EVENT): {
+        EventType event{value};
+        switch (event) {
+          using enum EventType::type_t;
+          case UNDEFINED_INTERNAL:
+            log::fatal("Unexpected"sv);
+          case UNKNOWN_INTERNAL:
+            return true;
+          case ERROR:
+            result = dispatch_helper<Error>(handler, message, buffer_stack, trace_info);
+            return true;
+          case LOGIN:
+            result = dispatch_helper<Login>(handler, message, buffer_stack, trace_info);
+            return true;
+          case SUBSCRIBE:
+            result = dispatch_helper<Subscribe>(handler, message, buffer_stack, trace_info);
+            return true;
+          case UNSUBSCRIBE:
+            result = dispatch_helper<Unsubscribe>(handler, message, buffer_stack, trace_info);
+            return true;
+          case CHANNEL_CONN_COUNT:
+            result = dispatch_helper<ChannelConnCount>(handler, message, buffer_stack, trace_info);
+            return true;
+        }
+        break;
+      }
+      case utils::hash::FNV::compute(KEY_ARG):
+        for (auto [k, v] : std::get<core::json::Object>(value)) {
+          auto k_2 = utils::hash::FNV::compute(k);
+          switch (k_2) {
+            case utils::hash::FNV::compute(KEY_CHANNEL): {
+              Channel channel{v};
+              switch (channel) {
+                using enum Channel::type_t;
+                case UNDEFINED_INTERNAL:
+                  log::fatal("Unexpected"sv);
+                case UNKNOWN_INTERNAL:
+                  return true;
+                case STATUS:
+                  result = dispatch_helper<Status>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case INSTRUMENTS:
+                  result = dispatch_helper<Instruments>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case ESTIMATED_PRICE:
+                  result = dispatch_helper<EstimatedPrice>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case PRICE_LIMIT:
+                  result = dispatch_helper<PriceLimit>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case MARK_PRICE:
+                  result = dispatch_helper<MarkPrice>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case TICKERS:
+                  result = dispatch_helper<Tickers>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case TRADES:
+                  result = dispatch_helper<Trades>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case BOOKS5:
+                  result = dispatch_helper<BooksL2Tbt>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case BBO_TBT:
+                  result = dispatch_helper<BboTbt>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case BOOKS:
+                case BOOKS_L2_TBT:
+                case BOOKS50_L2_TBT:
+                  result = dispatch_helper<BooksL2Tbt>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case INDEX_TICKERS:
+                  result = dispatch_helper<IndexTickers>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case FUNDING_RATE:
+                  result = dispatch_helper<FundingRate>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case ACCOUNT:
+                  result = dispatch_helper<Account>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case BALANCE_AND_POSITION:
+                  result = dispatch_helper<BalanceAndPosition>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case POSITIONS:
+                  result = dispatch_helper<Positions>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case ORDERS:
+                  result = dispatch_helper<Orders>(handler, message, buffer_stack, trace_info);
+                  return true;
+                case CANDLE1M: {
+                  result = dispatch_helper<Candle>(handler, message, buffer_stack, trace_info);
+                  return true;
+                }
               }
               break;
-            case STATUS:
-              dispatch_event<Status>(handler, message, buffer_stack, trace_info);
-              return true;
-            case INSTRUMENTS:
-              dispatch_event_array<Instruments>(handler, message, buffer_stack, trace_info);
-              return true;
-            case ESTIMATED_PRICE:
-              dispatch_event<EstimatedPrice>(handler, message, buffer_stack, trace_info);
-              return true;
-            case PRICE_LIMIT:
-              dispatch_event<PriceLimit>(handler, message, buffer_stack, trace_info);
-              return true;
-            case MARK_PRICE:
-              dispatch_event<MarkPrice>(handler, message, buffer_stack, trace_info);
-              return true;
-            case TICKERS:
-              dispatch_event_array<Tickers>(handler, message, buffer_stack, trace_info);
-              return true;
-            case TRADES:
-              dispatch_event_array<Trades>(handler, message, buffer_stack, trace_info);
-              return true;
-            case BOOKS5:
-              dispatch_event<BooksL2Tbt>(handler, message, buffer_stack, trace_info, frame.arg.inst_id, json::Action::SNAPSHOT);
-              return true;
-            case BBO_TBT:
-              // note! these updates appear to always be snapshot
-              dispatch_event<BboTbt>(handler, message, buffer_stack, trace_info, frame.arg.inst_id);
-              return true;
-            case BOOKS:
-            case BOOKS_L2_TBT:
-            case BOOKS50_L2_TBT:
-              dispatch_event<BooksL2Tbt>(handler, message, buffer_stack, trace_info, frame.arg.inst_id, frame.action);
-              return true;
-            case INDEX_TICKERS:
-              dispatch_event_array<IndexTickers>(handler, message, buffer_stack, trace_info);
-              return true;
-            case FUNDING_RATE:
-              dispatch_event_array<FundingRate>(handler, message, buffer_stack, trace_info);
-              return true;
-            case ACCOUNT:
-              dispatch_event<Account>(handler, message, buffer_stack, trace_info);
-              return true;
-            case BALANCE_AND_POSITION:
-              dispatch_event<BalanceAndPosition>(handler, message, buffer_stack, trace_info);
-              return true;
-            case POSITIONS:
-              dispatch_event_array<Positions>(handler, message, buffer_stack, trace_info);
-              return true;
-            case ORDERS:
-              dispatch_event_frame<Orders>(handler, message, buffer_stack, trace_info);
-              return true;
-            case CANDLE1M: {
-              auto candle = create_candle(message, buffer_stack);
-              create_trace_and_dispatch(handler, trace_info, candle);
-              return true;
             }
           }
-          break;
-        case UNKNOWN_INTERNAL:
-          if (allow_unknown_event_types) {
-            return false;
-          }
-          break;
-        case ERROR: {
-          Error error;
-          error.code = frame.code;
-          error.msg = frame.msg;
-          create_trace_and_dispatch(handler, trace_info, error);
-          return true;
         }
-        case LOGIN: {
-          Login login;
-          login.code = frame.code;
-          login.msg = frame.msg;
-          create_trace_and_dispatch(handler, trace_info, login);
-          return true;
-        }
-        case SUBSCRIBE: {
-          Subscribe subscribe;
-          subscribe.channel = frame.arg.channel;
-          subscribe.inst_type = frame.arg.inst_type;
-          subscribe.inst_id = frame.arg.inst_id;
-          create_trace_and_dispatch(handler, trace_info, subscribe);
-          return true;
-        }
-        case UNSUBSCRIBE: {
-          Unsubscribe unsubscribe;
-          unsubscribe.channel = frame.arg.channel;
-          unsubscribe.inst_type = frame.arg.inst_type;
-          unsubscribe.inst_id = frame.arg.inst_id;
-          create_trace_and_dispatch(handler, trace_info, unsubscribe);
-          return true;
-        }
-        case CHANNEL_CONN_COUNT: {
-          ChannelConnCount channel_conn_count;
-          channel_conn_count.channel = frame.channel;
-          channel_conn_count.conn_count = frame.conn_count;
-          channel_conn_count.conn_id = frame.conn_id;
-          create_trace_and_dispatch(handler, trace_info, channel_conn_count);
-          return true;
-        }
-      }
-      break;
-    case UNKNOWN_INTERNAL:
-      if (allow_unknown_event_types) {
-        return false;
-      }
-      break;
-    case ORDER:
-    case BATCH_ORDERS:
-      dispatch_event_frame<OrderAck>(handler, message, buffer_stack, trace_info);
-      return true;
-    case AMEND_ORDER:
-    case BATCH_AMEND_ORDERS:
-      dispatch_event_frame<AmendOrderAck>(handler, message, buffer_stack, trace_info);
-      return true;
-    case CANCEL_ORDER:
-    case BATCH_CANCEL_ORDERS:
-      dispatch_event_frame<CancelOrderAck>(handler, message, buffer_stack, trace_info);
-      return true;
+        break;
+    }
+    return result;
+  };
+  core::json::Parser::dispatch<core::json::Object>(helper, message);
+  if (result || allow_unknown_event_types) {
+    return result;
   }
   log::fatal(R"(Unexpected: message="{}")"sv, message);
 }

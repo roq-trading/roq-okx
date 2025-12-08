@@ -33,7 +33,7 @@ auto const SUPPORTS = Mask{
     SupportType::TIME_SERIES,
 };
 
-size_t const MAX_DECODE_BUFFER_DEPTH = 1;
+size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 }  // namespace
 
 // === HELPERS ===
@@ -132,6 +132,8 @@ void Business::subscribe(size_t start_from) {
     subscribe(shared_.symbols.get_all(start_from));
   }
 }
+
+// web::socket::Client::Handler
 
 void Business::operator()(web::socket::Client::Connected const &) {
 }
@@ -245,18 +247,20 @@ void Business::parse(std::string_view const &message) {
   });
 }
 
+// json::Parser::Handler
+
 void Business::operator()(Trace<json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
-    log::warn("event={{error={}, trace_info={}}}"sv, error, trace_info);
+    log::warn("error={}"sv, error);
   });
 }
 
 void Business::operator()(Trace<json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
-    log::info<1>("event={{subscribe={}, trace_info={}}}"sv, subscribe, trace_info);
-    if (subscribe.channel == json::Channel::INSTRUMENTS && subscribe.inst_type == "FUTURES"sv) {
+    log::info<1>("subscribe={}"sv, subscribe);
+    if (subscribe.arg.channel == json::Channel::INSTRUMENTS && subscribe.arg.inst_type == "FUTURES"sv) {
       log::info("Request instruments..."sv);
       shared_.instruments.request = clock::get_system();
     }
@@ -266,7 +270,7 @@ void Business::operator()(Trace<json::Subscribe> const &event) {
 void Business::operator()(Trace<json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
-    log::info<1>("event={{unsubscribe={}, trace_info={}}}"sv, unsubscribe, trace_info);
+    log::info<1>("unsubscribe={}"sv, unsubscribe);
   });
 }
 
@@ -298,11 +302,11 @@ void Business::operator()(Trace<json::Trades> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) {
+void Business::operator()(Trace<json::BboTbt> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) {
+void Business::operator()(Trace<json::BooksL2Tbt> const &) {
   log::fatal("Unexpected"sv);
 }
 
@@ -338,21 +342,21 @@ void Business::operator()(Trace<json::Orders> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::OrderAck> const &) {
+void Business::operator()(Trace<json::Order> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::AmendOrderAck> const &) {
+void Business::operator()(Trace<json::AmendOrder> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::CancelOrderAck> const &) {
+void Business::operator()(Trace<json::CancelOrder> const &) {
   log::fatal("Unexpected"sv);
 }
 
 void Business::operator()(Trace<json::Candle> const &event) {
   auto &[trace_info, candle] = event;
-  log::info<3>("event={{candle={}, trace_info={}}}"sv, candle, trace_info);
+  log::info<3>("candle={}"sv, candle);
   (*connection_).touch(trace_info.source_receive_time);
   auto &bars = shared_.bars;
   bars.clear();

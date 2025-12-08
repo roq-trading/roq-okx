@@ -1,0 +1,22 @@
+{
+  "name": "roq/okx/json/MarkPriceDataItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "instType",
+      "type": "roq/okx/json/InstrumentType"
+    },
+    {
+      "name": "instId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "markPx",
+      "type": "std/double"
+    },
+    {
+      "name": "ts",
+      "type": "std/milliseconds"
+    }
+  ]
+}

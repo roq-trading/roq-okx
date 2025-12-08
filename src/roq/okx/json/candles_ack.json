@@ -1,0 +1,19 @@
+{
+  "name": "roq/okx/json/CandlesAck",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "code",
+      "type": "std/uint32"
+    },
+    {
+      "name": "msg",
+      "type": "std/string_view"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/json/CandleDataItem",
+      "array": "std/span"
+    }
+  ]
+}

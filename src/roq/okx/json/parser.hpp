@@ -33,9 +33,9 @@
 #include "roq/okx/json/orders.hpp"
 #include "roq/okx/json/positions.hpp"
 
-#include "roq/okx/json/amend_order_ack.hpp"
-#include "roq/okx/json/cancel_order_ack.hpp"
-#include "roq/okx/json/order_ack.hpp"
+#include "roq/okx/json/amend_order.hpp"
+#include "roq/okx/json/cancel_order.hpp"
+#include "roq/okx/json/order.hpp"
 
 #include "roq/okx/json/action.hpp"
 
@@ -58,8 +58,8 @@ struct Parser final {
     virtual void operator()(Trace<json::MarkPrice> const &) = 0;
     virtual void operator()(Trace<json::Tickers> const &) = 0;
     virtual void operator()(Trace<json::Trades> const &) = 0;
-    virtual void operator()(Trace<json::BboTbt> const &, std::string_view const &inst_id) = 0;
-    virtual void operator()(Trace<json::BooksL2Tbt> const &, std::string_view const &inst_id, Action) = 0;
+    virtual void operator()(Trace<json::BboTbt> const &) = 0;
+    virtual void operator()(Trace<json::BooksL2Tbt> const &) = 0;
     virtual void operator()(Trace<json::IndexTickers> const &) = 0;
     virtual void operator()(Trace<json::FundingRate> const &) = 0;
     // - private
@@ -72,9 +72,9 @@ struct Parser final {
     virtual void operator()(Trace<json::Positions> const &) = 0;
     virtual void operator()(Trace<json::Orders> const &) = 0;
     // -- ack
-    virtual void operator()(Trace<json::OrderAck> const &) = 0;
-    virtual void operator()(Trace<json::AmendOrderAck> const &) = 0;
-    virtual void operator()(Trace<json::CancelOrderAck> const &) = 0;
+    virtual void operator()(Trace<json::Order> const &) = 0;
+    virtual void operator()(Trace<json::AmendOrder> const &) = 0;
+    virtual void operator()(Trace<json::CancelOrder> const &) = 0;
     // - business
     virtual void operator()(Trace<json::Candle> const &) = 0;
   };

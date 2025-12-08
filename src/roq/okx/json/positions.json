@@ -1,10 +1,14 @@
 {
   "name": "roq/okx/json/Positions",
-  "type": "array",
+  "type": "dictionary",
   "values": [
     {
+      "name": "arg",
+      "type": "roq/okx/json/PositionsArg"
+    },
+    {
       "name": "data",
-      "type": "roq/okx/json/PositionsItem",
+      "type": "roq/okx/json/PositionsDataItem",
       "array": "std/span"
     }
   ]

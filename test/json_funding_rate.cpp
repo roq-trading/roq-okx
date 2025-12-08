@@ -2,7 +2,7 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/okx/json/parser.hpp"
+#include "parser_tester.hpp"
 
 using namespace roq;
 using namespace roq::okx;
@@ -12,67 +12,38 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-TEST_CASE("json_funding_rate_parser", "[json_funding_rate]") {
+using value_type = json::FundingRate;
+
+TEST_CASE("simple", "[json_funding_rate]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"funding-rate",)"
-                 R"("instId":"BTC-USD-SWAP")"
+                 R"("instId":"LTC-USDT-SWAP")"
                  R"(},)"
                  R"("data":[{)"
-                 R"("fundingRate":"-0.00006384",)"
-                 R"("fundingTime":"1642665600000",)"
-                 R"("instId":"BTC-USD-SWAP",)"
+                 R"("formulaType":"withRate",)"
+                 R"("fundingRate":"0.0001000000000000",)"
+                 R"("fundingTime":"1765209600000",)"
+                 R"("impactValue":"10000.0000000000000000",)"
+                 R"("instId":"LTC-USDT-SWAP",)"
                  R"("instType":"SWAP",)"
-                 R"("nextFundingRate":"-0.00005")"
+                 R"("interestRate":"0.0001000000000000",)"
+                 R"("maxFundingRate":"0.015",)"
+                 R"("method":"current_period",)"
+                 R"("minFundingRate":"-0.015",)"
+                 R"("nextFundingRate":"",)"
+                 R"("nextFundingTime":"1765238400000",)"
+                 R"("premium":"-0.0004021053670636",)"
+                 R"("settFundingRate":"0.0000697725497563",)"
+                 R"("settState":"settled",)"
+                 R"("ts":"1765201461438")"
                  R"(})"
                  R"(])"
                  R"(})";
-  struct MyHandler final : public json::Parser::Handler {
-    auto get_count() const { return count_; }
-
-   protected:
-    void operator()(Trace<json::Error> const &) override { FAIL(); }
-    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Status> const &) override { FAIL(); }
-    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
-    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
-    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::Tickers> const &) override { FAIL(); }
-    void operator()(Trace<json::Trades> const &) override { FAIL(); }
-    void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override { FAIL(); }
-    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
-    void operator()(Trace<json::FundingRate> const &event) override {
-      ++count_;
-      auto &[trace_info, trades] = event;
-      auto &data = trades.data;
-      REQUIRE(std::size(data) == 1);
-      auto &data_0 = data[0];
-      CHECK(data_0.funding_rate == -0.00006384_a);
-      CHECK(data_0.funding_time == 1642665600000ms);
-      CHECK(data_0.inst_id == "BTC-USD-SWAP"sv);
-      CHECK(data_0.inst_type == json::InstrumentType::SWAP);
-      CHECK(data_0.next_funding_rate == -0.00005_a);
-    }
-    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
-    void operator()(Trace<json::Login> const &) override { FAIL(); }
-    void operator()(Trace<json::Account> const &) override { FAIL(); }
-    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
-    void operator()(Trace<json::Positions> const &) override { FAIL(); }
-    void operator()(Trace<json::Orders> const &) override { FAIL(); }
-    void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::Candle> const &) override { FAIL(); }
-
-   private:
-    size_t count_ = {};
-  } handler;
-  core::json::BufferStack buffer{8192, 1};
-  TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
-  CHECK(res == true);
-  CHECK(handler.get_count() == 1);
+  auto helper = [](value_type const &obj) {
+    CHECK(obj.arg.channel == json::Channel::FUNDING_RATE);
+    CHECK(obj.arg.inst_id == "LTC-USDT-SWAP"sv);
+    REQUIRE(std::size(obj.data) == 1);
+  };
+  ParserTester<value_type>::dispatch(helper, message, 8192, 1);
 }

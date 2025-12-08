@@ -3,20 +3,12 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "code",
-      "type": "std/int32"
-    },
-    {
-      "name": "msg",
-      "type": "std/string_view"
-    },
-    {
       "name": "arg",
-      "type": "roq/okx/json/Arg"
+      "type": "roq/okx/json/OrdersArg"
     },
     {
       "name": "data",
-      "type": "roq/okx/json/OrdersItem",
+      "type": "roq/okx/json/OrdersDataItem",
       "array": "std/span"
     }
   ]

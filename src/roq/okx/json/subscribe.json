@@ -3,15 +3,15 @@
   "type": "dictionary",
   "values": [
     {
-      "name": "channel",
-      "type": "roq/okx/json/Channel"
+      "name": "event",
+      "type": "roq/okx/json/EventType"
     },
     {
-      "name": "instType",
-      "type": "std/string_view"
+      "name": "arg",
+      "type": "roq/okx/json/SubscribeArg"
     },
     {
-      "name": "instId",
+      "name": "connId",
       "type": "std/string_view"
     }
   ]

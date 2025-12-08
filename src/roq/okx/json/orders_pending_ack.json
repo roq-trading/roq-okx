@@ -1,0 +1,23 @@
+{
+  "name": "roq/okx/json/OrdersPendingAck",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "code",
+      "type": "std/int32"
+    },
+    {
+      "name": "msg",
+      "type": "std/string_view"
+    },
+    {
+      "name": "arg",
+      "type": "roq/okx/json/OrdersPendingArg"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/json/OrdersDataItem",
+      "array": "std/span"
+    }
+  ]
+}

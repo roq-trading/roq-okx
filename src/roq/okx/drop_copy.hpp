@@ -59,6 +59,8 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
   uint16_t operator()(Event<CancelAllOrders> const &, std::string_view const &request_id);
 
  protected:
+  // web::socket::Client::Handler
+
   void operator()(web::socket::Client::Connected const &) override;
   void operator()(web::socket::Client::Disconnected const &) override;
   void operator()(web::socket::Client::Ready const &) override;
@@ -66,6 +68,8 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
   void operator()(web::socket::Client::Latency const &) override;
   void operator()(web::socket::Client::Text const &) override;
   void operator()(web::socket::Client::Binary const &) override;
+
+  // json::Parser::Handler
 
   void operator()(Trace<json::Error> const &) override;
   void operator()(Trace<json::Subscribe> const &) override;
@@ -78,8 +82,8 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
   void operator()(Trace<json::MarkPrice> const &) override;
   void operator()(Trace<json::Tickers> const &) override;
   void operator()(Trace<json::Trades> const &) override;
-  void operator()(Trace<json::BboTbt> const &, std::string_view const &inst_id) override;
-  void operator()(Trace<json::BooksL2Tbt> const &, std::string_view const &inst_id, json::Action) override;
+  void operator()(Trace<json::BboTbt> const &) override;
+  void operator()(Trace<json::BooksL2Tbt> const &) override;
   void operator()(Trace<json::IndexTickers> const &) override;
   void operator()(Trace<json::FundingRate> const &) override;
 
@@ -89,13 +93,15 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
   void operator()(Trace<json::BalanceAndPosition> const &) override;
   void operator()(Trace<json::Positions> const &) override;
   void operator()(Trace<json::Orders> const &) override;
-  void operator()(Trace<json::OrderAck> const &) override;
-  void operator()(Trace<json::AmendOrderAck> const &) override;
-  void operator()(Trace<json::CancelOrderAck> const &) override;
+  void operator()(Trace<json::Order> const &) override;
+  void operator()(Trace<json::AmendOrder> const &) override;
+  void operator()(Trace<json::CancelOrder> const &) override;
 
   void operator()(Trace<json::Candle> const &) override;
 
  private:
+  // helpers
+
   void operator()(ConnectionStatus);
 
   uint32_t download(DropCopyState);

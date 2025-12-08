@@ -4,11 +4,11 @@
   "values": [
     {
       "name": "arg",
-      "type": "roq/okx/json/Arg"
+      "type": "roq/okx/json/CandleArg"
     },
     {
       "name": "data",
-      "type": "roq/okx/json/CandlesItem",
+      "type": "roq/okx/json/CandleDataItem",
       "array": "std/span"
     }
   ]

@@ -2,7 +2,7 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/okx/json/parser.hpp"
+#include "parser_tester.hpp"
 
 using namespace roq;
 using namespace roq::okx;
@@ -12,72 +12,9 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-TEST_CASE("json_orders_download_empty", "[json_orders]") {
-  auto message = R"({)"
-                 R"("code":"0",)"
-                 R"("data":[],)"
-                 R"("msg":"")"
-                 R"(})";
-  core::json::BufferStack buffer{8192, 1};
-  json::Orders obj{message, buffer};
-  CHECK(obj.code == 0);
-  REQUIRE(std::size(obj.data) == 0);
-  CHECK(std::empty(obj.msg));
-}
+using value_type = json::Orders;
 
-TEST_CASE("json_orders_download", "[json_orders]") {
-  auto message = R"({)"
-                 R"("code":"0",)"
-                 R"("data":[{)"
-                 R"("accFillSz":"0",)"
-                 R"("avgPx":"",)"
-                 R"("cTime":"1640182694746",)"
-                 R"("category":"normal",)"
-                 R"("ccy":"",)"
-                 R"("clOrdId":"abcABC125",)"
-                 R"("fee":"0",)"
-                 R"("feeCcy":"BTC",)"
-                 R"("fillPx":"",)"
-                 R"("fillSz":"0",)"
-                 R"("fillTime":"",)"
-                 R"("instId":"BTC-USD-220325",)"
-                 R"("instType":"FUTURES",)"
-                 R"("lever":"10",)"
-                 R"("ordId":"393890002618445825",)"
-                 R"("ordType":"limit",)"
-                 R"("pnl":"0",)"
-                 R"("posSide":"long",)"
-                 R"("px":"39919.4",)"
-                 R"("rebate":"0",)"
-                 R"("rebateCcy":"BTC",)"
-                 R"("side":"buy",)"
-                 R"("slOrdPx":"",)"
-                 R"("slTriggerPx":"",)"
-                 R"("slTriggerPxType":"",)"
-                 R"("source":"",)"
-                 R"("state":"live",)"
-                 R"("sz":"1",)"
-                 R"("tag":"",)"
-                 R"("tdMode":"isolated",)"
-                 R"("tgtCcy":"",)"
-                 R"("tpOrdPx":"",)"
-                 R"("tpTriggerPx":"",)"
-                 R"("tpTriggerPxType":"",)"
-                 R"("tradeId":"",)"
-                 R"("uTime":"1640182694746")"
-                 R"(})"
-                 R"(],)"
-                 R"("msg":"")"
-                 R"(})";
-  core::json::BufferStack buffer{8192, 1};
-  json::Orders obj{message, buffer};
-  CHECK(obj.code == 0);
-  REQUIRE(std::size(obj.data) == 1);
-  // XXX HANS
-  CHECK(std::empty(obj.msg));
-}
-
-TEST_CASE("json_orders_parser", "[json_orders]") {
+TEST_CASE("simple", "[json_orders]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"orders",)"
@@ -134,98 +71,64 @@ TEST_CASE("json_orders_parser", "[json_orders]") {
                  R"(})"
                  R"(])"
                  R"(})";
-  struct MyHandler final : public json::Parser::Handler {
-    auto get_count() const { return count_; }
-
-   protected:
-    void operator()(Trace<json::Error> const &) override { FAIL(); }
-    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Status> const &) override { FAIL(); }
-    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
-    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
-    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::Tickers> const &) override { FAIL(); }
-    void operator()(Trace<json::Trades> const &) override { FAIL(); }
-    void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override { FAIL(); }
-    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
-    void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
-    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
-    void operator()(Trace<json::Login> const &) override { FAIL(); }
-    void operator()(Trace<json::Account> const &) override { FAIL(); }
-    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
-    void operator()(Trace<json::Positions> const &) override { FAIL(); }
-    void operator()(Trace<json::Orders> const &event) override {
-      ++count_;
-      auto &[trace_info, orders] = event;
-      auto &data = orders.data;
-      REQUIRE(std::size(data) == 1);
-      auto &data_0 = data[0];
-      CHECK(data_0.acc_fill_sz == 0.0_a);
-      CHECK(data_0.amend_result == 0);
-      CHECK(data_0.avg_px == 0.0_a);
-      CHECK(data_0.c_time == 1640182694746ms);
-      CHECK(data_0.category == json::Category::NORMAL);
-      CHECK(std::empty(data_0.ccy));
-      CHECK(data_0.cl_ord_id == "abcABC125"sv);
-      CHECK(data_0.code == 0);
-      CHECK(data_0.exec_type == json::OrderFlowType::UNDEFINED_INTERNAL);
-      CHECK(data_0.fee == 0.0_a);
-      CHECK(data_0.fee_ccy == "BTC"sv);
-      CHECK(data_0.fill_fee == 0.0_a);
-      CHECK(std::empty(data_0.fill_fee_ccy));
-      CHECK(std::empty(data_0.fill_notional_usd));
-      CHECK(std::isnan(data_0.fill_px) == true);
-      CHECK(data_0.fill_sz == 0.0_a);
-      CHECK(data_0.fill_time == 0ms);
-      CHECK(data_0.inst_id == "BTC-USD-220325"sv);
-      CHECK(data_0.inst_type == json::InstrumentType::FUTURES);
-      CHECK(data_0.lever == 10.0_a);
-      CHECK(std::empty(data_0.msg));
-      CHECK(data_0.notional_usd == 100.0_a);
-      CHECK(data_0.ord_id == "393890002618445825"sv);
-      CHECK(data_0.ord_type == json::OrderType::LIMIT);
-      CHECK(data_0.pnl == 0.0_a);
-      CHECK(data_0.pos_side == json::PositionSide::LONG);
-      CHECK(data_0.px == 39919.4_a);
-      CHECK(data_0.rebate == 0.0_a);
-      CHECK(data_0.rebate_ccy == "BTC"sv);
-      CHECK(data_0.reduce_only == false);
-      CHECK(std::empty(data_0.req_id));
-      CHECK(data_0.side == json::Side::BUY);
-      CHECK(std::isnan(data_0.sl_ord_px) == true);
-      CHECK(std::isnan(data_0.sl_trigger_px) == true);
-      CHECK(data_0.sl_trigger_px_type == json::TriggerPriceType::UNDEFINED_INTERNAL);
-      CHECK(std::empty(data_0.source));
-      CHECK(data_0.state == json::OrderState::LIVE);
-      CHECK(data_0.sz == 1.0_a);
-      CHECK(std::empty(data_0.tag));
-      CHECK(data_0.td_mode == json::TradeMode::ISOLATED);
-      CHECK(std::empty(data_0.tgt_ccy));
-      CHECK(std::isnan(data_0.tp_ord_px) == true);
-      CHECK(std::isnan(data_0.tp_trigger_px) == true);
-      CHECK(data_0.tp_trigger_px_type == json::TriggerPriceType::UNDEFINED_INTERNAL);
-      CHECK(std::empty(data_0.trade_id));
-      CHECK(data_0.u_time == 1640182694746ms);
-    }
-    void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::Candle> const &) override { FAIL(); }
-
-   private:
-    size_t count_ = {};
-  } handler;
-  core::json::BufferStack buffer{8192, 1};
-  TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
-  CHECK(res == true);
-  CHECK(handler.get_count() == 1);
+  auto helper = [](value_type const &obj) {
+    CHECK(obj.arg.channel == json::Channel::ORDERS);
+    CHECK(obj.arg.inst_type == "ANY"sv);
+    CHECK(obj.arg.uid == "33594834598109184"sv);
+    auto &data = obj.data;
+    REQUIRE(std::size(data) == 1);
+    auto &data_0 = data[0];
+    CHECK(data_0.acc_fill_sz == 0.0_a);
+    CHECK(data_0.amend_result == 0);
+    CHECK(data_0.avg_px == 0.0_a);
+    CHECK(data_0.c_time == 1640182694746ms);
+    CHECK(data_0.category == json::Category::NORMAL);
+    CHECK(std::empty(data_0.ccy));
+    CHECK(data_0.cl_ord_id == "abcABC125"sv);
+    CHECK(data_0.code == 0);
+    CHECK(data_0.exec_type == json::OrderFlowType::UNDEFINED_INTERNAL);
+    CHECK(data_0.fee == 0.0_a);
+    CHECK(data_0.fee_ccy == "BTC"sv);
+    CHECK(data_0.fill_fee == 0.0_a);
+    CHECK(std::empty(data_0.fill_fee_ccy));
+    CHECK(std::empty(data_0.fill_notional_usd));
+    CHECK(std::isnan(data_0.fill_px) == true);
+    CHECK(data_0.fill_sz == 0.0_a);
+    CHECK(data_0.fill_time == 0ms);
+    CHECK(data_0.inst_id == "BTC-USD-220325"sv);
+    CHECK(data_0.inst_type == json::InstrumentType::FUTURES);
+    CHECK(data_0.lever == 10.0_a);
+    CHECK(std::empty(data_0.msg));
+    CHECK(data_0.notional_usd == 100.0_a);
+    CHECK(data_0.ord_id == "393890002618445825"sv);
+    CHECK(data_0.ord_type == json::OrderType::LIMIT);
+    CHECK(data_0.pnl == 0.0_a);
+    CHECK(data_0.pos_side == json::PositionSide::LONG);
+    CHECK(data_0.px == 39919.4_a);
+    CHECK(data_0.rebate == 0.0_a);
+    CHECK(data_0.rebate_ccy == "BTC"sv);
+    CHECK(data_0.reduce_only == false);
+    CHECK(std::empty(data_0.req_id));
+    CHECK(data_0.side == json::Side::BUY);
+    CHECK(std::isnan(data_0.sl_ord_px) == true);
+    CHECK(std::isnan(data_0.sl_trigger_px) == true);
+    CHECK(data_0.sl_trigger_px_type == json::TriggerPriceType::UNDEFINED_INTERNAL);
+    CHECK(std::empty(data_0.source));
+    CHECK(data_0.state == json::OrderState::LIVE);
+    CHECK(data_0.sz == 1.0_a);
+    CHECK(std::empty(data_0.tag));
+    CHECK(data_0.td_mode == json::TradeMode::ISOLATED);
+    CHECK(std::empty(data_0.tgt_ccy));
+    CHECK(std::isnan(data_0.tp_ord_px) == true);
+    CHECK(std::isnan(data_0.tp_trigger_px) == true);
+    CHECK(data_0.tp_trigger_px_type == json::TriggerPriceType::UNDEFINED_INTERNAL);
+    CHECK(std::empty(data_0.trade_id));
+    CHECK(data_0.u_time == 1640182694746ms);
+  };
+  ParserTester<value_type>::dispatch(helper, message, 8192, 2);
 }
 
-TEST_CASE("json_orders_parser_2", "[json_orders]") {
+TEST_CASE("simple_2", "[json_orders]") {
   auto message = R"({)"
                  R"("arg":{)"
                  R"("channel":"orders",)"
@@ -300,46 +203,12 @@ TEST_CASE("json_orders_parser_2", "[json_orders]") {
                  R"(})"
                  R"(])"
                  R"(})";
-  struct MyHandler final : public json::Parser::Handler {
-    auto get_count() const { return count_; }
-
-   protected:
-    void operator()(Trace<json::Error> const &) override { FAIL(); }
-    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Status> const &) override { FAIL(); }
-    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
-    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
-    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::Tickers> const &) override { FAIL(); }
-    void operator()(Trace<json::Trades> const &) override { FAIL(); }
-    void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override { FAIL(); }
-    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
-    void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
-    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
-    void operator()(Trace<json::Login> const &) override { FAIL(); }
-    void operator()(Trace<json::Account> const &) override { FAIL(); }
-    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
-    void operator()(Trace<json::Positions> const &) override { FAIL(); }
-    void operator()(Trace<json::Orders> const &) override {
-      ++count_;
-      // XXX TODO check fields
-    }
-    void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::Candle> const &) override { FAIL(); }
-
-   private:
-    size_t count_ = {};
-  } handler;
-  core::json::BufferStack buffer{8192, 1};
-  TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
-  CHECK(res == true);
-  CHECK(handler.get_count() == 1);
+  auto helper = [](value_type const &obj) {
+    CHECK(obj.arg.channel == json::Channel::ORDERS);
+    CHECK(obj.arg.inst_type == "ANY"sv);
+    CHECK(obj.arg.uid == "474527194543234199"sv);
+  };
+  ParserTester<value_type>::dispatch(helper, message, 8192, 2);
 }
 
 /*

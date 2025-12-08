@@ -2,7 +2,7 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/okx/json/parser.hpp"
+#include "parser_tester.hpp"
 
 using namespace roq;
 using namespace roq::okx;
@@ -12,71 +12,31 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-TEST_CASE("json_status_parser", "[json_status]") {
+using value_type = json::Status;
+
+TEST_CASE("simple", "[json_status]") {
   auto message = R"({)"
                  R"("arg":{)"
-                 R"("channel":"status")"
-                 R"(},)"
+                 R"("channel":"status"},)"
                  R"("data":[{)"
-                 R"("begin":"1639645200000",)"
-                 R"("end":"1639647600000",)"
+                 R"("begin":"1764666600000",)"
+                 R"("end":"1764667800000",)"
+                 R"("env":"1",)"
                  R"("href":"",)"
+                 R"("maintType":"1",)"
+                 R"("preOpenBegin":"",)"
                  R"("scheDesc":"",)"
-                 R"("serviceType":"0",)"
+                 R"("serviceType":"11",)"
                  R"("state":"completed",)"
                  R"("system":"unified",)"
-                 R"("title":"Unified Account WebSocket system upgrade",)"
-                 R"("ts":"1639647646363")"
+                 R"("title":"Copy trading system scheduled maintenance",)"
+                 R"("ts":"1764667948527")"
                  R"(})"
                  R"(])"
                  R"(})";
-  struct MyHandler final : public json::Parser::Handler {
-    auto get_count() const { return count_; }
-
-   protected:
-    void operator()(Trace<json::Error> const &) override { FAIL(); }
-    void operator()(Trace<json::Subscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Unsubscribe> const &) override { FAIL(); }
-    void operator()(Trace<json::Status> const &event) override {
-      ++count_;
-      auto &[trace_info, status] = event;
-      CHECK(status.begin == 1639645200000ms);
-      CHECK(status.end == 1639647600000ms);
-      CHECK(std::empty(status.href));
-      CHECK(std::empty(status.sche_desc));
-      CHECK(status.service_type == 0);
-      CHECK(status.state == json::State::COMPLETED);
-      CHECK(status.system == "unified"sv);
-      CHECK(status.title == "Unified Account WebSocket system upgrade"sv);
-      CHECK(status.ts == 1639647646363ms);
-    }
-    void operator()(Trace<json::Instruments> const &) override { FAIL(); }
-    void operator()(Trace<json::EstimatedPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::PriceLimit> const &) override { FAIL(); }
-    void operator()(Trace<json::MarkPrice> const &) override { FAIL(); }
-    void operator()(Trace<json::Tickers> const &) override { FAIL(); }
-    void operator()(Trace<json::Trades> const &) override { FAIL(); }
-    void operator()(Trace<json::BboTbt> const &, [[maybe_unused]] std::string_view const &inst_id) override { FAIL(); }
-    void operator()(Trace<json::BooksL2Tbt> const &, [[maybe_unused]] std::string_view const &inst_id, json::Action) override { FAIL(); }
-    void operator()(Trace<json::IndexTickers> const &) override { FAIL(); }
-    void operator()(Trace<json::FundingRate> const &) override { FAIL(); }
-    void operator()(Trace<json::ChannelConnCount> const &) override { FAIL(); }
-    void operator()(Trace<json::Login> const &) override { FAIL(); }
-    void operator()(Trace<json::Account> const &) override { FAIL(); }
-    void operator()(Trace<json::BalanceAndPosition> const &) override { FAIL(); }
-    void operator()(Trace<json::Positions> const &) override { FAIL(); }
-    void operator()(Trace<json::Orders> const &) override { FAIL(); }
-    void operator()(Trace<json::OrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::AmendOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::CancelOrderAck> const &) override { FAIL(); }
-    void operator()(Trace<json::Candle> const &) override { FAIL(); }
-
-   private:
-    size_t count_ = {};
-  } handler;
-  core::json::BufferStack buffer{8192, 1};
-  TraceInfo trace_info;
-  auto res = json::Parser::dispatch(handler, message, buffer, trace_info, false);
-  CHECK(res == true);
-  CHECK(handler.get_count() == 1);
+  auto helper = [](value_type const &obj) {
+    CHECK(obj.arg.channel == json::Channel::STATUS);
+    REQUIRE(std::size(obj.data) == 1);
+  };
+  ParserTester<value_type>::dispatch(helper, message, 8192, 1);
 }

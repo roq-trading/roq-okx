@@ -1,10 +1,14 @@
 {
   "name": "roq/okx/json/Tickers",
-  "type": "array",
+  "type": "dictionary",
   "values": [
     {
+      "name": "arg",
+      "type": "roq/okx/json/TickersArg"
+    },
+    {
       "name": "data",
-      "type": "roq/okx/json/TickersItem",
+      "type": "roq/okx/json/TickersDataItem",
       "array": "std/span"
     }
   ]

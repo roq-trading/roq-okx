@@ -1,0 +1,35 @@
+{
+  "name": "roq/okx/json/AmendOrder",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "code",
+      "type": "std/int32"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/json/AmendOrderDataItem",
+      "array": "std/span"
+    },
+    {
+      "name": "id",
+      "type": "std/string_view"
+    },
+    {
+      "name": "msg",
+      "type": "std/string_view"
+    },
+    {
+      "name": "op",
+      "type": "roq/okx/json/Operation"
+    },
+    {
+      "name": "inTime",
+      "type": "std/microseconds"
+    },
+    {
+      "name": "outTime",
+      "type": "std/microseconds"
+    }
+  ]
+}

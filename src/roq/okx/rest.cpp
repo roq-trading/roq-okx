@@ -31,7 +31,7 @@ auto const NAME = "dc"sv;
 
 auto const SUPPORTS = Mask<SupportType>{};
 
-size_t const MAX_DECODE_BUFFER_DEPTH = 1;
+size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 }  // namespace
 
 // === HELPERS ===
@@ -147,6 +147,8 @@ void Rest::operator()(ConnectionStatus status) {
   }
 }
 
+// web::rest::Client::Handler
+
 void Rest::operator()(Trace<web::rest::Client::Connected> const &) {
   (*this)(ConnectionStatus::READY);
 }
@@ -199,12 +201,12 @@ void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::str
       // XXX WHAT ???
     };
     auto handle_success = [&](auto &body) {
-      json::InstrumentsRest instruments{body, decode_buffer_};
-      if (instruments.code == 0) {
-        Trace event_2{event, instruments};
+      json::InstrumentsAck instruments_ack{body, decode_buffer_};
+      if (instruments_ack.code == 0) {
+        Trace event_2{event, instruments_ack};
         (*this)(event_2);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(instruments.code), instruments.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(instruments_ack.code), instruments_ack.msg);
       }
       if (type == "SPOT"sv) {
         download_instruments_.spot = false;
@@ -222,13 +224,13 @@ void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::str
   });
 }
 
-void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
-  auto &[trace_info, instruments] = event;
-  log::info<4>("instruments={}"sv, instruments);
+void Rest::operator()(Trace<json::InstrumentsAck> const &event) {
+  auto &[trace_info, instruments_ack] = event;
+  log::info<4>("instruments_ack={}"sv, instruments_ack);
   std::vector<Symbol> symbols;
-  symbols.reserve(std::size(instruments.data));
+  symbols.reserve(std::size(instruments_ack.data));
   size_t counter = {};
-  for (auto &item : instruments.data) {
+  for (auto &item : instruments_ack.data) {
     log::info<2>("item={}"sv, item);
     auto symbol = item.inst_id;
     auto discard = shared_.discard_symbol(symbol);
@@ -333,7 +335,7 @@ void Rest::operator()(Trace<json::InstrumentsRest> const &event) {
         break;
     }
   }
-  log::info("Instruments {} / {}"sv, counter, std::size(instruments.data));
+  log::info("Instruments {} / {}"sv, counter, std::size(instruments_ack.data));
   if (!std::empty(symbols)) {
     auto symbols_update = SymbolsUpdate{
         .symbols = symbols,
@@ -373,24 +375,24 @@ void Rest::get_candles_ack(Trace<web::rest::Response> const &event, std::string_
       // XXX WHAT ???
     };
     auto handle_success = [&](auto &body) {
-      json::Candles candles{body, decode_buffer_};
-      if (candles.code == 0) {
-        Trace event_2{event, candles};
+      json::CandlesAck candles_ack{body, decode_buffer_};
+      if (candles_ack.code == 0) {
+        Trace event_2{event, candles_ack};
         (*this)(event_2, symbol);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(candles.code), candles.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(candles_ack.code), candles_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
   });
 }
 
-void Rest::operator()(Trace<json::Candles> const &event, std::string_view const &symbol) {
-  auto &[trace_info, candles] = event;
-  log::info<4>("candles={}"sv, candles);
+void Rest::operator()(Trace<json::CandlesAck> const &event, std::string_view const &symbol) {
+  auto &[trace_info, candles_ack] = event;
+  log::info<4>("candles_ack={}"sv, candles_ack);
   auto &bars = shared_.bars;
   bars.clear();
-  for (auto &item : candles.data) {
+  for (auto &item : candles_ack.data) {
     auto confirmed = item.confirm != 0 ? true : false;
     if (confirmed && !shared_.settings.time_series.realtime) {
       continue;

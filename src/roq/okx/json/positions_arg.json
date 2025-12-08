@@ -1,0 +1,18 @@
+{
+  "name": "roq/okx/json/PositionsArg",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "channel",
+      "type": "roq/okx/json/Channel"
+    },
+    {
+      "name": "instType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "uid",
+      "type": "std/string_view"
+    }
+  ]
+}
