@@ -1,0 +1,9 @@
+{
+  "name": "roq/okx/json/AutoStakingStatus",
+  "type": "enum",
+  "values": [
+    {
+      "name": "unsupported"
+    }
+  ]
+}
