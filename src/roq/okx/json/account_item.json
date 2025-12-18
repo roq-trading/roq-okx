@@ -133,6 +133,82 @@
     {
       "name": "smtSyncEq",
       "type": "std/double"
+    },
+    {
+      "name": "accAvgPx",
+      "type": "std/double"
+    },
+    {
+      "name": "autoLendAmt",
+      "type": "std/double"
+    },
+    {
+      "name": "autoLendMtAmt",
+      "type": "std/double"
+    },
+    {
+      "name": "autoLendStatus",
+      "type": "roq/okx/json/AutoLendStatus"
+    },
+    {
+      "name": "autoStakingStatus",
+      "type": "roq/okx/json/AutoStakingStatus"
+    },
+    {
+      "name": "clSpotInUseAmt",
+      "type": "std/double"
+    },
+    {
+      "name": "colBorrAutoConversion",
+      "type": "std/double"
+    },
+    {
+      "name": "colRes",
+      "type": "std/double"
+    },
+    {
+      "name": "collateralEnabled",
+      "type": "std/bool"
+    },
+    {
+      "name": "collateralRestrict",
+      "type": "std/bool"
+    },
+    {
+      "name": "frpType",
+      "type": "std/double"
+    },
+    {
+      "name": "maxSpotInUseAmt",
+      "type": "std/double"
+    },
+    {
+      "name": "openAvgPx",
+      "type": "std/double"
+    },
+    {
+      "name": "spotBal",
+      "type": "std/double"
+    },
+    {
+      "name": "spotCopyTradingEq",
+      "type": "std/double"
+    },
+    {
+      "name": "spotUpl",
+      "type": "std/double"
+    },
+    {
+      "name": "spotUplRatio",
+      "type": "std/double"
+    },
+    {
+      "name": "totalPnl",
+      "type": "std/double"
+    },
+    {
+      "name": "totalPnlRatio",
+      "type": "std/double"
     }
   ]
 }

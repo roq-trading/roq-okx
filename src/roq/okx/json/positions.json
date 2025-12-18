@@ -10,6 +10,18 @@
       "name": "data",
       "type": "roq/okx/json/PositionsDataItem",
       "array": "std/span"
+    },
+    {
+      "name": "eventType",
+      "type": "roq/okx/json/EventType2"
+    },
+    {
+      "name": "curPage",
+      "type": "std/int32"
+    },
+    {
+      "name": "lastPage",
+      "type": "std/int32"
     }
   ]
 }

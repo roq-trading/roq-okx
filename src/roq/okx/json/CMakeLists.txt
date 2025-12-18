@@ -12,6 +12,8 @@ set(AUTOGEN_SCHEMAS
     action.json
     amend_order_data_item.json
     amend_order.json
+    auto_lend_status.json
+    auto_staking_status.json
     balance_and_position_arg.json
     balance_and_position_balance_item.json
     balance_and_position_data_item.json
@@ -39,6 +41,7 @@ set(AUTOGEN_SCHEMAS
     estimated_price_arg.json
     estimated_price_data_item.json
     estimated_price.json
+    event_type2.json
     event_type.json
     fills_ack.json
     fills_arg.json

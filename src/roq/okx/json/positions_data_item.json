@@ -240,6 +240,26 @@
     {
       "name": "uplRatioLastPx",
       "type": "std/double"
+    },
+    {
+      "name": "clSpotInUseAmt",
+      "type": "std/double"
+    },
+    {
+      "name": "hedgedPos",
+      "type": "std/double"
+    },
+    {
+      "name": "maxSpotInUseAmt",
+      "type": "std/double"
+    },
+    {
+      "name": "nonSettleAvgPx",
+      "type": "std/double"
+    },
+    {
+      "name": "settledPnl",
+      "type": "std/double"
     }
   ]
 }

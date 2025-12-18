@@ -53,6 +53,14 @@
     {
       "name": "quoteBal",
       "type": "std/double"
+    },
+    {
+      "name": "nonSettleAvgPx",
+      "type": "std/double"
+    },
+    {
+      "name": "settledPnl",
+      "type": "std/double"
     }
   ]
 }

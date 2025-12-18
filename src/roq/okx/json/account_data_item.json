@@ -50,6 +50,38 @@
     {
       "name": "upl",
       "type": "std/double"
+    },
+    {
+      "name": "availEq",
+      "type": "std/double"
+    },
+    {
+      "name": "delta",
+      "type": "std/double"
+    },
+    {
+      "name": "deltaLever",
+      "type": "std/double"
+    },
+    {
+      "name": "deltaNeutralStatus",
+      "type": "std/double"
+    },
+    {
+      "name": "notionalUsdForBorrow",
+      "type": "std/double"
+    },
+    {
+      "name": "notionalUsdForFutures",
+      "type": "std/double"
+    },
+    {
+      "name": "notionalUsdForOption",
+      "type": "std/double"
+    },
+    {
+      "name": "notionalUsdForSwap",
+      "type": "std/double"
     }
   ]
 }
