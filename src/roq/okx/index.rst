@@ -208,7 +208,7 @@ Configuration
 
 .. code-block:: shell
 
-   $ --flagfile $CONDA_PREFIX/share/roq-okx/config.toml
+   $ --config_file $CONDA_PREFIX/share/roq-okx/config.toml
 
 .. important::
 
