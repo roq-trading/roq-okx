@@ -132,6 +132,7 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
   std::unique_ptr<web::socket::Client> const connection_;
   // buffers
   core::json::BufferStack decode_buffer_;
+  std::string encode_buffer_;
   // session
   uint64_t request_id_ = {};
   // metrics

@@ -25,9 +25,8 @@
 #include "roq/server/oms/exceptions.hpp"
 
 #include "roq/okx/json/map.hpp"
-#include "roq/okx/json/order_type.hpp"
-#include "roq/okx/json/position_side.hpp"
-#include "roq/okx/json/trade_mode.hpp"
+
+#include "roq/okx/json/encoder.hpp"
 #include "roq/okx/json/utils.hpp"
 
 using namespace std::literals;
@@ -225,182 +224,26 @@ void DropCopy::operator()(metrics::Writer &writer) const {
 
 uint16_t DropCopy::operator()(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
   auto &[message_info, create_order] = event;
-  json::PositionSide position_side = json::PositionSide::NET;  // XXX should be configurable
-  auto side = map(create_order.side).template get<json::Side>();
-  auto [order_type, reduce_only] = compute_order_attributes(create_order.order_type, create_order.time_in_force, create_order.execution_instructions);
-  auto trade_mode = [&]() -> json::TradeMode {
-    switch (create_order.margin_mode) {
-      using enum MarginMode;
-      case UNDEFINED:
-        break;
-      case ISOLATED:
-        return json::TradeMode::type_t::ISOLATED;
-      case CROSS:
-        return json::TradeMode::type_t::CROSS;
-      case PORTFOLIO:
-        throw server::oms::Rejected{Origin::GATEWAY, Error::INVALID_REQUEST_ARGS, "margin_mode"sv};
-    }
-    return trade_mode_;
-  }();
-  std::string extras;
-  if (trade_mode == json::TradeMode::type_t::CROSS && !std::empty(shared_.settings.test_margin_currency)) {
-    extras = fmt::format(R"(,"ccy":"{}")"sv, shared_.settings.test_margin_currency);
-  }
-  switch (order_type) {
-    using enum json::OrderType::type_t;
-    case MARKET: {
-      std::string message;
-      if (order.security_type == SecurityType::SPOT) {
-        message = fmt::format(
-            R"({{)"
-            R"("id":"{}",)"
-            R"("op":"batch-orders",)"
-            R"("args":[{{)"
-            R"("clOrdId":"{}",)"
-            R"("tdMode":"{}",)"
-            R"("posSide":"{}",)"
-            R"("instId":"{}",)"
-            R"("side":"{}",)"
-            R"("ordType":"{}",)"
-            R"("reduceOnly":{},)"
-            R"("tgtCcy":"base_ccy",)"  // note!
-            R"("sz":"{}")"
-            R"({})"  // extras
-            R"(}})"
-            R"(])"
-            R"(}})"sv,
-            ++request_id_,
-            request_id,
-            trade_mode.as_raw_text(),
-            position_side.as_raw_text(),
-            create_order.symbol,
-            side.as_raw_text(),
-            order_type.as_raw_text(),
-            reduce_only,
-            create_order.quantity,
-            extras);
-      } else {
-        message = fmt::format(
-            R"({{)"
-            R"("id":"{}",)"
-            R"("op":"batch-orders",)"
-            R"("args":[{{)"
-            R"("clOrdId":"{}",)"
-            R"("tdMode":"{}",)"
-            R"("posSide":"{}",)"
-            R"("instId":"{}",)"
-            R"("side":"{}",)"
-            R"("ordType":"{}",)"
-            R"("reduceOnly":{},)"
-            R"("sz":"{}")"
-            R"({})"  // extras
-            R"(}})"
-            R"(])"
-            R"(}})"sv,
-            ++request_id_,
-            request_id,
-            trade_mode.as_raw_text(),
-            position_side.as_raw_text(),
-            create_order.symbol,
-            side.as_raw_text(),
-            order_type.as_raw_text(),
-            reduce_only,
-            create_order.quantity,
-            extras);
-      }
-      (*connection_).send_text(message);
-      break;
-    }
-    default: {
-      auto message = fmt::format(
-          R"({{)"
-          R"("id":"{}",)"
-          R"("op":"batch-orders",)"
-          R"("args":[{{)"
-          R"("clOrdId":"{}",)"
-          R"("tdMode":"{}",)"
-          R"("posSide":"{}",)"
-          R"("instId":"{}",)"
-          R"("side":"{}",)"
-          R"("ordType":"{}",)"
-          R"("reduceOnly":{},)"
-          R"("sz":"{}",)"
-          R"("px":"{}")"
-          R"({})"  // extras
-          R"(}})"
-          R"(])"
-          R"(}})"sv,
-          ++request_id_,
-          request_id,
-          trade_mode.as_raw_text(),
-          position_side.as_raw_text(),
-          create_order.symbol,
-          side.as_raw_text(),
-          order_type.as_raw_text(),
-          reduce_only,
-          create_order.quantity,
-          create_order.price,
-          extras);
-      (*connection_).send_text(message);
-    }
-  }
+  auto message = json::Encoder::batch_orders(encode_buffer_, create_order, order, request_id, request_id_, trade_mode_, shared_.settings.test_margin_currency);
+  log::warn(R"(DEBUG message="{}")"sv, message);
+  (*connection_).send_text(message);
   return stream_id_;
 }
 
 uint16_t DropCopy::operator()(
     Event<ModifyOrder> const &event, server::oms::Order const &order, std::string_view const &request_id, std::string_view const &previous_request_id) {
   auto &[message_info, modify_order] = event;
-  auto has_external_order_id = !std::empty(order.external_order_id);
-  auto order_id_type = has_external_order_id ? "ordId"sv : "clOrdId"sv;
-  auto order_id = has_external_order_id ? std::string_view{order.external_order_id} : previous_request_id;
-  auto new_sz = std::isnan(modify_order.quantity) ? order.quantity : modify_order.quantity;
-  auto new_px = std::isnan(modify_order.price) ? order.price : modify_order.price;
-  auto message = fmt::format(
-      R"({{)"
-      R"("id":"{}",)"
-      R"("op":"batch-amend-orders",)"
-      R"("args":[{{)"
-      R"("{}":"{}",)"
-      R"("instId":"{}",)"
-      R"("reqId":"{}",)"
-      R"("newSz":"{}",)"
-      R"("newPx":"{}")"
-      R"(}})"
-      R"(])"
-      R"(}})"sv,
-      ++request_id_,
-      order_id_type,
-      order_id,
-      order.symbol,
-      request_id,
-      new_sz,
-      new_px);
+  auto message = json::Encoder::batch_amend_orders(encode_buffer_, modify_order, order, request_id, previous_request_id, request_id_);
+  log::warn(R"(DEBUG message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
 }
 
 uint16_t DropCopy::operator()(
-    Event<CancelOrder> const &,
-    server::oms::Order const &order,
-    [[maybe_unused]] std::string_view const &request_id,
-    std::string_view const &previous_request_id) {
-  auto has_external_order_id = !std::empty(order.external_order_id);
-  auto order_id_type = has_external_order_id ? "ordId"sv : "clOrdId"sv;
-  auto order_id = has_external_order_id ? std::string_view{order.external_order_id} : previous_request_id;
-  auto message = fmt::format(
-      R"({{)"
-      R"("id":"{}",)"
-      R"("op":"batch-cancel-orders",)"
-      R"("args":[{{)"
-      R"("{}":"{}",)"
-      R"("instId":"{}")"
-      R"(}})"
-      R"(])"
-      R"(}})"sv,
-      ++request_id_,
-      order_id_type,
-      order_id,
-      order.symbol);
+    Event<CancelOrder> const &event, server::oms::Order const &order, std::string_view const &request_id, std::string_view const &previous_request_id) {
+  auto &[message_info, cancel_order] = event;
+  auto message = json::Encoder::batch_cancel_orders(encode_buffer_, cancel_order, order, request_id, previous_request_id, request_id_);
+  log::warn(R"(DEBUG message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
 }
@@ -917,6 +760,7 @@ void DropCopy::cancel_all_orders(std::span<std::pair<std::string_view, std::stri
         ++request_id_,
         symbol,
         external_order_id);
+    log::warn(R"(DEBUG message="{}")"sv, message);
     (*connection_).send_text(message);
   }
 }

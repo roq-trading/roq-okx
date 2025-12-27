@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* Quantity and price was not not formatted with correct decimals (#541)
+
 ## 1.1.1 &ndash; 20251214
 
 ## 1.1.0 &ndash; 2025-11-22

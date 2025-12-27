@@ -3,27 +3,28 @@ include(RoqAutogen)
 set(TARGET_NAME ${PROJECT_NAME}-test)
 
 set(SOURCES
-    json_estimated_price.cpp
     json_account.cpp
-    json_price_limit.cpp
     json_amend_order.cpp
-    json_mark_price.cpp
     json_balance_and_position.cpp
-    json_books_l2_tbt.cpp
     json_bbo_tbt.cpp
+    json_books_l2_tbt.cpp
     json_cancel_order.cpp
     json_candle.cpp
     json_candles_ack.cpp
     json_channel_conn_count.cpp
+    json_encoder.cpp
     json_error.cpp
+    json_estimated_price.cpp
     json_funding_rate.cpp
     json_index_tickers.cpp
     json_instruments_ack.cpp
     json_instruments.cpp
+    json_mark_price.cpp
     json_order.cpp
     json_orders.cpp
     json_orders_pending_ack.cpp
     json_positions.cpp
+    json_price_limit.cpp
     json_status.cpp
     json_subscribe.cpp
     json_tickers.cpp
