@@ -272,6 +272,42 @@ std::string_view Encoder::batch_cancel_orders(
   return buffer;
 }
 
+std::string_view Encoder::batch_cancel_orders(
+    std::string &buffer,
+    CancelAllOrders const &,
+    [[maybe_unused]] std::string_view const &request_id,
+    uint64_t &request_id_2,
+    std::span<std::pair<std::string_view, std::string_view>> const &symbol_and_external_order_id) {
+  fmt::format_to(
+      std::back_inserter(buffer),
+      R"({{)"
+      R"("id":"{}",)"
+      R"("op":"batch-cancel-orders",)"
+      R"("args":[)"sv,
+      ++request_id_2);
+  auto first = true;
+  for (auto &[symbol, external_order_id] : symbol_and_external_order_id) {
+    if (!first) {
+      fmt::format_to(std::back_inserter(buffer), ","sv);
+    } else {
+      first = false;
+    }
+    fmt::format_to(
+        std::back_inserter(buffer),
+        R"({{)"
+        R"("instId":"{}",)"
+        R"("ordId":"{}")"
+        R"(}})",
+        symbol,
+        external_order_id);
+  }
+  fmt::format_to(
+      std::back_inserter(buffer),
+      R"(])"
+      R"(}})"sv);
+  return buffer;
+}
+
 }  // namespace json
 }  // namespace okx
 }  // namespace roq

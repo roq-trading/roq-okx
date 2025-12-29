@@ -16,11 +16,7 @@
 
 #include "roq/utils/metrics/factory.hpp"
 
-#include "roq/web/socket/client.hpp"
-
 #include "roq/core/json/buffer.hpp"
-
-#include "roq/server.hpp"
 
 #include "roq/server/oms/exceptions.hpp"
 
@@ -249,14 +245,24 @@ uint16_t DropCopy::operator()(
 }
 
 uint16_t DropCopy::operator()(Event<CancelAllOrders> const &event, [[maybe_unused]] std::string_view const &request_id) {
-  auto &cancel_all_orders_2 = event.value;
-  std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_ids;
+  auto &[message_info, cancel_all_orders] = event;
+  // XXX FIXME TODO what about orders where we haven't received external_order_id ???
+  std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_id;
   if (shared_.dispatcher_.get_all_orders(
-          [&](auto &order) { symbol_and_external_order_ids.emplace_back(order.symbol, order.external_order_id); }, cancel_all_orders_2)) {
+          [&](auto &order) {
+            if (!std::empty(order.external_order_id)) {
+              symbol_and_external_order_id.emplace_back(order.symbol, order.external_order_id);
+            }
+          },
+          cancel_all_orders)) {
   } else {
     log::info<1>("No orders"sv);
   }
-  cancel_all_orders(symbol_and_external_order_ids);
+  if (!std::empty(symbol_and_external_order_id)) {
+    auto message = json::Encoder::batch_cancel_orders(encode_buffer_, cancel_all_orders, request_id, request_id_, symbol_and_external_order_id);
+    log::warn(R"(DEBUG message="{}")"sv, message);
+    (*connection_).send_text(message);
+  }
   // XXX FIXME TODO CancelAllOrdersAck
   return stream_id_;
 }
@@ -743,26 +749,6 @@ void DropCopy::operator()(Trace<json::CancelOrder> const &event) {
 
 void DropCopy::operator()(Trace<json::Candle> const &) {
   log::fatal("Unexpected"sv);
-}
-
-void DropCopy::cancel_all_orders(std::span<std::pair<std::string_view, std::string_view>> const &symbol_and_external_order_ids) {
-  for (auto &[symbol, external_order_id] : symbol_and_external_order_ids) {
-    auto message = fmt::format(
-        R"({{)"
-        R"("id":"{}",)"
-        R"("op":"batch-cancel-orders",)"
-        R"("args":[{{)"
-        R"("instId":"{}",)"
-        R"("ordId":"{}")"
-        R"(}})"
-        R"(])"
-        R"(}})"sv,
-        ++request_id_,
-        symbol,
-        external_order_id);
-    log::warn(R"(DEBUG message="{}")"sv, message);
-    (*connection_).send_text(message);
-  }
 }
 
 // request

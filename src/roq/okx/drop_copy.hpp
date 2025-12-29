@@ -114,8 +114,6 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
 
   void parse(std::string_view const &message);
 
-  void cancel_all_orders(std::span<std::pair<std::string_view, std::string_view>> const &symbol_and_external_order_id);
-
   void request_balance();
   void request_positions();
   void request_orders();

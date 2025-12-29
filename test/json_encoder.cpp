@@ -156,3 +156,47 @@ TEST_CASE("modify_order", "[json_encoder]") {
                 R"(])"
                 R"(})"sv);
 }
+
+TEST_CASE("cancel_all_orders_1", "[json_encoder]") {
+  std::string buffer;
+  CancelAllOrders cancel_all_orders;
+  uint64_t request_id = 0;
+  std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_id{{
+      {"BTC"sv, "order_id:1234"sv},
+  }};
+  auto result = json::Encoder::batch_cancel_orders(buffer, cancel_all_orders, "1234"sv, request_id, symbol_and_external_order_id);
+  CHECK(
+      result == R"({)"
+                R"("id":"1",)"
+                R"("op":"batch-cancel-orders",)"
+                R"("args":[{)"
+                R"("instId":"BTC",)"
+                R"("ordId":"order_id:1234")"
+                R"(})"
+                R"(])"
+                R"(})"sv);
+}
+
+TEST_CASE("cancel_all_orders_2", "[json_encoder]") {
+  std::string buffer;
+  CancelAllOrders cancel_all_orders;
+  uint64_t request_id = 0;
+  std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_id{{
+      {"BTC"sv, "order_id:1234"sv},
+      {"ETH"sv, "order_id:2345"sv},
+  }};
+  auto result = json::Encoder::batch_cancel_orders(buffer, cancel_all_orders, "1234"sv, request_id, symbol_and_external_order_id);
+  CHECK(
+      result == R"({)"
+                R"("id":"1",)"
+                R"("op":"batch-cancel-orders",)"
+                R"("args":[{)"
+                R"("instId":"BTC",)"
+                R"("ordId":"order_id:1234")"
+                R"(},{)"
+                R"("instId":"ETH",)"
+                R"("ordId":"order_id:2345")"
+                R"(})"
+                R"(])"
+                R"(})"sv);
+}
