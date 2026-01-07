@@ -4,6 +4,9 @@
   "values": [
     {
       "name": "unsupported"
+    },
+    {
+      "name": "off"
     }
   ]
 }

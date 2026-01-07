@@ -170,6 +170,12 @@
     },
     {
       "name": "upcChg"
+    },
+    {
+      "name": "longPosRemainingQuota"
+    },
+    {
+      "name": "shortPosRemainingQuota"
     }
   ]
 }
