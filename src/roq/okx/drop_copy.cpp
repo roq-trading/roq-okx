@@ -684,6 +684,7 @@ void DropCopy::operator()(Trace<json::Order> const &event) {
           .text = item.s_msg,
           .version = {},
           .request_id = item.cl_ord_id,
+          .external_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
@@ -710,6 +711,7 @@ void DropCopy::operator()(Trace<json::AmendOrder> const &event) {
           .text = item.s_msg,
           .version = {},
           .request_id = item.req_id,
+          .external_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
@@ -736,6 +738,7 @@ void DropCopy::operator()(Trace<json::CancelOrder> const &event) {
           .text = item.s_msg,
           .version = {},
           .request_id = {},
+          .external_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
