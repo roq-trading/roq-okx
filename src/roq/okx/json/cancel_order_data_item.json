@@ -21,6 +21,10 @@
     {
       "name": "tag",
       "type": "std/string_view"
+    },
+    {
+      "name": "ts",
+      "type": "std/milliseconds"
     }
   ]
 }

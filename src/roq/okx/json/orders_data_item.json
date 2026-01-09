@@ -271,6 +271,14 @@
     {
       "name": "pxVol",
       "type": "std/double"
+    },
+    {
+      "name": "tradeQuoteCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "fillIdxPx",
+      "type": "std/double"
     }
   ]
 }
