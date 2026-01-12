@@ -8,6 +8,10 @@ All notable changes will be documented in this file.
 
 * Quantity and price was not not formatted with correct decimals (#541)
 
+### Changed
+
+* Separate subscriptions for (OKX's) system status and instrument definitions from regular market data (#543)
+
 ## 1.1.1 &ndash; 20251214
 
 ## 1.1.0 &ndash; 2025-11-22

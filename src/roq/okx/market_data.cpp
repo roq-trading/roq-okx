@@ -30,8 +30,6 @@ namespace {
 auto const NAME = "md"sv;
 
 auto const SUPPORTS = Mask{
-    SupportType::REFERENCE_DATA,
-    SupportType::MARKET_STATUS,
     SupportType::TOP_OF_BOOK,
     SupportType::MARKET_BY_PRICE,
     SupportType::TRADE_SUMMARY,
@@ -93,8 +91,6 @@ MarketData::MarketData(Handler &handler, io::Context &context, uint16_t stream_i
           .subscribe = create_metrics(shared.settings, name_, "subscribe"sv),
           .unsubscribe = create_metrics(shared.settings, name_, "unsubscribe"sv),
           .login = create_metrics(shared.settings, name_, "login"sv),
-          .status = create_metrics(shared.settings, name_, "status"sv),
-          .instruments = create_metrics(shared.settings, name_, "instruments"sv),
           .estimated_price = create_metrics(shared.settings, name_, "estimated_price"sv),
           .price_limit = create_metrics(shared.settings, name_, "price_limit"sv),
           .mark_price = create_metrics(shared.settings, name_, "mark_price"sv),
@@ -138,8 +134,6 @@ void MarketData::operator()(metrics::Writer &writer) const {
       .write(profile_.subscribe, metrics::Type::PROFILE)
       .write(profile_.unsubscribe, metrics::Type::PROFILE)
       .write(profile_.login, metrics::Type::PROFILE)
-      .write(profile_.status, metrics::Type::PROFILE)
-      .write(profile_.instruments, metrics::Type::PROFILE)
       .write(profile_.estimated_price, metrics::Type::PROFILE)
       .write(profile_.price_limit, metrics::Type::PROFILE)
       .write(profile_.mark_price, metrics::Type::PROFILE)
@@ -237,7 +231,6 @@ uint32_t MarketData::download(MarketDataState state) {
       }
     case DONE:
       (*this)(ConnectionStatus::READY);
-      subscribe_static();
       subscribe();  // note! must be *after* READY
       return 0;
   }
@@ -266,19 +259,6 @@ void MarketData::login() {
       sign);
   (*connection_).send_text(message);
   (*this)(ConnectionStatus::LOGIN_SENT);
-}
-
-void MarketData::subscribe_static() {
-  if (index_ != 0) {  // note! only subscribe instruments from the first connection
-    return;
-  }
-  subscribe("status"sv);
-  subscribe("instruments"sv, "instType"sv, "SPOT"sv);
-  subscribe("instruments"sv, "instType"sv, "SWAP"sv);
-  subscribe("instruments"sv, "instType"sv, "FUTURES"sv);
-  // subscribe("instruments"sv, "instType"sv, "OPTION"sv);
-  // subscribe("estimated-price"sv, "instType"sv, "FUTURES"sv);
-  // subscribe("estimated-price"sv, "instType"sv, "OPTION"sv);
 }
 
 void MarketData::subscribe(std::span<Symbol const> const &symbols) {
@@ -322,19 +302,6 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols) {
       subscribe("funding-rate"sv, "instId"sv, symbol);
     }
   }
-}
-
-void MarketData::subscribe(std::string_view const &channel) {
-  auto message = fmt::format(
-      R"({{)"
-      R"("op":"subscribe",)"
-      R"("args":[{{)"
-      R"("channel":"{}")"
-      R"(}})"
-      R"(])"
-      R"(}})"sv,
-      channel);
-  subscribe_queue_.emplace_back(message);
 }
 
 void MarketData::subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value) {
@@ -416,141 +383,12 @@ void MarketData::operator()(Trace<json::Unsubscribe> const &event) {
   });
 }
 
-void MarketData::operator()(Trace<json::Status> const &event) {
-  profile_.status([&]() {
-    auto &[trace_info, status] = event;
-    log::info("status={}"sv, status);
-    for (auto &item : status.data) {
-      if (item.state == json::State::ONGOING) {
-        log::warn("*** DISCONNECT: ONGOING MAINTENANCE ***"sv);
-        (*connection_).close();
-        return;
-      }
-    }
-  });
+void MarketData::operator()(Trace<json::Status> const &) {
+  log::fatal("Unexpected"sv);
 }
 
-void MarketData::operator()(Trace<json::Instruments> const &event) {
-  profile_.instruments([&]() {
-    auto &[trace_info, instruments] = event;
-    log::info<1>("instruments={}"sv, instruments);
-    (*connection_).touch(trace_info.source_receive_time);
-    std::vector<Symbol> symbols;
-    symbols.reserve(std::size(instruments.data));
-    size_t counter = {};
-    for (auto &item : instruments.data) {
-      log::info<2>("item={}"sv, item);
-      auto symbol = item.inst_id;
-      auto discard = shared_.discard_symbol(symbol);
-      auto base_currency = [&]() {
-        if (std::empty(item.base_ccy)) {
-          switch (item.ct_type) {
-            using enum json::ContractType::type_t;
-            case UNDEFINED_INTERNAL:
-            case UNKNOWN_INTERNAL:
-              break;
-            case LINEAR:
-              return item.ct_val_ccy;
-            case INVERSE:
-              return item.settle_ccy;
-          }
-        }
-        return item.base_ccy;
-      }();
-      auto quote_currency = [&]() {
-        if (std::empty(item.quote_ccy)) {
-          switch (item.ct_type) {
-            using enum json::ContractType::type_t;
-            case UNDEFINED_INTERNAL:
-            case UNKNOWN_INTERNAL:
-              break;
-            case LINEAR:
-              return item.settle_ccy;
-            case INVERSE:
-              return item.ct_val_ccy;
-          }
-        }
-        return item.quote_ccy;
-      }();
-      auto reference_data = ReferenceData{
-          .stream_id = stream_id_,
-          .exchange = shared_.settings.exchange,
-          .symbol = symbol,
-          .description = {},
-          .security_type = map(item.inst_type),
-          .cfi_code = {},
-          .base_currency = base_currency,
-          .quote_currency = quote_currency,
-          .settlement_currency = item.settle_ccy,
-          .margin_currency = {},
-          .commission_currency = {},
-          .tick_size = item.tick_sz,
-          .tick_size_steps = {},
-          .multiplier = item.ct_mult,
-          .min_notional = NaN,
-          .min_trade_vol = item.min_sz,
-          .max_trade_vol = NaN,
-          .trade_vol_step_size = item.lot_sz,
-          .option_type = map(item.opt_type),
-          .strike_currency = {},
-          .strike_price = item.stk,
-          .underlying = item.uly,
-          .time_zone = {},
-          .issue_date = utils::safe_cast{item.list_time},
-          .settlement_date = {},
-          .expiry_datetime = utils::safe_cast{item.exp_time},
-          .expiry_datetime_utc = utils::safe_cast{item.exp_time},
-          .exchange_time_utc = {},
-          .exchange_sequence = {},
-          .sending_time_utc = {},
-          .discard = discard,
-      };
-      create_trace_and_dispatch(handler_, trace_info, reference_data, true);
-      if (discard) {
-        log::info<1>(R"(Drop symbol="{}")"sv, symbol);
-        continue;
-      }
-      if (shared_.all_symbols.emplace(symbol).second) {  // only include new
-        symbols.emplace_back(symbol);
-      }
-      ++counter;
-      auto market_status = MarketStatus{
-          .stream_id = stream_id_,
-          .exchange = shared_.settings.exchange,
-          .symbol = item.inst_id,
-          .trading_status = map(item.state),
-          .exchange_time_utc = {},
-          .exchange_sequence = {},
-          .sending_time_utc = {},
-      };
-      create_trace_and_dispatch(handler_, trace_info, market_status, true);
-      // trying to reduce the number of symbols where we next extra subscriptions
-      // but still avoid not reducing too much
-      switch (item.inst_type) {
-        using enum json::InstrumentType::type_t;
-        case UNDEFINED_INTERNAL:
-        case UNKNOWN_INTERNAL:
-        case SPOT:
-        case MARGIN:
-          break;
-        case SWAP:
-        case FUTURES:
-          if (shared_.extended_symbols.emplace(symbol).second) {
-            log::info<2>(R"(DEBUG: symbol="{}")"sv, symbol);
-          }
-          break;
-        case OPTION:
-          break;
-      }
-    }
-    log::info<1>("Instruments {} / {}"sv, counter, std::size(instruments.data));
-    if (!std::empty(symbols)) {
-      auto symbols_update = SymbolsUpdate{
-          .symbols = symbols,
-      };
-      handler_(symbols_update);
-    }
-  });
+void MarketData::operator()(Trace<json::Instruments> const &) {
+  log::fatal("Unexpected"sv);
 }
 
 void MarketData::operator()(Trace<json::EstimatedPrice> const &event) {

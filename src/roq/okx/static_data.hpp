@@ -23,27 +23,31 @@
 #include "roq/server.hpp"
 
 #include "roq/okx/account.hpp"
-#include "roq/okx/market_data_state.hpp"
 #include "roq/okx/shared.hpp"
+#include "roq/okx/static_data_state.hpp"
 
 #include "roq/okx/json/parser.hpp"
 
 namespace roq {
 namespace okx {
 
-struct MarketData final : public web::socket::Client::Handler, public json::Parser::Handler {
+struct StaticData final : public web::socket::Client::Handler, public json::Parser::Handler {
+  struct SymbolsUpdate final {
+    std::vector<Symbol> &symbols;
+  };
+
   struct Handler {
     virtual void operator()(Trace<StreamStatus> const &) = 0;
     virtual void operator()(Trace<ExternalLatency> const &) = 0;
-    virtual void operator()(Trace<TopOfBook> const &, bool is_last) = 0;
-    virtual void operator()(Trace<MarketByPriceUpdate> const &, bool is_last) = 0;
-    virtual void operator()(Trace<TradeSummary> const &, bool is_last) = 0;
-    virtual void operator()(Trace<StatisticsUpdate> const &, bool is_last) = 0;
+    virtual void operator()(Trace<ReferenceData> const &, bool is_last) = 0;
+    virtual void operator()(Trace<MarketStatus> const &, bool is_last) = 0;
+    // cross-communication
+    virtual void operator()(SymbolsUpdate &) = 0;
   };
 
-  MarketData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, size_t index);
+  StaticData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
 
-  MarketData(MarketData const &) = delete;
+  StaticData(StaticData const &) = delete;
 
   uint16_t stream_id() const { return stream_id_; }
 
@@ -54,8 +58,6 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
   void operator()(Event<Timer> const &);
 
   void operator()(metrics::Writer &) const;
-
-  void subscribe(size_t start_from = 0);
 
  protected:
   // web::socket::Client::Handler
@@ -71,14 +73,14 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
  private:
   void operator()(ConnectionStatus);
 
-  uint32_t download(MarketDataState);
+  uint32_t download(StaticDataState);
 
   void login();
 
-  void subscribe(std::span<Symbol const> const &symbols);
+  void subscribe_static();
 
+  void subscribe(std::string_view const &channel);
   void subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value);
-  void subscribe(std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values);
 
   void parse(std::string_view const &message);
 
@@ -121,7 +123,6 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
   // config
   uint16_t const stream_id_;
   std::string const name_;
-  size_t const index_;
   // web socket
   std::unique_ptr<web::socket::Client> const connection_;
   // buffers
@@ -131,8 +132,7 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, error, subscribe, unsubscribe, login, estimated_price, price_limit, mark_price, tickers, trades, bbo_tbt, books_l2_tbt,
-        index_tickers, funding_rate;
+    utils::metrics::Profile parse, error, subscribe, unsubscribe, login, status, instruments;
   } profile_;
   struct {
     utils::metrics::Latency ping, heartbeat;
@@ -143,7 +143,7 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
   Shared &shared_;
   // state
   ConnectionStatus status_ = {};
-  core::Download<MarketDataState> download_;
+  core::Download<StaticDataState> download_;
   // queue
   core::TimerQueue<std::string> subscribe_queue_;
   // sequencing

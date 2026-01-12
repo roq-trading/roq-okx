@@ -2,3 +2,4 @@
 roq-okx
 drop_copy_state.hpp
 market_data_state.hpp
+static_data_state.hpp

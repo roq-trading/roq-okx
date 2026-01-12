@@ -1,0 +1,12 @@
+{
+  "name": "roq/okx/StaticDataState",
+  "type": "enum",
+  "values": [
+    {
+      "name": "login"
+    },
+    {
+      "name": "done"
+    }
+  ]
+}

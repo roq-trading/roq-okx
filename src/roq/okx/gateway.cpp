@@ -79,16 +79,8 @@ R create_drop_copy(auto &gateway, auto &context, auto &stream_id, auto &accounts
   return result;
 }
 
-template <typename R>
-R create_market_data(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &master_account, auto &shared) {
-  using result_type = std::remove_cvref_t<R>;
-  result_type result;
-  ++stream_id;
-  auto index = std::size(result);
-  log::info("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
-  auto obj = std::make_unique<MarketData>(gateway, context, stream_id, get_account(accounts, master_account), shared, index);
-  result.emplace_back(std::move(obj));
-  return result;
+auto create_static_data(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &master_account, auto &shared) {
+  return std::make_unique<StaticData>(gateway, context, ++stream_id, get_account(accounts, master_account), shared);
 }
 
 auto create_business(auto &gateway, auto &settings, auto &context, auto &stream_id, auto &shared) {
@@ -106,7 +98,7 @@ Gateway::Gateway(server::Dispatcher &dispatcher, Settings const &settings, Confi
       shared_{dispatcher, settings}, request_{create_request<decltype(request_)>(config)}, rest_{*this, context_, ++stream_id_, shared_},
       order_entry_{create_order_entry<decltype(order_entry_)>(*this, context_, ++stream_id_, accounts_, shared_, request_)},
       drop_copy_{create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_, request_)},
-      market_data_{create_market_data<decltype(market_data_)>(*this, context_, stream_id_, accounts_, master_account_, shared_)},
+      static_data_{create_static_data(*this, context_, stream_id_, accounts_, master_account_, shared_)},
       business_{create_business(*this, settings, context_, stream_id_, shared_)} {
 }
 
@@ -206,7 +198,7 @@ void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
   }
 }
 
-void Gateway::operator()(MarketData::SymbolsUpdate &symbols_update) {
+void Gateway::operator()(StaticData::SymbolsUpdate &symbols_update) {
   auto [size, start_from] = shared_.symbols(symbols_update.symbols);
   ensure_symbol_slices(size);
   for (auto &item : market_data_) {
@@ -282,6 +274,9 @@ void Gateway::dispatch_helper(auto &self, Args &&...args) {
     if (static_cast<bool>(item)) {
       helper(*item);
     }
+  }
+  if (self.static_data_) {
+    helper(*self.static_data_);
   }
   for (auto &item : self.market_data_) {
     helper(*item);

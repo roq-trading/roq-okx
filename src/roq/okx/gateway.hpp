@@ -23,6 +23,7 @@
 #include "roq/okx/rest.hpp"
 #include "roq/okx/settings.hpp"
 #include "roq/okx/shared.hpp"
+#include "roq/okx/static_data.hpp"
 
 namespace roq {
 namespace okx {
@@ -31,6 +32,7 @@ struct Gateway final : public server::Handler,
                        public Rest::Handler,
                        public OrderEntry::Handler,
                        public DropCopy::Handler,
+                       public StaticData::Handler,
                        public MarketData::Handler,
                        public Business::Handler {
   Gateway(server::Dispatcher &, Settings const &, Config const &, io::Context &);
@@ -75,7 +77,7 @@ struct Gateway final : public server::Handler,
   void operator()(Trace<PositionUpdate> const &, bool is_last) override;
 
   void operator()(Rest::SymbolsUpdate &) override;
-  void operator()(MarketData::SymbolsUpdate &) override;
+  void operator()(StaticData::SymbolsUpdate &) override;
 
   void ensure_symbol_slices(size_t size);
 
@@ -105,6 +107,7 @@ struct Gateway final : public server::Handler,
   Rest rest_;
   utils::unordered_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
   utils::unordered_map<std::string, std::unique_ptr<DropCopy>> drop_copy_;
+  std::unique_ptr<StaticData> static_data_;
   std::vector<std::unique_ptr<MarketData>> market_data_;
   std::unique_ptr<Business> business_;
   // cache

@@ -15,6 +15,7 @@ set(SOURCES
     rest.cpp
     settings.cpp
     shared.cpp
+    static_data.cpp
     main.cpp)
 
 add_subdirectory(json)
@@ -22,7 +23,7 @@ add_subdirectory(tools)
 
 include(RoqAutogen)
 
-set(AUTOGEN_SCHEMAS drop_copy_state.json market_data_state.json)
+set(AUTOGEN_SCHEMAS drop_copy_state.json market_data_state.json static_data_state.json)
 
 roq_autogen_hpp(
   OUTPUT
