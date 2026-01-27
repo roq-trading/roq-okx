@@ -32,7 +32,7 @@ namespace okx {
 
 struct Rest final : public web::rest::Client::Handler {
   struct SymbolsUpdate final {
-    std::vector<Symbol> &symbols;
+    std::span<Symbol const> symbols;
   };
 
   struct Handler {
@@ -109,7 +109,6 @@ struct Rest final : public web::rest::Client::Handler {
   Shared &shared_;
   // state
   ConnectionStatus status_ = {};
-  utils::unordered_set<std::string> all_symbols_;
   struct {
     bool spot = {};
     bool swap = {};
