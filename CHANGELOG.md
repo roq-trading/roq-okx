@@ -4,6 +4,8 @@ All notable changes will be documented in this file.
 
 ## Head
 
+## 1.1.2 &ndash; 2026-02-08
+
 ### Fixed
 
 * Quantity and price was not not formatted with correct decimals (#541)
@@ -12,7 +14,7 @@ All notable changes will be documented in this file.
 
 * Separate subscriptions for (OKX's) system status and instrument definitions from regular market data (#543)
 
-## 1.1.1 &ndash; 20251214
+## 1.1.1 &ndash; 2025-12-14
 
 ## 1.1.0 &ndash; 2025-11-22
 
