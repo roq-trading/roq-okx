@@ -176,6 +176,10 @@
     },
     {
       "name": "shortPosRemainingQuota"
+    },
+    {
+      "name": "instCategory",
+      "type": "std/string_view"
     }
   ]
 }
