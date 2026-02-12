@@ -221,7 +221,7 @@ void DropCopy::operator()(metrics::Writer &writer) const {
 uint16_t DropCopy::operator()(Event<CreateOrder> const &event, server::oms::Order const &order, std::string_view const &request_id) {
   auto &[message_info, create_order] = event;
   auto message = json::Encoder::batch_orders(encode_buffer_, create_order, order, request_id, request_id_, trade_mode_, shared_.settings.test_margin_currency);
-  log::warn(R"(DEBUG message="{}")"sv, message);
+  // log::warn(R"(DEBUG message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
 }
@@ -230,7 +230,7 @@ uint16_t DropCopy::operator()(
     Event<ModifyOrder> const &event, server::oms::Order const &order, std::string_view const &request_id, std::string_view const &previous_request_id) {
   auto &[message_info, modify_order] = event;
   auto message = json::Encoder::batch_amend_orders(encode_buffer_, modify_order, order, request_id, previous_request_id, request_id_);
-  log::warn(R"(DEBUG message="{}")"sv, message);
+  // log::warn(R"(DEBUG message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
 }
@@ -239,7 +239,7 @@ uint16_t DropCopy::operator()(
     Event<CancelOrder> const &event, server::oms::Order const &order, std::string_view const &request_id, std::string_view const &previous_request_id) {
   auto &[message_info, cancel_order] = event;
   auto message = json::Encoder::batch_cancel_orders(encode_buffer_, cancel_order, order, request_id, previous_request_id, request_id_);
-  log::warn(R"(DEBUG message="{}")"sv, message);
+  // log::warn(R"(DEBUG message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
 }
@@ -260,7 +260,7 @@ uint16_t DropCopy::operator()(Event<CancelAllOrders> const &event, [[maybe_unuse
   }
   if (!std::empty(symbol_and_external_order_id)) {
     auto message = json::Encoder::batch_cancel_orders(encode_buffer_, cancel_all_orders, request_id, request_id_, symbol_and_external_order_id);
-    log::warn(R"(DEBUG message="{}")"sv, message);
+    // log::warn(R"(DEBUG message="{}")"sv, message);
     (*connection_).send_text(message);
   }
   // XXX FIXME TODO CancelAllOrdersAck
