@@ -10,6 +10,7 @@
 #include "roq/modify_order.hpp"
 
 #include "roq/server/oms/order.hpp"
+#include "roq/server/oms/ref_data.hpp"
 
 #include "roq/okx/json/trade_mode.hpp"
 
@@ -22,6 +23,7 @@ struct Encoder final {
       std::string &buffer,
       CreateOrder const &,
       server::oms::Order const &,
+      server::oms::RefData const &,
       std::string_view const &request_id,
       uint64_t &request_id_2,
       TradeMode,
@@ -31,6 +33,7 @@ struct Encoder final {
       std::string &buffer,
       ModifyOrder const &,
       server::oms::Order const &,
+      server::oms::RefData const &,
       std::string_view const &request_id,
       std::string_view const &previous_request_id,
       uint64_t &request_id_2);
@@ -39,6 +42,7 @@ struct Encoder final {
       std::string &buffer,
       roq::CancelOrder const &,
       server::oms::Order const &,
+      server::oms::RefData const &,
       std::string_view const &request_id,
       std::string_view const &previous_request_id,
       uint64_t &request_id_2);

@@ -79,6 +79,7 @@ std::string_view Encoder::batch_orders(
     std::string &buffer,
     CreateOrder const &create_order,
     server::oms::Order const &order,
+    server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     uint64_t &request_id_2,
     TradeMode trade_mode,
@@ -136,7 +137,7 @@ std::string_view Encoder::batch_orders(
             side.as_raw_text(),
             order_type.as_raw_text(),
             reduce_only,
-            Decimal{create_order.quantity, order.quantity_precision.precision},
+            Decimal{create_order.quantity, ref_data.quantity.precision},
             extras);
       } else {
         fmt::format_to(
@@ -165,7 +166,7 @@ std::string_view Encoder::batch_orders(
             side.as_raw_text(),
             order_type.as_raw_text(),
             reduce_only,
-            Decimal{create_order.quantity, order.quantity_precision.precision},
+            Decimal{create_order.quantity, ref_data.quantity.precision},
             extras);
       }
       break;
@@ -198,8 +199,8 @@ std::string_view Encoder::batch_orders(
           side.as_raw_text(),
           order_type.as_raw_text(),
           reduce_only,
-          Decimal{create_order.quantity, order.quantity_precision.precision},
-          Decimal{create_order.price, order.price_precision.precision},
+          Decimal{create_order.quantity, ref_data.quantity.precision},
+          Decimal{create_order.price, ref_data.price.precision},
           extras);
     }
   }
@@ -210,6 +211,7 @@ std::string_view Encoder::batch_amend_orders(
     std::string &buffer,
     ModifyOrder const &modify_order,
     server::oms::Order const &order,
+    server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id,
     uint64_t &request_id_2) {
@@ -238,8 +240,8 @@ std::string_view Encoder::batch_amend_orders(
       order_id,
       order.symbol,
       request_id,
-      Decimal{new_sz, order.quantity_precision.precision},
-      Decimal{new_px, order.price_precision.precision});
+      Decimal{new_sz, ref_data.quantity.precision},
+      Decimal{new_px, ref_data.price.precision});
   return buffer;
 }
 
@@ -247,6 +249,7 @@ std::string_view Encoder::batch_cancel_orders(
     std::string &buffer,
     roq::CancelOrder const &,
     server::oms::Order const &order,
+    server::oms::RefData const &,
     [[maybe_unused]] std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id,
     uint64_t &request_id_2) {

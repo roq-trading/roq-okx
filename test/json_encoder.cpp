@@ -92,6 +92,7 @@ auto create_oms_order(double quantity, double price) {
       .max_response_version = {},
       .max_accepted_version = {},
       .security_type = {},
+      /*
       .quantity_precision{
           .increment = 0.1,
           .precision = Precision::_1,
@@ -100,11 +101,32 @@ auto create_oms_order(double quantity, double price) {
           .increment = 0.01,
           .precision = Precision::_2,
       },
+      */
       .update_type = {},
       .user = {},
       .strategy_id = {},
   };
   return order;
+}
+
+auto create_ref_data() {
+  auto ref_data = server::oms::RefData{
+      .security_type = {},
+      .external_security_id = {},
+      .multiplier = NaN,
+      .quantity = {},
+      .price = {},
+      .has_tick_size_steps = false,
+  };
+  ref_data.quantity = {
+      .increment = 0.1,
+      .precision = Precision::_1,
+  };
+  ref_data.price = {
+      .increment = 0.01,
+      .precision = Precision::_2,
+  };
+  return ref_data;
 }
 }  // namespace
 
@@ -114,8 +136,9 @@ TEST_CASE("create_order", "[json_encoder]") {
   std::string buffer;
   auto create_order = create_create_order(Side::BUY, 1.0, 1.0);
   auto order = create_oms_order(1.0, 1.0);
+  auto ref_data = create_ref_data();
   uint64_t request_id = 0;
-  auto result = json::Encoder::batch_orders(buffer, create_order, order, "1234"sv, request_id, json::TradeMode::CROSS, "BTC"sv);
+  auto result = json::Encoder::batch_orders(buffer, create_order, order, ref_data, "1234"sv, request_id, json::TradeMode::CROSS, "BTC"sv);
   CHECK(
       result == R"({)"
                 R"("id":"1",)"
@@ -140,8 +163,9 @@ TEST_CASE("modify_order", "[json_encoder]") {
   std::string buffer;
   auto modify_order = create_modify_order(1.0, 1.0);
   auto order = create_oms_order(1.0, 1.0);
+  auto ref_data = create_ref_data();
   uint64_t request_id = 0;
-  auto result = json::Encoder::batch_amend_orders(buffer, modify_order, order, "1234"sv, "2345"sv, request_id);
+  auto result = json::Encoder::batch_amend_orders(buffer, modify_order, order, ref_data, "1234"sv, "2345"sv, request_id);
   CHECK(
       result == R"({)"
                 R"("id":"1",)"
