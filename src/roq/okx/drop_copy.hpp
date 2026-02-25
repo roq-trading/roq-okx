@@ -112,7 +112,7 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
  private:
   // helpers
 
-  void operator()(ConnectionStatus);
+  void operator()(ConnectionStatus, std::string_view const &reason = {});
 
   uint32_t download(DropCopyState);
 
@@ -160,7 +160,7 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
   Shared &shared_;
   Request &request_;
   // state
-  ConnectionStatus status_ = {};
+  ConnectionStatus connection_status_ = {};
   core::Download<DropCopyState> download_;
   // other
   json::TradeMode const trade_mode_;

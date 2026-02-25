@@ -44,7 +44,7 @@ struct OrderEntry final : public web::rest::Client::Handler {
 
   OrderEntry(OrderEntry const &) = delete;
 
-  bool ready() const { return status_ == ConnectionStatus::READY; }
+  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
 
   void operator()(Event<Start> const &);
   void operator()(Event<Stop> const &);
@@ -59,7 +59,7 @@ struct OrderEntry final : public web::rest::Client::Handler {
   void operator()(Trace<web::rest::Client::Disconnected> const &) override;
   void operator()(Trace<web::rest::Client::Latency> const &) override;
 
-  void operator()(ConnectionStatus);
+  void operator()(ConnectionStatus, std::string_view const &reason = {});
 
   // balance
 
@@ -114,7 +114,7 @@ struct OrderEntry final : public web::rest::Client::Handler {
   Shared &shared_;
   Request &request_;
   // state
-  ConnectionStatus status_ = {};
+  ConnectionStatus connection_status_ = {};
   bool download_balance_ = false;
   bool download_positions_ = false;
   bool download_orders_ = false;

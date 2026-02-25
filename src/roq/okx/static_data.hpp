@@ -51,7 +51,7 @@ struct StaticData final : public web::socket::Client::Handler, public json::Pars
 
   uint16_t stream_id() const { return stream_id_; }
 
-  bool ready() const { return status_ == ConnectionStatus::READY; }
+  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
 
   void operator()(Event<Start> const &);
   void operator()(Event<Stop> const &);
@@ -71,7 +71,7 @@ struct StaticData final : public web::socket::Client::Handler, public json::Pars
   void operator()(web::socket::Client::Binary const &) override;
 
  private:
-  void operator()(ConnectionStatus);
+  void operator()(ConnectionStatus, std::string_view const &reason = {});
 
   uint32_t download(StaticDataState);
 
@@ -142,7 +142,7 @@ struct StaticData final : public web::socket::Client::Handler, public json::Pars
   // cache
   Shared &shared_;
   // state
-  ConnectionStatus status_ = {};
+  ConnectionStatus connection_status_ = {};
   core::Download<StaticDataState> download_;
   // queue
   core::TimerQueue<std::string> subscribe_queue_;
