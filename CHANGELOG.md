@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* `OrderUpdate.remaining_quantity` not populated correctly (#568)
+
 ## 1.1.2 &ndash; 2026-02-08
 
 ### Fixed

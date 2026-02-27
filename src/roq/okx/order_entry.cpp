@@ -384,6 +384,7 @@ void OrderEntry::operator()(Trace<json::OrdersPendingAck> const &event) {
   log::info<4>("orders_pending_ack={}"sv, orders_pending_ack);
   for (auto &item : orders_pending_ack.data) {
     log::info<2>("item={}"sv, item);
+    auto remaining_quantity = item.sz - item.acc_fill_sz;
     auto order_update = server::oms::OrderUpdate{
         .account = account_.name,
         .exchange = shared_.settings.exchange,
@@ -394,7 +395,7 @@ void OrderEntry::operator()(Trace<json::OrdersPendingAck> const &event) {
         .max_show_quantity = NaN,
         .order_type = {},
         .time_in_force = {},
-        .execution_instructions = {},
+        .execution_instructons = {},
         .create_time_utc = {},
         .update_time_utc = utils::safe_cast(item.u_time),
         .external_account = {},
@@ -407,7 +408,7 @@ void OrderEntry::operator()(Trace<json::OrdersPendingAck> const &event) {
         .price = item.px,
         .stop_price = NaN,
         .leverage = NaN,
-        .remaining_quantity = NaN,
+        .remaining_quantity = remaining_quantity,
         .traded_quantity = item.acc_fill_sz,
         .average_traded_price = item.avg_px,
         .last_traded_quantity = item.fill_sz,

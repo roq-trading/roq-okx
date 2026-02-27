@@ -597,6 +597,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
       if (item.code != 0) {
         log::warn<1>(R"(*** ERROR CODE={}, MSG="{}" ***)"sv, item.code, item.msg);
       }
+      auto remaining_quantity = item.sz - item.acc_fill_sz;
       auto order_update = server::oms::OrderUpdate{
           .account = account_.name,
           .exchange = shared_.settings.exchange,
@@ -620,7 +621,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
           .price = item.px,
           .stop_price = NaN,
           .leverage = NaN,
-          .remaining_quantity = NaN,
+          .remaining_quantity = reamining_quantity,
           .traded_quantity = item.acc_fill_sz,
           .average_traded_price = item.avg_px,
           .last_traded_quantity = item.fill_sz,
