@@ -395,7 +395,7 @@ void OrderEntry::operator()(Trace<json::OrdersPendingAck> const &event) {
         .max_show_quantity = NaN,
         .order_type = {},
         .time_in_force = {},
-        .execution_instructons = {},
+        .execution_instructions = {},
         .create_time_utc = {},
         .update_time_utc = utils::safe_cast(item.u_time),
         .external_account = {},
