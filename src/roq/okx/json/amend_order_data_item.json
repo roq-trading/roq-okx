@@ -29,6 +29,10 @@
     {
       "name": "ts",
       "type": "std/milliseconds"
+    },
+    {
+      "name": "subCode",
+      "type": "std/string_view"
     }
   ]
 }
