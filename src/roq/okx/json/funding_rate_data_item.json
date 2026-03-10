@@ -69,6 +69,10 @@
     {
       "name": "ts",
       "type": "std/milliseconds"
+    },
+    {
+      "name": "prevFundingTime",
+      "type": "std/milliseconds"
     }
   ]
 }
