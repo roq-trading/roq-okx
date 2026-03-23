@@ -36,6 +36,7 @@ auto create_create_order(Side side, double quantity, double price) {
       .leverage = NaN,
       .routing_id = {},
       .strategy_id = {},
+      .release_time_utc = {},
   };
   return create_order;
 }
@@ -50,6 +51,7 @@ auto create_modify_order(double quantity, double price) {
       .routing_id = {},
       .version = {},
       .conditional_on_version = {},
+      .release_time_utc = {},
   };
   return modify_order;
 }
