@@ -119,7 +119,6 @@ std::string_view Encoder::batch_orders(
             R"("clOrdId":"{}",)"
             R"("tdMode":"{}",)"
             R"("posSide":"{}",)"
-            R"("instId":"{}",)"
             R"("instIdCode":{},)"
             R"("side":"{}",)"
             R"("ordType":"{}",)"
@@ -134,7 +133,6 @@ std::string_view Encoder::batch_orders(
             request_id,
             trade_mode_2.as_raw_text(),
             position_side.as_raw_text(),
-            create_order.symbol,
             ref_data.external_security_id,
             side.as_raw_text(),
             order_type.as_raw_text(),
@@ -151,7 +149,6 @@ std::string_view Encoder::batch_orders(
             R"("clOrdId":"{}",)"
             R"("tdMode":"{}",)"
             R"("posSide":"{}",)"
-            R"("instId":"{}",)"
             R"("instIdCode":{},)"
             R"("side":"{}",)"
             R"("ordType":"{}",)"
@@ -165,7 +162,6 @@ std::string_view Encoder::batch_orders(
             request_id,
             trade_mode_2.as_raw_text(),
             position_side.as_raw_text(),
-            create_order.symbol,
             ref_data.external_security_id,
             side.as_raw_text(),
             order_type.as_raw_text(),
@@ -185,7 +181,6 @@ std::string_view Encoder::batch_orders(
           R"("clOrdId":"{}",)"
           R"("tdMode":"{}",)"
           R"("posSide":"{}",)"
-          R"("instId":"{}",)"
           R"("instIdCode":{},)"
           R"("side":"{}",)"
           R"("ordType":"{}",)"
@@ -200,7 +195,6 @@ std::string_view Encoder::batch_orders(
           request_id,
           trade_mode_2.as_raw_text(),
           position_side.as_raw_text(),
-          create_order.symbol,
           ref_data.external_security_id,
           side.as_raw_text(),
           order_type.as_raw_text(),
@@ -234,7 +228,7 @@ std::string_view Encoder::batch_amend_orders(
       R"("op":"batch-amend-orders",)"
       R"("args":[{{)"
       R"("{}":"{}",)"
-      R"("instId":"{}",)"
+      R"("instIdCode":{},)"
       R"("reqId":"{}",)"
       R"("newSz":"{}",)"
       R"("newPx":"{}")"
@@ -244,7 +238,7 @@ std::string_view Encoder::batch_amend_orders(
       ++request_id_2,
       order_id_type,
       order_id,
-      order.symbol,
+      ref_data.external_security_id,
       request_id,
       Decimal{new_sz, ref_data.quantity.precision},
       Decimal{new_px, ref_data.price.precision});
@@ -255,7 +249,7 @@ std::string_view Encoder::batch_cancel_orders(
     std::string &buffer,
     roq::CancelOrder const &,
     server::oms::Order const &order,
-    server::oms::RefData const &,
+    server::oms::RefData const &ref_data,
     [[maybe_unused]] std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id,
     uint64_t &request_id_2) {
@@ -270,14 +264,14 @@ std::string_view Encoder::batch_cancel_orders(
       R"("op":"batch-cancel-orders",)"
       R"("args":[{{)"
       R"("{}":"{}",)"
-      R"("instId":"{}")"
+      R"("instIdCode":{})"
       R"(}})"
       R"(])"
       R"(}})"sv,
       ++request_id_2,
       order_id_type,
       order_id,
-      order.symbol);
+      ref_data.external_security_id);
   return buffer;
 }
 
