@@ -270,7 +270,7 @@ void Rest::operator()(Trace<json::InstrumentsAck> const &event) {
         .symbol = symbol,
         .description = {},
         .security_type = map(item.inst_type),
-        .external_security_id = {},
+        .external_security_id = utils::safe_cast(item.inst_id_code),
         .cfi_code = {},
         .base_currency = base_currency,
         .quote_currency = quote_currency,

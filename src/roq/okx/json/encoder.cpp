@@ -120,6 +120,7 @@ std::string_view Encoder::batch_orders(
             R"("tdMode":"{}",)"
             R"("posSide":"{}",)"
             R"("instId":"{}",)"
+            R"("instIdCode":{},)"
             R"("side":"{}",)"
             R"("ordType":"{}",)"
             R"("reduceOnly":{},)"
@@ -134,6 +135,7 @@ std::string_view Encoder::batch_orders(
             trade_mode_2.as_raw_text(),
             position_side.as_raw_text(),
             create_order.symbol,
+            ref_data.external_security_id,
             side.as_raw_text(),
             order_type.as_raw_text(),
             reduce_only,
@@ -150,6 +152,7 @@ std::string_view Encoder::batch_orders(
             R"("tdMode":"{}",)"
             R"("posSide":"{}",)"
             R"("instId":"{}",)"
+            R"("instIdCode":{},)"
             R"("side":"{}",)"
             R"("ordType":"{}",)"
             R"("reduceOnly":{},)"
@@ -163,6 +166,7 @@ std::string_view Encoder::batch_orders(
             trade_mode_2.as_raw_text(),
             position_side.as_raw_text(),
             create_order.symbol,
+            ref_data.external_security_id,
             side.as_raw_text(),
             order_type.as_raw_text(),
             reduce_only,
@@ -182,6 +186,7 @@ std::string_view Encoder::batch_orders(
           R"("tdMode":"{}",)"
           R"("posSide":"{}",)"
           R"("instId":"{}",)"
+          R"("instIdCode":{},)"
           R"("side":"{}",)"
           R"("ordType":"{}",)"
           R"("reduceOnly":{},)"
@@ -196,6 +201,7 @@ std::string_view Encoder::batch_orders(
           trade_mode_2.as_raw_text(),
           position_side.as_raw_text(),
           create_order.symbol,
+          ref_data.external_security_id,
           side.as_raw_text(),
           order_type.as_raw_text(),
           reduce_only,

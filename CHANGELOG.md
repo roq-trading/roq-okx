@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* Placing order failed without instIdCode (#575)
+
 ## 1.1.3 &ndash; 2026-03-12
 
 ### Fixed

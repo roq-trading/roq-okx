@@ -150,6 +150,7 @@ TEST_CASE("create_order", "[json_encoder]") {
                 R"("tdMode":"cross",)"
                 R"("posSide":"net",)"
                 R"("instId":"ABC",)"
+                R"("instIdCode":0,)"
                 R"("side":"buy",)"
                 R"("ordType":"limit",)"
                 R"("reduceOnly":false,)"

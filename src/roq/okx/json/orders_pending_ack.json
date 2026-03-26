@@ -18,6 +18,14 @@
       "name": "data",
       "type": "roq/okx/json/OrdersDataItem",
       "array": "std/span"
+    },
+    {
+      "name": "newCode",
+      "type": "std/string_view"
+    },
+    {
+      "name": "traceId",
+      "type": "std/string_view"
     }
   ]
 }
