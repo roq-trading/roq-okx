@@ -260,6 +260,10 @@
     {
       "name": "settledPnl",
       "type": "std/double"
+    },
+    {
+      "name": "estMaxWin",
+      "type": "std/double"
     }
   ]
 }

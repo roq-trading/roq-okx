@@ -180,6 +180,18 @@
     {
       "name": "instCategory",
       "type": "std/string_view"
+    },
+    {
+      "name": "freq",
+      "type": "std/string_view"
+    },
+    {
+      "name": "method",
+      "type": "std/string_view"
+    },
+    {
+      "name": "seriesId",
+      "type": "std/string_view"
     }
   ]
 }
