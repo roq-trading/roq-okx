@@ -264,6 +264,10 @@
     {
       "name": "estMaxWin",
       "type": "std/double"
+    },
+    {
+      "name": "closeAllFlag",
+      "type": "std/int32"
     }
   ]
 }
