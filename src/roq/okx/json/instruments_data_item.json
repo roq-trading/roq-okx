@@ -192,6 +192,10 @@
     {
       "name": "seriesId",
       "type": "std/string_view"
+    },
+    {
+      "name": "maxPlatOICoinLmt",
+      "type": "std/double"
     }
   ]
 }
