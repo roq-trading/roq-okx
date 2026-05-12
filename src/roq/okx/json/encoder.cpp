@@ -47,7 +47,7 @@ std::pair<json::OrderType, bool> compute_order_attributes(auto order_type, auto 
       }
       break;
     case IOC:
-      if (order_type_ != json::OrderType{}) {
+      if (order_type_ == json::OrderType{}) {
         order_type_ = json::OrderType::IOC;
       }
       break;

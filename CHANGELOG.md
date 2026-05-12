@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* Incorrect mapping of `time_in_force=IOC` (#587)
+
 ## 1.1.4 &ndash; 2026-04-20
 
 ### Fixed

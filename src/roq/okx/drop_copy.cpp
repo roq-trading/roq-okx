@@ -222,7 +222,7 @@ uint16_t DropCopy::operator()(
   auto &[message_info, create_order] = event;
   auto message =
       json::Encoder::batch_orders(encode_buffer_, create_order, order, ref_data, request_id, request_id_, trade_mode_, shared_.settings.test_margin_currency);
-  // log::warn(R"(DEBUG message="{}")"sv, message);
+  log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
 }
@@ -235,7 +235,7 @@ uint16_t DropCopy::operator()(
     std::string_view const &previous_request_id) {
   auto &[message_info, modify_order] = event;
   auto message = json::Encoder::batch_amend_orders(encode_buffer_, modify_order, order, ref_data, request_id, previous_request_id, request_id_);
-  // log::warn(R"(DEBUG message="{}")"sv, message);
+  log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
 }
@@ -248,7 +248,7 @@ uint16_t DropCopy::operator()(
     std::string_view const &previous_request_id) {
   auto &[message_info, cancel_order] = event;
   auto message = json::Encoder::batch_cancel_orders(encode_buffer_, cancel_order, order, ref_data, request_id, previous_request_id, request_id_);
-  // log::warn(R"(DEBUG message="{}")"sv, message);
+  log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
 }
@@ -269,7 +269,7 @@ uint16_t DropCopy::operator()(Event<CancelAllOrders> const &event, [[maybe_unuse
   }
   if (!std::empty(symbol_and_external_order_id)) {
     auto message = json::Encoder::batch_cancel_orders(encode_buffer_, cancel_all_orders, request_id, request_id_, symbol_and_external_order_id);
-    // log::warn(R"(DEBUG message="{}")"sv, message);
+    log::debug(R"(message="{}")"sv, message);
     (*connection_).send_text(message);
   }
   // XXX FIXME TODO CancelAllOrdersAck
@@ -592,6 +592,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
     log::info<1>("orders={}"sv, orders);
     for (auto &item : orders.data) {
       log::info<2>("item={}"sv, item);
+      log::debug("item={}"sv, item);
       if (item.amend_result < 0) {
         log::warn<1>("*** AMEND HAS FAILED ***"sv);
       }
@@ -689,6 +690,7 @@ void DropCopy::operator()(Trace<json::Order> const &event) {
   profile_.order_ack([&]() {
     auto &[trace_info, order_ack] = event;
     log::info<1>("order_ack={}"sv, order_ack);
+    log::debug("order_ack={}"sv, order_ack);
     auto order_status = order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : order_ack.data) {
       auto error = json::guess_error(item.s_code);
@@ -716,6 +718,7 @@ void DropCopy::operator()(Trace<json::AmendOrder> const &event) {
   profile_.amend_order_ack([&]() {
     auto &[trace_info, amend_order_ack] = event;
     log::info<1>("amend_order_ack={}"sv, amend_order_ack);
+    log::debug("amend_order_ack={}"sv, amend_order_ack);
     auto order_status = amend_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : amend_order_ack.data) {
       auto error = json::guess_error(item.s_code);
@@ -743,6 +746,7 @@ void DropCopy::operator()(Trace<json::CancelOrder> const &event) {
   profile_.cancel_order_ack([&]() {
     auto &[trace_info, cancel_order_ack] = event;
     log::info<1>("cancel_order_ack={}"sv, cancel_order_ack);
+    log::debug("cancel_order_ack={}"sv, cancel_order_ack);
     auto order_status = cancel_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : cancel_order_ack.data) {
       auto error = json::guess_error(item.s_code);
@@ -758,9 +762,15 @@ void DropCopy::operator()(Trace<json::CancelOrder> const &event) {
           .quantity = NaN,
           .price = NaN,
       };
-      if (shared_.update_order(item.cl_ord_id, stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {})) {
+      auto request_or_exchange_id = [&]() {
+        if (std::empty(item.cl_ord_id)) {
+          return item.ord_id;
+        }
+        return item.cl_ord_id;
+      }();
+      if (shared_.update_order(request_or_exchange_id, stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {})) {
       } else {
-        log::warn(R"(Did not find order: cl_ord_id="{}")"sv, item.cl_ord_id);
+        log::warn(R"(Did not find order: request_or_exchange_id="{}")"sv, request_or_exchange_id);
       }
     }
   });
