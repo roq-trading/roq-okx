@@ -213,9 +213,9 @@ void MarketData::operator()(ConnectionStatus connection_status, std::string_view
   create_trace_and_dispatch(handler_, trace_info, stream_status);
 }
 
-uint32_t MarketData::download(MarketDataState state) {
+uint32_t MarketData::download(State state) {
   switch (state) {
-    using enum MarketDataState;
+    using enum State;
     case UNDEFINED:
       assert(false);
       break;
@@ -692,7 +692,7 @@ void MarketData::operator()(Trace<json::Login> const &event) {
     auto &[trace_info, login] = event;
     log::info<1>("login={}"sv, login);
     (*connection_).touch(trace_info.source_receive_time);
-    auto state = MarketDataState::LOGIN;
+    auto state = State::LOGIN;
     download_.check_relaxed(state);
   });
 }

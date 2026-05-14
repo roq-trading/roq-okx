@@ -21,7 +21,6 @@
 #include "roq/server.hpp"
 
 #include "roq/okx/account.hpp"
-#include "roq/okx/drop_copy_state.hpp"
 #include "roq/okx/request.hpp"
 #include "roq/okx/shared.hpp"
 
@@ -114,7 +113,17 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
 
   void operator()(ConnectionStatus, std::string_view const &reason = {});
 
-  uint32_t download(DropCopyState);
+  enum class State {
+    UNDEFINED = 0,
+    LOGIN,
+    SUBSCRIBE,
+    BALANCE,
+    POSITIONS,
+    ORDERS,
+    DONE,
+  };
+
+  uint32_t download(State);
 
   void login();
 
@@ -161,7 +170,7 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
   Request &request_;
   // state
   ConnectionStatus connection_status_ = {};
-  core::Download<DropCopyState> download_;
+  core::Download<State> download_;
   // other
   json::TradeMode const trade_mode_;
 };

@@ -23,7 +23,6 @@
 #include "roq/server.hpp"
 
 #include "roq/okx/account.hpp"
-#include "roq/okx/market_data_state.hpp"
 #include "roq/okx/shared.hpp"
 
 #include "roq/okx/json/parser.hpp"
@@ -71,7 +70,13 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
  private:
   void operator()(ConnectionStatus, std::string_view const &reason = {});
 
-  uint32_t download(MarketDataState);
+  enum class State {
+    UNDEFINED = 0,
+    LOGIN,
+    DONE,
+  };
+
+  uint32_t download(State);
 
   void login();
 
@@ -143,7 +148,7 @@ struct MarketData final : public web::socket::Client::Handler, public json::Pars
   Shared &shared_;
   // state
   ConnectionStatus connection_status_ = {};
-  core::Download<MarketDataState> download_;
+  core::Download<State> download_;
   // queue
   core::TimerQueue<std::string> subscribe_queue_;
   // sequencing

@@ -191,9 +191,9 @@ void StaticData::operator()(ConnectionStatus connection_status, std::string_view
   create_trace_and_dispatch(handler_, trace_info, stream_status);
 }
 
-uint32_t StaticData::download(StaticDataState state) {
+uint32_t StaticData::download(State state) {
   switch (state) {
-    using enum StaticDataState;
+    using enum State;
     case UNDEFINED:
       assert(false);
       break;
@@ -500,7 +500,7 @@ void StaticData::operator()(Trace<json::Login> const &event) {
     auto &[trace_info, login] = event;
     log::info<1>("login={}"sv, login);
     (*connection_).touch(trace_info.source_receive_time);
-    auto state = StaticDataState::LOGIN;
+    auto state = State::LOGIN;
     download_.check_relaxed(state);
   });
 }

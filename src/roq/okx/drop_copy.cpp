@@ -335,9 +335,9 @@ void DropCopy::operator()(ConnectionStatus connection_status, std::string_view c
   create_trace_and_dispatch(handler_, trace_info, stream_status);
 }
 
-uint32_t DropCopy::download(DropCopyState state) {
+uint32_t DropCopy::download(State state) {
   switch (state) {
-    using enum DropCopyState;
+    using enum State;
     case UNDEFINED:
       assert(false);
       break;
@@ -456,7 +456,7 @@ void DropCopy::operator()(Trace<json::Subscribe> const &event) {
     auto &[trace_info, subscribe] = event;
     log::info<1>("subscribe={}"sv, subscribe);
     if (subscribe.arg.channel == json::Channel::ORDERS) {
-      download_.check(DropCopyState::SUBSCRIBE);
+      download_.check(State::SUBSCRIBE);
     }
   });
 }
@@ -523,7 +523,7 @@ void DropCopy::operator()(Trace<json::Login> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
     log::info<1>("login={}"sv, login);
-    auto state = DropCopyState::LOGIN;
+    auto state = State::LOGIN;
     download_.check_relaxed(state);
   });
 }
@@ -800,32 +800,32 @@ void DropCopy::request_orders() {
 // response
 
 void DropCopy::check_response_balance() {
-  if (download_.state() != DropCopyState::BALANCE) {
+  if (download_.state() != State::BALANCE) {
     return;
   }
   if (request_.request_balance < request_.respond_balance) {
     log::info("Balance download has completed!"sv);
-    download_.check(DropCopyState::BALANCE);
+    download_.check(State::BALANCE);
   }
 }
 
 void DropCopy::check_response_positions() {
-  if (download_.state() != DropCopyState::POSITIONS) {
+  if (download_.state() != State::POSITIONS) {
     return;
   }
   if (request_.request_positions < request_.respond_positions) {
     log::info("Positions download has completed!"sv);
-    download_.check(DropCopyState::POSITIONS);
+    download_.check(State::POSITIONS);
   }
 }
 
 void DropCopy::check_response_orders() {
-  if (download_.state() != DropCopyState::ORDERS) {
+  if (download_.state() != State::ORDERS) {
     return;
   }
   if (request_.request_orders < request_.respond_orders) {
     log::info("Order download has completed!"sv);
-    download_.check(DropCopyState::ORDERS);
+    download_.check(State::ORDERS);
   }
 }
 
