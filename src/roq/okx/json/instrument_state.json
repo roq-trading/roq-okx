@@ -19,6 +19,12 @@
     },
     {
       "name": "test"
+    },
+    {
+      "name": "post_only"
+    },
+    {
+      "name": "rebase"
     }
   ]
 }

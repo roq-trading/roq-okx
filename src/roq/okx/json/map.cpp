@@ -36,6 +36,10 @@ constexpr Helper<okx::json::InstrumentState>::operator std::optional<roq::Tradin
       return roq::TradingStatus::UNDEFINED;
     case TEST:
       return roq::TradingStatus::UNDEFINED;
+    case POST_ONLY:
+      return roq::TradingStatus::UNDEFINED;
+    case REBASE:
+      return roq::TradingStatus::UNDEFINED;
   }
   return {};
 }
@@ -47,6 +51,8 @@ static_assert(Helper{okx::json::InstrumentState{okx::json::InstrumentState::PREO
 static_assert(Helper{okx::json::InstrumentState{okx::json::InstrumentState::SETTLEMENT}} == roq::TradingStatus::UNDEFINED);
 static_assert(Helper{okx::json::InstrumentState{okx::json::InstrumentState::EXPIRED}} == roq::TradingStatus::UNDEFINED);
 static_assert(Helper{okx::json::InstrumentState{okx::json::InstrumentState::TEST}} == roq::TradingStatus::UNDEFINED);
+static_assert(Helper{okx::json::InstrumentState{okx::json::InstrumentState::POST_ONLY}} == roq::TradingStatus::UNDEFINED);
+static_assert(Helper{okx::json::InstrumentState{okx::json::InstrumentState::REBASE}} == roq::TradingStatus::UNDEFINED);
 
 template <>
 template <>
