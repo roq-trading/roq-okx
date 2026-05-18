@@ -14,15 +14,16 @@
 #include "roq/io/context.hpp"
 
 #include "roq/okx/account.hpp"
-#include "roq/okx/business.hpp"
 #include "roq/okx/config.hpp"
+#include "roq/okx/request.hpp"
+#include "roq/okx/settings.hpp"
+#include "roq/okx/shared.hpp"
+
+#include "roq/okx/business.hpp"
 #include "roq/okx/drop_copy.hpp"
 #include "roq/okx/market_data.hpp"
 #include "roq/okx/order_entry.hpp"
-#include "roq/okx/request.hpp"
 #include "roq/okx/rest.hpp"
-#include "roq/okx/settings.hpp"
-#include "roq/okx/shared.hpp"
 #include "roq/okx/static_data.hpp"
 
 namespace roq {
@@ -40,6 +41,8 @@ struct Gateway final : public server::Handler,
   Gateway(Gateway const &) = delete;
 
  protected:
+  // server::Handler
+
   void operator()(Event<Start> const &) override;
   void operator()(Event<Stop> const &) override;
   void operator()(Event<Timer> const &) override;
@@ -71,7 +74,7 @@ struct Gateway final : public server::Handler,
 
   void operator()(metrics::Writer &) const override;
 
-  // many
+  // streams
 
   void operator()(Trace<StreamStatus> const &) override;
   void operator()(Trace<ExternalLatency> const &) override;
@@ -89,9 +92,9 @@ struct Gateway final : public server::Handler,
   void operator()(Rest::SymbolsUpdate &) override;
   void operator()(StaticData::SymbolsUpdate &) override;
 
-  void ensure_symbol_slices(size_t size);
-
   // utilities
+
+  void ensure_symbol_slices(size_t size);
 
   template <typename... Args>
   void dispatch(Args &&...);
