@@ -7,12 +7,13 @@
 
 #include "roq/web/http/method.hpp"
 
-#include "roq/okx/config.hpp"
+#include "roq/okx/gateway/config.hpp"
 
 #include "roq/okx/tools/crypto.hpp"
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
 struct Account final {
   Account() = default;
@@ -35,5 +36,6 @@ struct Account final {
   tools::Crypto crypto_;
 };
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

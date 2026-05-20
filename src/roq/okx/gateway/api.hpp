@@ -4,10 +4,11 @@
 
 #include <string_view>
 
-#include "roq/okx/settings.hpp"
+#include "roq/okx/gateway/settings.hpp"
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
 struct API final {
   struct {
@@ -26,5 +27,6 @@ struct API final {
   static API create(Settings const &);
 };
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

@@ -5,6 +5,7 @@
 #include <string>
 #include <string_view>
 #include <utility>
+#include <vector>
 
 #include "roq/utils/metrics/counter.hpp"
 #include "roq/utils/metrics/latency.hpp"
@@ -15,35 +16,38 @@
 #include "roq/web/socket/client.hpp"
 
 #include "roq/core/download.hpp"
+#include "roq/core/timer_queue.hpp"
 
 #include "roq/core/json/buffer_stack.hpp"
 
 #include "roq/server.hpp"
 
-#include "roq/okx/account.hpp"
-#include "roq/okx/request.hpp"
-#include "roq/okx/shared.hpp"
+#include "roq/okx/gateway/account.hpp"
+#include "roq/okx/gateway/shared.hpp"
 
 #include "roq/okx/json/parser.hpp"
-#include "roq/okx/json/trade_mode.hpp"
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
-struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handler {
+struct MarketData final : public web::socket::Client::Handler, public json::Parser::Handler {
   struct Handler {
     virtual void operator()(Trace<StreamStatus> const &) = 0;
     virtual void operator()(Trace<ExternalLatency> const &) = 0;
-    virtual void operator()(Trace<TradeUpdate> const &, bool is_last, uint8_t user_id, std::string_view const &request_id) = 0;
-    virtual void operator()(Trace<FundsUpdate> const &, bool is_last) = 0;
-    virtual void operator()(Trace<PositionUpdate> const &, bool is_last) = 0;
+    virtual void operator()(Trace<TopOfBook> const &, bool is_last) = 0;
+    virtual void operator()(Trace<MarketByPriceUpdate> const &, bool is_last) = 0;
+    virtual void operator()(Trace<TradeSummary> const &, bool is_last) = 0;
+    virtual void operator()(Trace<StatisticsUpdate> const &, bool is_last) = 0;
   };
 
-  DropCopy(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request &);
+  MarketData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, size_t index);
 
-  DropCopy(DropCopy const &) = delete;
+  MarketData(MarketData const &) = delete;
 
-  bool ready() const;
+  uint16_t stream_id() const { return stream_id_; }
+
+  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
 
   void operator()(Event<Start> const &);
   void operator()(Event<Stop> const &);
@@ -51,21 +55,7 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
 
   void operator()(metrics::Writer &) const;
 
-  uint16_t operator()(Event<CreateOrder> const &, server::oms::Order const &, server::oms::RefData const &, std::string_view const &request_id);
-  uint16_t operator()(
-      Event<ModifyOrder> const &,
-      server::oms::Order const &,
-      server::oms::RefData const &,
-      std::string_view const &request_id,
-      std::string_view const &previous_request_id);
-  uint16_t operator()(
-      Event<CancelOrder> const &,
-      server::oms::Order const &,
-      server::oms::RefData const &,
-      std::string_view const &request_id,
-      std::string_view const &previous_request_id);
-
-  uint16_t operator()(Event<CancelAllOrders> const &, std::string_view const &request_id);
+  void subscribe(size_t start_from = 0);
 
  protected:
   // web::socket::Client::Handler
@@ -77,6 +67,26 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
   void operator()(web::socket::Client::Latency const &) override;
   void operator()(web::socket::Client::Text const &) override;
   void operator()(web::socket::Client::Binary const &) override;
+
+ private:
+  void operator()(ConnectionStatus, std::string_view const &reason = {});
+
+  enum class State {
+    UNDEFINED = 0,
+    LOGIN,
+    DONE,
+  };
+
+  uint32_t download(State);
+
+  void login();
+
+  void subscribe(std::span<Symbol const> const &symbols);
+
+  void subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value);
+  void subscribe(std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values);
+
+  void parse(std::string_view const &message);
 
   // json::Parser::Handler
 
@@ -108,72 +118,44 @@ struct DropCopy final : public web::socket::Client::Handler, json::Parser::Handl
 
   void operator()(Trace<json::Candle> const &) override;
 
- private:
   // helpers
 
-  void operator()(ConnectionStatus, std::string_view const &reason = {});
+  void check_subscribe_queue(std::chrono::nanoseconds now);
 
-  enum class State {
-    UNDEFINED = 0,
-    LOGIN,
-    SUBSCRIBE,
-    BALANCE,
-    POSITIONS,
-    ORDERS,
-    DONE,
-  };
-
-  uint32_t download(State);
-
-  void login();
-
-  void subscribe();
-  void subscribe(std::string_view const &channel);
-  void subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value);
-
-  void parse(std::string_view const &message);
-
-  void request_balance();
-  void request_positions();
-  void request_orders();
-
-  void check_response_balance();
-  void check_response_positions();
-  void check_response_orders();
-
+ private:
   Handler &handler_;
   // config
   uint16_t const stream_id_;
   std::string const name_;
+  size_t const index_;
   // web socket
   std::unique_ptr<web::socket::Client> const connection_;
   // buffers
   core::json::BufferStack decode_buffer_;
-  std::string encode_buffer_;
-  // session
-  uint64_t request_id_ = {};
   // metrics
   struct {
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, error, subscribe, unsubscribe, channel_conn_count, login, account, balance_and_position, positions, orders, create_order,
-        modify_order, cancel_order, order_ack, amend_order_ack, cancel_order_ack;
+    utils::metrics::Profile parse, error, subscribe, unsubscribe, login, estimated_price, price_limit, mark_price, tickers, trades, bbo_tbt, books_l2_tbt,
+        index_tickers, funding_rate;
   } profile_;
   struct {
     utils::metrics::Latency ping, heartbeat;
   } latency_;
   // account
   Account &account_;
-  // shared
+  // cache
   Shared &shared_;
-  Request &request_;
   // state
   ConnectionStatus connection_status_ = {};
   core::Download<State> download_;
-  // other
-  json::TradeMode const trade_mode_;
+  // queue
+  core::TimerQueue<std::string> subscribe_queue_;
+  // sequencing
+  utils::unordered_map<std::string, int64_t> sequence_;
 };
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

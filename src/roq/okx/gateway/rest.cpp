@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2026, Hans Erik Thrane */
 
-#include "roq/okx/rest.hpp"
+#include "roq/okx/gateway/rest.hpp"
 
 #include <algorithm>
 #include <utility>
@@ -23,6 +23,7 @@ using namespace std::literals;
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
 // === CONSTANTS ===
 
@@ -480,5 +481,6 @@ void Rest::process_response(web::rest::Response const &response, auto error_hand
   }
 }
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

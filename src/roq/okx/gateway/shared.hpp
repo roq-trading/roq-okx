@@ -17,11 +17,12 @@
 
 #include "roq/core/limit/rate_limiter.hpp"
 
-#include "roq/okx/api.hpp"
-#include "roq/okx/settings.hpp"
+#include "roq/okx/gateway/api.hpp"
+#include "roq/okx/gateway/settings.hpp"
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
 struct Shared final {
   Shared(server::Dispatcher &, Settings const &);
@@ -71,5 +72,6 @@ struct Shared final {
   std::vector<Bar> bars;
 };
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

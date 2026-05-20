@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2026, Hans Erik Thrane */
 
-#include "roq/okx/order_entry.hpp"
+#include "roq/okx/gateway/order_entry.hpp"
 
 #include <algorithm>
 #include <utility>
@@ -24,6 +24,7 @@ using namespace std::literals;
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
 // === CONSTANTS ===
 
@@ -575,5 +576,6 @@ void OrderEntry::process_response(web::rest::Response const &response, auto erro
   }
 }
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

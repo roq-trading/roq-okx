@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2026, Hans Erik Thrane */
 
-#include "roq/okx/drop_copy.hpp"
+#include "roq/okx/gateway/drop_copy.hpp"
 
 #include <algorithm>
 #include <utility>
@@ -29,6 +29,7 @@ using namespace std::literals;
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
 // === CONSTANTS ===
 
@@ -829,5 +830,6 @@ void DropCopy::check_response_orders() {
   }
 }
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

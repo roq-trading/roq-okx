@@ -6,6 +6,7 @@
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
 struct Request final {
   // balance
@@ -19,5 +20,6 @@ struct Request final {
   std::chrono::nanoseconds respond_orders = {};
 };
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

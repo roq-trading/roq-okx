@@ -2,11 +2,8 @@
 
 #pragma once
 
-#include <chrono>
 #include <string>
 #include <string_view>
-
-#include "roq/utils/container.hpp"
 
 #include "roq/utils/metrics/counter.hpp"
 #include "roq/utils/metrics/latency.hpp"
@@ -22,32 +19,31 @@
 
 #include "roq/server.hpp"
 
-#include "roq/okx/shared.hpp"
+#include "roq/okx/gateway/account.hpp"
+#include "roq/okx/gateway/request.hpp"
+#include "roq/okx/gateway/shared.hpp"
 
-#include "roq/okx/json/candles_ack.hpp"
-#include "roq/okx/json/instruments_ack.hpp"
+// #include "roq/okx/json/balance_ack.hpp"
+#include "roq/okx/json/fills_ack.hpp"
+#include "roq/okx/json/orders_pending_ack.hpp"
+#include "roq/okx/json/positions_ack.hpp"
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
-struct Rest final : public web::rest::Client::Handler {
-  struct SymbolsUpdate final {
-    std::span<Symbol const> symbols;
-  };
-
+struct OrderEntry final : public web::rest::Client::Handler {
   struct Handler {
     virtual void operator()(Trace<StreamStatus> const &) = 0;
     virtual void operator()(Trace<ExternalLatency> const &) = 0;
-    virtual void operator()(Trace<ReferenceData> const &, bool is_last) = 0;
-    virtual void operator()(Trace<MarketStatus> const &, bool is_last) = 0;
-    virtual void operator()(Trace<TimeSeriesUpdate> const &, bool is_last) = 0;
-    // cross-communication
-    virtual void operator()(SymbolsUpdate &) = 0;
+    virtual void operator()(Trace<TradeUpdate> const &, bool is_last, uint8_t user_id, std::string_view const &request_id) = 0;
+    virtual void operator()(Trace<FundsUpdate> const &, bool is_last) = 0;
+    virtual void operator()(Trace<PositionUpdate> const &, bool is_last) = 0;
   };
 
-  Rest(Handler &, io::Context &context, uint16_t stream_id, Shared &);
+  OrderEntry(Handler &, io::Context &context, uint16_t stream_id, Account &, Shared &, Request &);
 
-  Rest(Rest const &) = delete;
+  OrderEntry(OrderEntry const &) = delete;
 
   bool ready() const { return connection_status_ == ConnectionStatus::READY; }
 
@@ -66,23 +62,31 @@ struct Rest final : public web::rest::Client::Handler {
 
   void operator()(ConnectionStatus, std::string_view const &reason = {});
 
-  bool downloading() const { return download_instruments_.spot || download_instruments_.swap || download_instruments_.futures; }
+  // balance
 
-  // instruments
+  void get_balance();
+  void get_balance_ack(Trace<web::rest::Response> const &);
+  // void operator()(Trace<json::BalanceAck> const &);
 
-  void get_instruments(std::string_view const &type);
-  void get_instruments_ack(Trace<web::rest::Response> const &, std::string_view const &type);
-  void operator()(Trace<json::InstrumentsAck> const &);
+  // positions
 
-  // candles
+  void get_positions();
+  void get_positions_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<json::PositionsAck> const &);
 
-  void get_candles(std::string_view const &symbol);
-  void get_candles_ack(Trace<web::rest::Response> const &, std::string_view const &symbol);
-  void operator()(Trace<json::CandlesAck> const &, std::string_view const &symbol);
+  // orders-pending
+
+  void get_orders_pending();
+  void get_orders_pending_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<json::OrdersPendingAck> const &);
+
+  // fills
+
+  void get_fills();
+  void get_fills_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<json::FillsAck> const &);
 
   // helpers
-
-  void check_request_queue(std::chrono::nanoseconds now);
 
   void process_response(web::rest::Response const &, auto error_handler, auto success_handler);
 
@@ -100,22 +104,24 @@ struct Rest final : public web::rest::Client::Handler {
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile instruments, instruments_ack, candles, candles_ack;
+    utils::metrics::Profile balance, balance_ack, positions, positions_ack, orders_pending, orders_pending_ack, fills, fills_ack;
   } profile_;
   struct {
     utils::metrics::Latency ping;
   } latency_;
+  // account
+  Account &account_;
   // shared
   Shared &shared_;
+  Request &request_;
   // state
   ConnectionStatus connection_status_ = {};
-  struct {
-    bool spot = {};
-    bool swap = {};
-    bool futures = {};
-    // bool option = {};
-  } download_instruments_;
+  bool download_balance_ = false;
+  bool download_positions_ = false;
+  bool download_orders_ = false;
+  bool download_trades_is_first_ = true;
 };
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

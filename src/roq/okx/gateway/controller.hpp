@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include "roq/compat.hpp"
+
 #include <memory>
 #include <string>
 #include <utility>
@@ -13,32 +15,37 @@
 
 #include "roq/io/context.hpp"
 
-#include "roq/okx/account.hpp"
-#include "roq/okx/config.hpp"
-#include "roq/okx/request.hpp"
-#include "roq/okx/settings.hpp"
-#include "roq/okx/shared.hpp"
+#include "roq/okx/gateway/account.hpp"
+#include "roq/okx/gateway/config.hpp"
+#include "roq/okx/gateway/request.hpp"
+#include "roq/okx/gateway/settings.hpp"
+#include "roq/okx/gateway/shared.hpp"
 
-#include "roq/okx/business.hpp"
-#include "roq/okx/drop_copy.hpp"
-#include "roq/okx/market_data.hpp"
-#include "roq/okx/order_entry.hpp"
-#include "roq/okx/rest.hpp"
-#include "roq/okx/static_data.hpp"
+#include "roq/okx/gateway/business.hpp"
+#include "roq/okx/gateway/drop_copy.hpp"
+#include "roq/okx/gateway/market_data.hpp"
+#include "roq/okx/gateway/order_entry.hpp"
+#include "roq/okx/gateway/rest.hpp"
+#include "roq/okx/gateway/static_data.hpp"
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
-struct Gateway final : public server::Handler,
-                       public Rest::Handler,
-                       public OrderEntry::Handler,
-                       public DropCopy::Handler,
-                       public StaticData::Handler,
-                       public MarketData::Handler,
-                       public Business::Handler {
-  Gateway(server::Dispatcher &, Settings const &, Config const &, io::Context &);
+struct Controller final : public server::Handler,
+                          public Rest::Handler,
+                          public OrderEntry::Handler,
+                          public DropCopy::Handler,
+                          public StaticData::Handler,
+                          public MarketData::Handler,
+                          public Business::Handler {
+  ROQ_PUBLIC static std::unique_ptr<server::Handler> create(server::Dispatcher &, Settings const &, Config const &, io::Context &);
 
-  Gateway(Gateway const &) = delete;
+  Controller(server::Dispatcher &, Settings const &, Config const &, io::Context &);
+
+  Controller(Controller const &) = delete;
+
+  virtual ~Controller() = default;
 
  protected:
   // server::Handler
@@ -127,5 +134,6 @@ struct Gateway final : public server::Handler,
   std::vector<MBPUpdate> bids_, asks_;
 };
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

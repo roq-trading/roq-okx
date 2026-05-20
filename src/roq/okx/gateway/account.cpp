@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2026, Hans Erik Thrane */
 
-#include "roq/okx/account.hpp"
+#include "roq/okx/gateway/account.hpp"
 
 #include "roq/logging.hpp"
 
@@ -12,6 +12,7 @@ using namespace std::literals;
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
 // === HELPERS ===
 
@@ -50,5 +51,6 @@ std::string Account::create_headers(web::http::Method method, std::string_view c
   return crypto_.create_headers(method, path, body, timestamp);
 }
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

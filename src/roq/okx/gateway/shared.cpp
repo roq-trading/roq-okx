@@ -1,9 +1,10 @@
 /* Copyright (c) 2017-2026, Hans Erik Thrane */
 
-#include "roq/okx/shared.hpp"
+#include "roq/okx/gateway/shared.hpp"
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
 // === IMPLEMENTATION ===
 
@@ -12,5 +13,6 @@ Shared::Shared(server::Dispatcher &dispatcher, Settings const &settings)
       symbols{settings.ws.max_subscriptions_per_stream} {
 }
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

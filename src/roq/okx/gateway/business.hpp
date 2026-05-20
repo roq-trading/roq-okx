@@ -22,31 +22,24 @@
 
 #include "roq/server.hpp"
 
-#include "roq/okx/account.hpp"
-#include "roq/okx/shared.hpp"
+#include "roq/okx/gateway/shared.hpp"
 
 #include "roq/okx/json/parser.hpp"
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
-struct StaticData final : public web::socket::Client::Handler, public json::Parser::Handler {
-  struct SymbolsUpdate final {
-    std::vector<Symbol> &symbols;
-  };
-
+struct Business final : public web::socket::Client::Handler, public json::Parser::Handler {
   struct Handler {
     virtual void operator()(Trace<StreamStatus> const &) = 0;
     virtual void operator()(Trace<ExternalLatency> const &) = 0;
-    virtual void operator()(Trace<ReferenceData> const &, bool is_last) = 0;
-    virtual void operator()(Trace<MarketStatus> const &, bool is_last) = 0;
-    // cross-communication
-    virtual void operator()(SymbolsUpdate &) = 0;
+    virtual void operator()(Trace<TimeSeriesUpdate> const &, bool is_last) = 0;
   };
 
-  StaticData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
+  Business(Handler &, io::Context &, uint16_t stream_id, Shared &);
 
-  StaticData(StaticData const &) = delete;
+  Business(Business const &) = delete;
 
   uint16_t stream_id() const { return stream_id_; }
 
@@ -57,6 +50,8 @@ struct StaticData final : public web::socket::Client::Handler, public json::Pars
   void operator()(Event<Timer> const &);
 
   void operator()(metrics::Writer &) const;
+
+  void subscribe(size_t start_from = 0);
 
  protected:
   // web::socket::Client::Handler
@@ -72,20 +67,11 @@ struct StaticData final : public web::socket::Client::Handler, public json::Pars
  private:
   void operator()(ConnectionStatus, std::string_view const &reason = {});
 
-  enum class State {
-    UNDEFINED = 0,
-    LOGIN,
-    DONE,
-  };
-
-  uint32_t download(State);
-
-  void login();
-
   void subscribe_static();
 
-  void subscribe(std::string_view const &channel);
-  void subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value);
+  void subscribe(std::span<Symbol const> const &symbols);
+
+  void subscribe(std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values);
 
   void parse(std::string_view const &message);
 
@@ -137,23 +123,21 @@ struct StaticData final : public web::socket::Client::Handler, public json::Pars
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, error, subscribe, unsubscribe, login, status, instruments;
+    utils::metrics::Profile parse, error, subscribe, unsubscribe, candles;
   } profile_;
   struct {
     utils::metrics::Latency ping, heartbeat;
   } latency_;
-  // account
-  Account &account_;
   // cache
   Shared &shared_;
   // state
   ConnectionStatus connection_status_ = {};
-  core::Download<State> download_;
   // queue
   core::TimerQueue<std::string> subscribe_queue_;
   // sequencing
   utils::unordered_map<std::string, int64_t> sequence_;
 };
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

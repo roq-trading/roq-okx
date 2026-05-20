@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2026, Hans Erik Thrane */
 
-#include "roq/okx/config.hpp"
+#include "roq/okx/gateway/config.hpp"
 
 #include <utility>
 
@@ -10,6 +10,7 @@ using namespace std::literals;
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
 // === CONSTANTS ===
 
@@ -132,5 +133,6 @@ void Config::operator()(std::string_view const &key, toml::node &) {
   log::warn(R"(Unexpected: key="{}")"sv, key);
 }
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq

@@ -1,6 +1,6 @@
 /* Copyright (c) 2017-2026, Hans Erik Thrane */
 
-#include "roq/okx/gateway.hpp"
+#include "roq/okx/gateway/controller.hpp"
 
 #include "roq/logging.hpp"
 
@@ -10,6 +10,7 @@ using namespace std::literals;
 
 namespace roq {
 namespace okx {
+namespace gateway {
 
 // === CONSTANTS ===
 
@@ -93,7 +94,11 @@ auto create_business(auto &gateway, auto &settings, auto &context, auto &stream_
 
 // === IMPLEMENTATION ===
 
-Gateway::Gateway(server::Dispatcher &dispatcher, Settings const &settings, Config const &config, io::Context &context)
+std::unique_ptr<server::Handler> Controller::create(server::Dispatcher &dispatcher, Settings const &settings, Config const &config, io::Context &context) {
+  return std::make_unique<Controller>(dispatcher, settings, config, context);
+}
+
+Controller::Controller(server::Dispatcher &dispatcher, Settings const &settings, Config const &config, io::Context &context)
     : dispatcher_{dispatcher}, accounts_{create_accounts<decltype(accounts_)>(config)}, master_account_{config.get_master_account()}, context_{context},
       shared_{dispatcher, settings}, request_{create_request<decltype(request_)>(config)}, rest_{*this, context_, ++stream_id_, shared_},
       order_entry_{create_order_entry<decltype(order_entry_)>(*this, context_, ++stream_id_, accounts_, shared_, request_)},
@@ -104,21 +109,21 @@ Gateway::Gateway(server::Dispatcher &dispatcher, Settings const &settings, Confi
 
 // server::Handler
 
-void Gateway::operator()(Event<Start> const &event) {
+void Controller::operator()(Event<Start> const &event) {
   log::info("Starting..."sv);
   dispatch(event);
 }
 
-void Gateway::operator()(Event<Stop> const &event) {
+void Controller::operator()(Event<Stop> const &event) {
   log::info("Stopping..."sv);
   dispatch(event);
 }
 
-void Gateway::operator()(Event<Timer> const &event) {
+void Controller::operator()(Event<Timer> const &event) {
   dispatch(event);
 }
 
-void Gateway::operator()(Event<Control> const &event) {
+void Controller::operator()(Event<Control> const &event) {
   auto &[message_info, control] = event;
   switch (control.action) {
     using enum Action;
@@ -134,13 +139,13 @@ void Gateway::operator()(Event<Control> const &event) {
   }
 }
 
-void Gateway::operator()(Event<Connected> const &) {
+void Controller::operator()(Event<Connected> const &) {
 }
 
-void Gateway::operator()(Event<Disconnected> const &) {
+void Controller::operator()(Event<Disconnected> const &) {
 }
 
-void Gateway::operator()(Event<Subscribe> const &event) {
+void Controller::operator()(Event<Subscribe> const &event) {
   auto &[message_info, subscribe] = event;
   std::vector<Symbol> symbols;
   for (auto &item : subscribe.symbols) {
@@ -156,13 +161,13 @@ void Gateway::operator()(Event<Subscribe> const &event) {
   (*this)(symbols_update);
 }
 
-uint16_t Gateway::operator()(
+uint16_t Controller::operator()(
     Event<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &ref_data, std::string_view const &request_id) {
   assert(!std::empty(event.value.account));
   return get_order_entry(event.value.account)(event, order, ref_data, request_id);
 }
 
-uint16_t Gateway::operator()(
+uint16_t Controller::operator()(
     Event<ModifyOrder> const &event,
     server::oms::Order const &order,
     server::oms::RefData const &ref_data,
@@ -173,7 +178,7 @@ uint16_t Gateway::operator()(
   return get_order_entry(event.value.account)(event, order, ref_data, request_id, previous_request_id);
 }
 
-uint16_t Gateway::operator()(
+uint16_t Controller::operator()(
     Event<CancelOrder> const &event,
     server::oms::Order const &order,
     server::oms::RefData const &ref_data,
@@ -184,75 +189,75 @@ uint16_t Gateway::operator()(
   return get_order_entry(event.value.account)(event, order, ref_data, request_id, previous_request_id);
 }
 
-uint16_t Gateway::operator()(Event<CancelAllOrders> const &event, std::string_view const &request_id) {
+uint16_t Controller::operator()(Event<CancelAllOrders> const &event, std::string_view const &request_id) {
   assert(!std::empty(event.value.account));
   return get_order_entry(event.value.account)(event, request_id);
 }
 
-uint16_t Gateway::operator()(Event<MassQuote> const &) {
+uint16_t Controller::operator()(Event<MassQuote> const &) {
   throw server::oms::NotSupported{"not supported"sv};
 }
 
-uint16_t Gateway::operator()(Event<CancelQuotes> const &) {
+uint16_t Controller::operator()(Event<CancelQuotes> const &) {
   throw server::oms::NotSupported{"not supported"sv};
 }
 
-void Gateway::operator()(metrics::Writer &writer) const {
+void Controller::operator()(metrics::Writer &writer) const {
   dispatch_helper(*this, writer);
 }
 
 // streams
 
-void Gateway::operator()(Trace<StreamStatus> const &event) {
+void Controller::operator()(Trace<StreamStatus> const &event) {
   dispatcher_(event);
 }
 
-void Gateway::operator()(Trace<ExternalLatency> const &event) {
+void Controller::operator()(Trace<ExternalLatency> const &event) {
   dispatcher_(event);
 }
 
-void Gateway::operator()(Trace<ReferenceData> const &event, bool is_last) {
+void Controller::operator()(Trace<ReferenceData> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Trace<MarketStatus> const &event, bool is_last) {
+void Controller::operator()(Trace<MarketStatus> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Trace<TopOfBook> const &event, bool is_last) {
+void Controller::operator()(Trace<TopOfBook> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Trace<MarketByPriceUpdate> const &event, bool is_last) {
+void Controller::operator()(Trace<MarketByPriceUpdate> const &event, bool is_last) {
   auto callback = []([[maybe_unused]] auto &market_by_price) {};
   dispatcher_(event, is_last, bids_, asks_, callback);
 }
 
-void Gateway::operator()(Trace<TradeSummary> const &event, bool is_last) {
+void Controller::operator()(Trace<TradeSummary> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Trace<StatisticsUpdate> const &event, bool is_last) {
+void Controller::operator()(Trace<StatisticsUpdate> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Trace<TimeSeriesUpdate> const &event, bool is_last) {
+void Controller::operator()(Trace<TimeSeriesUpdate> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Trace<TradeUpdate> const &event, bool is_last, uint8_t user_id, std::string_view const &request_id) {
+void Controller::operator()(Trace<TradeUpdate> const &event, bool is_last, uint8_t user_id, std::string_view const &request_id) {
   dispatcher_(event, is_last, user_id, request_id);
 }
 
-void Gateway::operator()(Trace<FundsUpdate> const &event, bool is_last) {
+void Controller::operator()(Trace<FundsUpdate> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Trace<PositionUpdate> const &event, bool is_last) {
+void Controller::operator()(Trace<PositionUpdate> const &event, bool is_last) {
   dispatcher_(event, is_last);
 }
 
-void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
+void Controller::operator()(Rest::SymbolsUpdate &symbols_update) {
   auto [size, start_from] = shared_.symbols(symbols_update.symbols);
   ensure_symbol_slices(size);
   for (auto &item : market_data_) {
@@ -263,7 +268,7 @@ void Gateway::operator()(Rest::SymbolsUpdate &symbols_update) {
   }
 }
 
-void Gateway::operator()(StaticData::SymbolsUpdate &symbols_update) {
+void Controller::operator()(StaticData::SymbolsUpdate &symbols_update) {
   auto [size, start_from] = shared_.symbols(symbols_update.symbols);
   ensure_symbol_slices(size);
   for (auto &item : market_data_) {
@@ -276,7 +281,7 @@ void Gateway::operator()(StaticData::SymbolsUpdate &symbols_update) {
 
 // utilities
 
-void Gateway::ensure_symbol_slices(size_t size) {
+void Controller::ensure_symbol_slices(size_t size) {
   while (std::size(market_data_) < size) {
     auto stream_id = ++stream_id_;
     auto index = std::size(market_data_);
@@ -290,12 +295,12 @@ void Gateway::ensure_symbol_slices(size_t size) {
 }
 
 template <typename... Args>
-void Gateway::dispatch(Args &&...args) {
+void Controller::dispatch(Args &&...args) {
   dispatch_helper(*this, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
-void Gateway::dispatch_helper(auto &self, Args &&...args) {
+void Controller::dispatch_helper(auto &self, Args &&...args) {
   auto helper = [&](auto &target) { target(std::forward<Args>(args)...); };
   helper(self.rest_);
   for (auto &[_, item] : self.order_entry_) {
@@ -317,7 +322,7 @@ void Gateway::dispatch_helper(auto &self, Args &&...args) {
   }
 }
 
-DropCopy &Gateway::get_order_entry(std::string_view const &account) {
+DropCopy &Controller::get_order_entry(std::string_view const &account) {
   auto iter = drop_copy_.find(account);
   if (iter != std::end(drop_copy_)) {
     return *(*iter).second;
@@ -325,5 +330,6 @@ DropCopy &Gateway::get_order_entry(std::string_view const &account) {
   throw RuntimeError{R"(Unknown account="{}")"sv, account};
 }
 
+}  // namespace gateway
 }  // namespace okx
 }  // namespace roq
