@@ -221,8 +221,16 @@ void DropCopy::operator()(metrics::Writer &writer) const {
 uint16_t DropCopy::operator()(
     Event<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &ref_data, std::string_view const &request_id) {
   auto &[message_info, create_order] = event;
-  auto message =
-      json::Encoder::batch_orders(encode_buffer_, create_order, order, ref_data, request_id, request_id_, trade_mode_, shared_.settings.test_margin_currency);
+  auto message = json::Encoder::batch_orders(
+      encode_buffer_,
+      create_order,
+      order,
+      ref_data,
+      request_id,
+      request_id_,
+      trade_mode_,
+      shared_.settings.price_amend_type,
+      shared_.settings.test_margin_currency);
   log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
@@ -235,7 +243,8 @@ uint16_t DropCopy::operator()(
     std::string_view const &request_id,
     std::string_view const &previous_request_id) {
   auto &[message_info, modify_order] = event;
-  auto message = json::Encoder::batch_amend_orders(encode_buffer_, modify_order, order, ref_data, request_id, previous_request_id, request_id_);
+  auto message = json::Encoder::batch_amend_orders(
+      encode_buffer_, modify_order, order, ref_data, request_id, previous_request_id, request_id_, shared_.settings.price_amend_type);
   log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;

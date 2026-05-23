@@ -27,6 +27,7 @@ struct Encoder final {
       std::string_view const &request_id,
       uint64_t &request_id_2,
       TradeMode,
+      std::string_view const &price_amend_type,
       std::string_view const &margin_currency);
 
   static std::string_view batch_amend_orders(
@@ -36,7 +37,8 @@ struct Encoder final {
       server::oms::RefData const &,
       std::string_view const &request_id,
       std::string_view const &previous_request_id,
-      uint64_t &request_id_2);
+      uint64_t &request_id_2,
+      std::string_view const &price_amend_type);
 
   static std::string_view batch_cancel_orders(
       std::string &buffer,

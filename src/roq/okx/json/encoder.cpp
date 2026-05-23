@@ -83,6 +83,7 @@ std::string_view Encoder::batch_orders(
     std::string_view const &request_id,
     uint64_t &request_id_2,
     TradeMode trade_mode,
+    std::string_view const &price_amend_type,
     std::string_view const &margin_currency) {
   buffer.clear();
   json::PositionSide position_side = json::PositionSide::NET;  // XXX should be configurable
@@ -186,7 +187,8 @@ std::string_view Encoder::batch_orders(
           R"("ordType":"{}",)"
           R"("reduceOnly":{},)"
           R"("sz":"{}",)"
-          R"("px":"{}")"
+          R"("px":"{}",)"
+          R"("pxAmendType":"{}")"
           R"({})"  // extras
           R"(}})"
           R"(])"
@@ -201,6 +203,7 @@ std::string_view Encoder::batch_orders(
           reduce_only,
           Decimal{create_order.quantity, ref_data.quantity.precision},
           Decimal{create_order.price, ref_data.price.precision},
+          price_amend_type,
           extras);
     }
   }
@@ -214,7 +217,8 @@ std::string_view Encoder::batch_amend_orders(
     server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id,
-    uint64_t &request_id_2) {
+    uint64_t &request_id_2,
+    std::string_view const &price_amend_type) {
   buffer.clear();
   auto has_external_order_id = !std::empty(order.external_order_id);
   auto order_id_type = has_external_order_id ? "ordId"sv : "clOrdId"sv;
@@ -231,7 +235,8 @@ std::string_view Encoder::batch_amend_orders(
       R"("instIdCode":{},)"
       R"("reqId":"{}",)"
       R"("newSz":"{}",)"
-      R"("newPx":"{}")"
+      R"("newPx":"{}",)"
+      R"("pxAmendType":"{}")"
       R"(}})"
       R"(])"
       R"(}})"sv,
@@ -241,7 +246,8 @@ std::string_view Encoder::batch_amend_orders(
       ref_data.external_security_id,
       request_id,
       Decimal{new_sz, ref_data.quantity.precision},
-      Decimal{new_px, ref_data.price.precision});
+      Decimal{new_px, ref_data.price.precision},
+      price_amend_type);
   return buffer;
 }
 

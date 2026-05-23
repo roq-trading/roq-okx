@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Added
+
+* Support `pxAmendType` (#595)
+
 ### Fixed
 
 * Incorrect mapping of `time_in_force=IOC` (#587)

@@ -140,7 +140,7 @@ TEST_CASE("create_order", "[json_encoder]") {
   auto order = create_oms_order(1.0, 1.0);
   auto ref_data = create_ref_data();
   uint64_t request_id = 0;
-  auto result = json::Encoder::batch_orders(buffer, create_order, order, ref_data, "1234"sv, request_id, json::TradeMode::CROSS, "BTC"sv);
+  auto result = json::Encoder::batch_orders(buffer, create_order, order, ref_data, "1234"sv, request_id, json::TradeMode::CROSS, "1"sv, "BTC"sv);
   CHECK(
       result == R"({)"
                 R"("id":"1",)"
@@ -155,6 +155,7 @@ TEST_CASE("create_order", "[json_encoder]") {
                 R"("reduceOnly":false,)"
                 R"("sz":"1.0",)"
                 R"("px":"1.00",)"
+                R"("pxAmendType":"1",)"
                 R"("ccy":"BTC")"
                 R"(})"
                 R"(])"
@@ -167,7 +168,7 @@ TEST_CASE("modify_order", "[json_encoder]") {
   auto order = create_oms_order(1.0, 1.0);
   auto ref_data = create_ref_data();
   uint64_t request_id = 0;
-  auto result = json::Encoder::batch_amend_orders(buffer, modify_order, order, ref_data, "1234"sv, "2345"sv, request_id);
+  auto result = json::Encoder::batch_amend_orders(buffer, modify_order, order, ref_data, "1234"sv, "2345"sv, request_id, "0"sv);
   CHECK(
       result == R"({)"
                 R"("id":"1",)"
@@ -177,7 +178,8 @@ TEST_CASE("modify_order", "[json_encoder]") {
                 R"("instIdCode":0,)"
                 R"("reqId":"1234",)"
                 R"("newSz":"1.0",)"
-                R"("newPx":"1.00")"
+                R"("newPx":"1.00",)"
+                R"("pxAmendType":"0")"
                 R"(})"
                 R"(])"
                 R"(})"sv);

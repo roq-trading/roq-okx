@@ -17,6 +17,12 @@
       "description": "Trade mode (:code:`cross`, :code:`isolated` or :code:`cash`)"
     },
     {
+      "name": "price_amend_type",
+      "type": "std/string",
+      "default": "0",
+      "description": "Price amendment type for orders (0: price amendments are not allowed, 1: price amendments are allowed)"
+    },
+    {
       "name": "test_margin_currency",
       "type": "std/string",
       "description": "TEST Margin currency used when placing new orders"
