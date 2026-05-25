@@ -13,8 +13,8 @@
 .. |footnote-3| unicode:: U+2778
 
 
-roq-okx
-=======
+`roq-okx <https://github.com/roq-trading/roq-okx/>`__
+=====================================================
 
 .. important::
    The account must be configured for the "net" position mode (futures and swaps).
@@ -474,6 +474,12 @@ Common
 * :ref:`Using Flags <abseil-cpp>`
 * :ref:`Gateway Flags <gateway-flags>`
 * :ref:`Gateway Config <gateway-config>`
+
+
+GitHub
+~~~~~~
+
+* `roq-okx <https://github.com/roq-trading/roq-okx/>`__
 
 
 Exchange
