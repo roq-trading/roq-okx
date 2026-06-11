@@ -4,7 +4,7 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/okx/json/orders_pending_ack.hpp"
+#include "roq/okx/protocol/json/orders_pending_ack.hpp"
 
 using namespace roq;
 using namespace roq::okx;
@@ -14,7 +14,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::OrdersPendingAck;
+using value_type = protocol::json::OrdersPendingAck;
 
 TEST_CASE("empty", "[json_orders_pending_ack]") {
   auto message = R"({)"

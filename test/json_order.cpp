@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::Order;
+using value_type = protocol::json::Order;
 
 TEST_CASE("success", "[json_order]") {
   auto message = R"({)"
@@ -41,7 +41,7 @@ TEST_CASE("success", "[json_order]") {
     CHECK(std::empty(data_0.tag));
     CHECK(obj.id == "1000001"sv);
     CHECK(std::empty(obj.msg));
-    CHECK(obj.op == json::Operation::ORDER);
+    CHECK(obj.op == protocol::json::Operation::ORDER);
   };
   ParserTester<value_type>::dispatch(helper, message, 8192, 2);
 }
@@ -73,7 +73,7 @@ TEST_CASE("failure", "[json_order]") {
     CHECK(std::empty(data_0.tag));
     CHECK(obj.id == "2000001"sv);
     CHECK(std::empty(obj.msg));
-    CHECK(obj.op == json::Operation::ORDER);
+    CHECK(obj.op == protocol::json::Operation::ORDER);
   };
   ParserTester<value_type>::dispatch(helper, message, 8192, 2);
 }

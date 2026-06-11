@@ -1,0 +1,12 @@
+{
+  "name": "roq/okx/protocol/json/Action",
+  "type": "enum",
+  "values": [
+    {
+      "name": "snapshot"
+    },
+    {
+      "name": "update"
+    }
+  ]
+}

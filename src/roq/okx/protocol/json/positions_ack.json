@@ -1,0 +1,27 @@
+{
+  "name": "roq/okx/protocol/json/PositionsAck",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "code",
+      "type": "std/int32"
+    },
+    {
+      "name": "msg",
+      "type": "std/string_view"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/protocol/json/PositionsDataItem",
+      "array": "std/span"
+    },
+    {
+      "name": "newCode",
+      "type": "std/string_view"
+    },
+    {
+      "name": "traceId",
+      "type": "std/string_view"
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "name": "roq/okx/protocol/json/MarginMode",
+  "type": "enum",
+  "values": [
+    {
+      "name": "cross"
+    },
+    {
+      "name": "isolated"
+    }
+  ]
+}

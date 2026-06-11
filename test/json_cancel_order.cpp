@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::CancelOrder;
+using value_type = protocol::json::CancelOrder;
 
 TEST_CASE("success", "[json_cancel_order]") {
   auto message = R"({)"
@@ -40,7 +40,7 @@ TEST_CASE("success", "[json_cancel_order]") {
     CHECK(std::empty(data_0.tag));
     CHECK(obj.id == "2000003"sv);
     CHECK(std::empty(obj.msg));
-    CHECK(obj.op == json::Operation::CANCEL_ORDER);
+    CHECK(obj.op == protocol::json::Operation::CANCEL_ORDER);
   };
   ParserTester<value_type>::dispatch(helper, message, 8192, 2);
 }

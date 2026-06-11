@@ -1,0 +1,15 @@
+{
+  "name": "roq/okx/protocol/json/MarkPrice",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "arg",
+      "type": "roq/okx/protocol/json/MarkPriceArg"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/protocol/json/MarkPriceDataItem",
+      "array": "std/span"
+    }
+  ]
+}

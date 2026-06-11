@@ -1,0 +1,15 @@
+{
+  "name": "roq/okx/protocol/json/FundingRate",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "arg",
+      "type": "roq/okx/protocol/json/FundingRateArg"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/protocol/json/FundingRateDataItem",
+      "array": "std/span"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "name": "roq/okx/protocol/json/FillsArg",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "channel",
+      "type": "roq/okx/protocol/json/Channel"
+    },
+    {
+      "name": "uid",
+      "type": "std/string_view"
+    }
+  ]
+}

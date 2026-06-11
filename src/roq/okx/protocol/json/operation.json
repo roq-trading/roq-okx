@@ -1,0 +1,24 @@
+{
+  "name": "roq/okx/protocol/json/Operation",
+  "type": "enum",
+  "values": [
+    {
+      "name": "order"
+    },
+    {
+      "name": "batch-orders"
+    },
+    {
+      "name": "amend-order"
+    },
+    {
+      "name": "batch-amend-orders"
+    },
+    {
+      "name": "cancel-order"
+    },
+    {
+      "name": "batch-cancel-orders"
+    }
+  ]
+}

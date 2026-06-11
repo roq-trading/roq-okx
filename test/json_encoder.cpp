@@ -2,7 +2,7 @@
 
 #include <catch2/catch_all.hpp>
 
-#include "roq/okx/json/encoder.hpp"
+#include "roq/okx/protocol/json/encoder.hpp"
 
 using namespace roq;
 using namespace roq::okx;
@@ -140,7 +140,8 @@ TEST_CASE("create_order", "[json_encoder]") {
   auto order = create_oms_order(1.0, 1.0);
   auto ref_data = create_ref_data();
   uint64_t request_id = 0;
-  auto result = json::Encoder::batch_orders(buffer, create_order, order, ref_data, "1234"sv, request_id, json::TradeMode::CROSS, "1"sv, "BTC"sv);
+  auto result =
+      protocol::json::Encoder::batch_orders(buffer, create_order, order, ref_data, "1234"sv, request_id, protocol::json::TradeMode::CROSS, "1"sv, "BTC"sv);
   CHECK(
       result == R"({)"
                 R"("id":"1",)"
@@ -168,7 +169,7 @@ TEST_CASE("modify_order", "[json_encoder]") {
   auto order = create_oms_order(1.0, 1.0);
   auto ref_data = create_ref_data();
   uint64_t request_id = 0;
-  auto result = json::Encoder::batch_amend_orders(buffer, modify_order, order, ref_data, "1234"sv, "2345"sv, request_id, "0"sv);
+  auto result = protocol::json::Encoder::batch_amend_orders(buffer, modify_order, order, ref_data, "1234"sv, "2345"sv, request_id, "0"sv);
   CHECK(
       result == R"({)"
                 R"("id":"1",)"
@@ -192,7 +193,7 @@ TEST_CASE("cancel_all_orders_1", "[json_encoder]") {
   std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_id{{
       {"BTC"sv, "order_id:1234"sv},
   }};
-  auto result = json::Encoder::batch_cancel_orders(buffer, cancel_all_orders, "1234"sv, request_id, symbol_and_external_order_id);
+  auto result = protocol::json::Encoder::batch_cancel_orders(buffer, cancel_all_orders, "1234"sv, request_id, symbol_and_external_order_id);
   CHECK(
       result == R"({)"
                 R"("id":"1",)"
@@ -213,7 +214,7 @@ TEST_CASE("cancel_all_orders_2", "[json_encoder]") {
       {"BTC"sv, "order_id:1234"sv},
       {"ETH"sv, "order_id:2345"sv},
   }};
-  auto result = json::Encoder::batch_cancel_orders(buffer, cancel_all_orders, "1234"sv, request_id, symbol_and_external_order_id);
+  auto result = protocol::json::Encoder::batch_cancel_orders(buffer, cancel_all_orders, "1234"sv, request_id, symbol_and_external_order_id);
   CHECK(
       result == R"({)"
                 R"("id":"1",)"

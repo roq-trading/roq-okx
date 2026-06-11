@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::ChannelConnCount;
+using value_type = protocol::json::ChannelConnCount;
 
 TEST_CASE("simple", "[json_channel_conn_count]") {
   auto message = R"({)"
@@ -22,8 +22,8 @@ TEST_CASE("simple", "[json_channel_conn_count]") {
                  R"("connId":"4adc328c")"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.event == json::EventType::CHANNEL_CONN_COUNT);
-    CHECK(obj.channel == json::Channel::ACCOUNT);
+    CHECK(obj.event == protocol::json::EventType::CHANNEL_CONN_COUNT);
+    CHECK(obj.channel == protocol::json::Channel::ACCOUNT);
     CHECK(obj.conn_count == 1);
     CHECK(obj.conn_id == "4adc328c"sv);
   };

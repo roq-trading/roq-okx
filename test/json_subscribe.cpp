@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::Subscribe;
+using value_type = protocol::json::Subscribe;
 
 TEST_CASE("status", "[json_subscribe]") {
   auto message = R"({)"
@@ -23,8 +23,8 @@ TEST_CASE("status", "[json_subscribe]") {
                  R"("connId":"26c9b771")"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.event == json::EventType::SUBSCRIBE);
-    CHECK(obj.arg.channel == json::Channel::STATUS);
+    CHECK(obj.event == protocol::json::EventType::SUBSCRIBE);
+    CHECK(obj.arg.channel == protocol::json::Channel::STATUS);
     CHECK(obj.conn_id == "26c9b771"sv);
   };
   ParserTester<value_type>::dispatch(helper, message, 8192, 1);
@@ -40,8 +40,8 @@ TEST_CASE("instruments", "[json_subscribe]") {
                  R"("connId":"94d38802")"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.event == json::EventType::SUBSCRIBE);
-    CHECK(obj.arg.channel == json::Channel::INSTRUMENTS);
+    CHECK(obj.event == protocol::json::EventType::SUBSCRIBE);
+    CHECK(obj.arg.channel == protocol::json::Channel::INSTRUMENTS);
     CHECK(obj.arg.inst_type == "SPOT"sv);
     CHECK(obj.conn_id == "94d38802"sv);
   };
@@ -58,8 +58,8 @@ TEST_CASE("tickers", "[json_subscribe]") {
                  R"("connId":"94d38802")"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.event == json::EventType::SUBSCRIBE);
-    CHECK(obj.arg.channel == json::Channel::TICKERS);
+    CHECK(obj.event == protocol::json::EventType::SUBSCRIBE);
+    CHECK(obj.arg.channel == protocol::json::Channel::TICKERS);
     CHECK(obj.arg.inst_id == "BTC-USD"sv);
     CHECK(obj.conn_id == "94d38802"sv);
   };
@@ -76,8 +76,8 @@ TEST_CASE("trades", "[json_subscribe]") {
                  R"("connId":"94d38802")"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.event == json::EventType::SUBSCRIBE);
-    CHECK(obj.arg.channel == json::Channel::TRADES);
+    CHECK(obj.event == protocol::json::EventType::SUBSCRIBE);
+    CHECK(obj.arg.channel == protocol::json::Channel::TRADES);
     CHECK(obj.arg.inst_id == "BTC-USD"sv);
     CHECK(obj.conn_id == "94d38802"sv);
   };
@@ -94,8 +94,8 @@ TEST_CASE("bbo_tbt", "[json_subscribe]") {
                  R"("connId":"94d38802")"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.event == json::EventType::SUBSCRIBE);
-    CHECK(obj.arg.channel == json::Channel::BBO_TBT);
+    CHECK(obj.event == protocol::json::EventType::SUBSCRIBE);
+    CHECK(obj.arg.channel == protocol::json::Channel::BBO_TBT);
     CHECK(obj.arg.inst_id == "BTC-USD"sv);
     CHECK(obj.conn_id == "94d38802"sv);
   };
@@ -112,8 +112,8 @@ TEST_CASE("books", "[json_subscribe]") {
                  R"("connId":"94d38802")"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.event == json::EventType::SUBSCRIBE);
-    CHECK(obj.arg.channel == json::Channel::BOOKS);
+    CHECK(obj.event == protocol::json::EventType::SUBSCRIBE);
+    CHECK(obj.arg.channel == protocol::json::Channel::BOOKS);
     CHECK(obj.arg.inst_id == "BTC-USD"sv);
     CHECK(obj.conn_id == "94d38802"sv);
   };
@@ -130,8 +130,8 @@ TEST_CASE("index_tickers", "[json_subscribe]") {
                  R"("connId":"94d38802")"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.event == json::EventType::SUBSCRIBE);
-    CHECK(obj.arg.channel == json::Channel::INDEX_TICKERS);
+    CHECK(obj.event == protocol::json::EventType::SUBSCRIBE);
+    CHECK(obj.arg.channel == protocol::json::Channel::INDEX_TICKERS);
     CHECK(obj.arg.inst_id == "BTC-USD"sv);
     CHECK(obj.conn_id == "94d38802"sv);
   };
@@ -148,8 +148,8 @@ TEST_CASE("funding_rate", "[json_subscribe]") {
                  R"("connId":"94d38802")"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.event == json::EventType::SUBSCRIBE);
-    CHECK(obj.arg.channel == json::Channel::FUNDING_RATE);
+    CHECK(obj.event == protocol::json::EventType::SUBSCRIBE);
+    CHECK(obj.arg.channel == protocol::json::Channel::FUNDING_RATE);
     CHECK(obj.arg.inst_id == "BTC-USD-SWAP"sv);
     CHECK(obj.conn_id == "94d38802"sv);
   };

@@ -1,0 +1,22 @@
+{
+  "name": "roq/okx/protocol/json/BooksL2Item",
+  "type": "by_index",
+  "values": [
+    {
+      "name": "price",
+      "type": "std/double"
+    },
+    {
+      "name": "size",
+      "type": "std/double"
+    },
+    {
+      "name": "liquidated_orders",
+      "type": "std/uint32"
+    },
+    {
+      "name": "orders",
+      "type": "std/uint32"
+    }
+  ]
+}

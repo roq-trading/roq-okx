@@ -20,10 +20,10 @@
 
 #include "roq/server/oms/exceptions.hpp"
 
-#include "roq/okx/json/map.hpp"
+#include "roq/okx/protocol/json/map.hpp"
 
-#include "roq/okx/json/encoder.hpp"
-#include "roq/okx/json/utils.hpp"
+#include "roq/okx/protocol/json/encoder.hpp"
+#include "roq/okx/protocol/json/utils.hpp"
 
 using namespace std::literals;
 
@@ -87,15 +87,15 @@ struct create_metrics final : public utils::metrics::Factory {
   create_metrics(auto &settings, auto &group, auto const &function) : utils::metrics::Factory{settings.app.name, group, function} {}
 };
 
-std::pair<json::OrderType, bool> compute_order_attributes(auto order_type, auto time_in_force, auto execution_instructions) {
+std::pair<protocol::json::OrderType, bool> compute_order_attributes(auto order_type, auto time_in_force, auto execution_instructions) {
   auto log_no_mapping_exists = [&]() {
     log::error("No mapping exists for order_type={}, time_in_force={}, execution_instructions={}"sv, order_type, time_in_force, execution_instructions);
   };
   bool reduce_only = false;
-  json::OrderType order_type_ = {};
+  protocol::json::OrderType order_type_ = {};
   if (!std::empty(execution_instructions)) {
     if (execution_instructions.has(ExecutionInstruction::PARTICIPATE_DO_NOT_INITIATE)) {
-      order_type_ = json::OrderType::POST_ONLY;
+      order_type_ = protocol::json::OrderType::POST_ONLY;
     }
     if (execution_instructions.has(ExecutionInstruction::DO_NOT_INCREASE)) {
       reduce_only = true;
@@ -108,27 +108,27 @@ std::pair<json::OrderType, bool> compute_order_attributes(auto order_type, auto 
     case GTC:
       break;
     case FOK:
-      if (order_type_ != json::OrderType{}) {
-        order_type_ = json::OrderType::FOK;
+      if (order_type_ != protocol::json::OrderType{}) {
+        order_type_ = protocol::json::OrderType::FOK;
       }
       break;
     case IOC:
-      if (order_type_ != json::OrderType{}) {
-        order_type_ = json::OrderType::IOC;
+      if (order_type_ != protocol::json::OrderType{}) {
+        order_type_ = protocol::json::OrderType::IOC;
       }
       break;
     default:
       log_no_mapping_exists();
       throw server::oms::NotSupported{"not supported"sv};
   }
-  if (order_type_ == json::OrderType{}) {
+  if (order_type_ == protocol::json::OrderType{}) {
     switch (order_type) {
       using enum OrderType;
       case MARKET:
-        order_type_ = json::OrderType::MARKET;
+        order_type_ = protocol::json::OrderType::MARKET;
         break;
       case LIMIT:
-        order_type_ = json::OrderType::LIMIT;
+        order_type_ = protocol::json::OrderType::LIMIT;
         break;
       default:
         log_no_mapping_exists();
@@ -221,7 +221,7 @@ void DropCopy::operator()(metrics::Writer &writer) const {
 uint16_t DropCopy::operator()(
     Event<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &ref_data, std::string_view const &request_id) {
   auto &[message_info, create_order] = event;
-  auto message = json::Encoder::batch_orders(
+  auto message = protocol::json::Encoder::batch_orders(
       encode_buffer_,
       create_order,
       order,
@@ -243,7 +243,7 @@ uint16_t DropCopy::operator()(
     std::string_view const &request_id,
     std::string_view const &previous_request_id) {
   auto &[message_info, modify_order] = event;
-  auto message = json::Encoder::batch_amend_orders(
+  auto message = protocol::json::Encoder::batch_amend_orders(
       encode_buffer_, modify_order, order, ref_data, request_id, previous_request_id, request_id_, shared_.settings.price_amend_type);
   log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
@@ -257,7 +257,7 @@ uint16_t DropCopy::operator()(
     std::string_view const &request_id,
     std::string_view const &previous_request_id) {
   auto &[message_info, cancel_order] = event;
-  auto message = json::Encoder::batch_cancel_orders(encode_buffer_, cancel_order, order, ref_data, request_id, previous_request_id, request_id_);
+  auto message = protocol::json::Encoder::batch_cancel_orders(encode_buffer_, cancel_order, order, ref_data, request_id, previous_request_id, request_id_);
   log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
@@ -278,7 +278,7 @@ uint16_t DropCopy::operator()(Event<CancelAllOrders> const &event, [[maybe_unuse
     log::info<1>("No orders"sv);
   }
   if (!std::empty(symbol_and_external_order_id)) {
-    auto message = json::Encoder::batch_cancel_orders(encode_buffer_, cancel_all_orders, request_id, request_id_, symbol_and_external_order_id);
+    auto message = protocol::json::Encoder::batch_cancel_orders(encode_buffer_, cancel_all_orders, request_id, request_id_, symbol_and_external_order_id);
     log::debug(R"(message="{}")"sv, message);
     (*connection_).send_text(message);
   }
@@ -442,7 +442,7 @@ void DropCopy::parse(std::string_view const &message) {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
         log_message();
       }
     } catch (...) {
@@ -452,84 +452,84 @@ void DropCopy::parse(std::string_view const &message) {
   });
 }
 
-// json::Parser::Handler
+// protocol::json::Parser::Handler
 
-void DropCopy::operator()(Trace<json::Error> const &event) {
+void DropCopy::operator()(Trace<protocol::json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
     log::fatal("error={}"sv, error);
   });
 }
 
-void DropCopy::operator()(Trace<json::Subscribe> const &event) {
+void DropCopy::operator()(Trace<protocol::json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
     log::info<1>("subscribe={}"sv, subscribe);
-    if (subscribe.arg.channel == json::Channel::ORDERS) {
+    if (subscribe.arg.channel == protocol::json::Channel::ORDERS) {
       download_.check(State::SUBSCRIBE);
     }
   });
 }
 
-void DropCopy::operator()(Trace<json::Unsubscribe> const &event) {
+void DropCopy::operator()(Trace<protocol::json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("unsubscribe={}"sv, unsubscribe);
   });
 }
 
-void DropCopy::operator()(Trace<json::Status> const &) {
+void DropCopy::operator()(Trace<protocol::json::Status> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::Instruments> const &) {
+void DropCopy::operator()(Trace<protocol::json::Instruments> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::EstimatedPrice> const &) {
+void DropCopy::operator()(Trace<protocol::json::EstimatedPrice> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::PriceLimit> const &) {
+void DropCopy::operator()(Trace<protocol::json::PriceLimit> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::MarkPrice> const &) {
+void DropCopy::operator()(Trace<protocol::json::MarkPrice> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::Tickers> const &) {
+void DropCopy::operator()(Trace<protocol::json::Tickers> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::Trades> const &) {
+void DropCopy::operator()(Trace<protocol::json::Trades> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::IndexTickers> const &) {
+void DropCopy::operator()(Trace<protocol::json::IndexTickers> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::FundingRate> const &) {
+void DropCopy::operator()(Trace<protocol::json::FundingRate> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::BboTbt> const &) {
+void DropCopy::operator()(Trace<protocol::json::BboTbt> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::BooksL2Tbt> const &) {
+void DropCopy::operator()(Trace<protocol::json::BooksL2Tbt> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void DropCopy::operator()(Trace<json::ChannelConnCount> const &event) {
+void DropCopy::operator()(Trace<protocol::json::ChannelConnCount> const &event) {
   profile_.channel_conn_count([&]() {
     auto &[trace_info, channel_conn_count] = event;
     log::info<1>("channel_conn_count={}"sv, channel_conn_count);
   });
 }
 
-void DropCopy::operator()(Trace<json::Login> const &event) {
+void DropCopy::operator()(Trace<protocol::json::Login> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
     log::info<1>("login={}"sv, login);
@@ -538,7 +538,7 @@ void DropCopy::operator()(Trace<json::Login> const &event) {
   });
 }
 
-void DropCopy::operator()(Trace<json::Account> const &event) {
+void DropCopy::operator()(Trace<protocol::json::Account> const &event) {
   profile_.account([&]() {
     auto &[trace_info, account] = event;
     log::info<1>("account={}"sv, account);
@@ -564,14 +564,14 @@ void DropCopy::operator()(Trace<json::Account> const &event) {
   });
 }
 
-void DropCopy::operator()(Trace<json::BalanceAndPosition> const &event) {
+void DropCopy::operator()(Trace<protocol::json::BalanceAndPosition> const &event) {
   profile_.balance_and_position([&]() {
     auto &[trace_info, balance_and_position] = event;
     log::info<1>("balance_and_position={}"sv, balance_and_position);
   });
 }
 
-void DropCopy::operator()(Trace<json::Positions> const &event) {
+void DropCopy::operator()(Trace<protocol::json::Positions> const &event) {
   profile_.positions([&]() {
     auto &[trace_info, positions] = event;
     log::info<1>("positions={}"sv, positions);
@@ -596,7 +596,7 @@ void DropCopy::operator()(Trace<json::Positions> const &event) {
   });
 }
 
-void DropCopy::operator()(Trace<json::Orders> const &event) {
+void DropCopy::operator()(Trace<protocol::json::Orders> const &event) {
   profile_.orders([&]() {
     auto &[trace_info, orders] = event;
     log::info<1>("orders={}"sv, orders);
@@ -647,7 +647,7 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
           .sending_time_utc = utils::safe_cast(item.u_time),
       };
       if (shared_.update_order(item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
-        if (item.exec_type != json::OrderFlowType{}) {
+        if (item.exec_type != protocol::json::OrderFlowType{}) {
           auto side = map(item.side).template get<Side>();
           auto ref_data = shared_.get_ref_data(shared_.settings.exchange, item.inst_id);
           auto profit_loss_amount = utils::compute_profit_loss_amount(side, item.fill_sz, item.fill_px, ref_data.multiplier);
@@ -696,14 +696,14 @@ void DropCopy::operator()(Trace<json::Orders> const &event) {
   });
 }
 
-void DropCopy::operator()(Trace<json::Order> const &event) {
+void DropCopy::operator()(Trace<protocol::json::Order> const &event) {
   profile_.order_ack([&]() {
     auto &[trace_info, order_ack] = event;
     log::info<1>("order_ack={}"sv, order_ack);
     log::debug("order_ack={}"sv, order_ack);
     auto order_status = order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : order_ack.data) {
-      auto error = json::guess_error(item.s_code);
+      auto error = protocol::json::guess_error(item.s_code);
       auto response = server::oms::Response{
           .request_type = RequestType::CREATE_ORDER,
           .origin = Origin::EXCHANGE,
@@ -724,14 +724,14 @@ void DropCopy::operator()(Trace<json::Order> const &event) {
   });
 }
 
-void DropCopy::operator()(Trace<json::AmendOrder> const &event) {
+void DropCopy::operator()(Trace<protocol::json::AmendOrder> const &event) {
   profile_.amend_order_ack([&]() {
     auto &[trace_info, amend_order_ack] = event;
     log::info<1>("amend_order_ack={}"sv, amend_order_ack);
     log::debug("amend_order_ack={}"sv, amend_order_ack);
     auto order_status = amend_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : amend_order_ack.data) {
-      auto error = json::guess_error(item.s_code);
+      auto error = protocol::json::guess_error(item.s_code);
       auto response = server::oms::Response{
           .request_type = RequestType::MODIFY_ORDER,
           .origin = Origin::EXCHANGE,
@@ -752,14 +752,14 @@ void DropCopy::operator()(Trace<json::AmendOrder> const &event) {
   });
 }
 
-void DropCopy::operator()(Trace<json::CancelOrder> const &event) {
+void DropCopy::operator()(Trace<protocol::json::CancelOrder> const &event) {
   profile_.cancel_order_ack([&]() {
     auto &[trace_info, cancel_order_ack] = event;
     log::info<1>("cancel_order_ack={}"sv, cancel_order_ack);
     log::debug("cancel_order_ack={}"sv, cancel_order_ack);
     auto order_status = cancel_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : cancel_order_ack.data) {
-      auto error = json::guess_error(item.s_code);
+      auto error = protocol::json::guess_error(item.s_code);
       auto response = server::oms::Response{
           .request_type = RequestType::CANCEL_ORDER,
           .origin = Origin::EXCHANGE,
@@ -786,7 +786,7 @@ void DropCopy::operator()(Trace<json::CancelOrder> const &event) {
   });
 }
 
-void DropCopy::operator()(Trace<json::Candle> const &) {
+void DropCopy::operator()(Trace<protocol::json::Candle> const &) {
   log::fatal("Unexpected"sv);
 }
 

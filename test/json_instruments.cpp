@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::Instruments;
+using value_type = protocol::json::Instruments;
 
 // note! truncated
 TEST_CASE("simple", "[json_instruments]") {
@@ -91,7 +91,7 @@ TEST_CASE("simple", "[json_instruments]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::INSTRUMENTS);
+    CHECK(obj.arg.channel == protocol::json::Channel::INSTRUMENTS);
     CHECK(obj.arg.inst_type == "SPOT"sv);
     REQUIRE(std::size(obj.data) == 3);
     // data_0
@@ -100,20 +100,20 @@ TEST_CASE("simple", "[json_instruments]") {
     CHECK(data_0.base_ccy == "BCD"sv);
     CHECK(data_0.category == "2"sv);
     CHECK(std::isnan(data_0.ct_mult) == true);
-    CHECK(data_0.ct_type == json::ContractType::UNDEFINED_INTERNAL);
+    CHECK(data_0.ct_type == protocol::json::ContractType::UNDEFINED_INTERNAL);
     CHECK(std::isnan(data_0.ct_val) == true);
     CHECK(std::empty(data_0.ct_val_ccy));
     CHECK(data_0.exp_time == 0ms);
     CHECK(data_0.inst_id == "BCD-BTC"sv);
-    CHECK(data_0.inst_type == json::InstrumentType::SPOT);
+    CHECK(data_0.inst_type == protocol::json::InstrumentType::SPOT);
     CHECK(std::isnan(data_0.lever) == true);
     CHECK(data_0.list_time == 0ms);
     CHECK(data_0.lot_sz == 0.0001_a);
     CHECK(data_0.min_sz == 1.0_a);
-    CHECK(data_0.opt_type == json::OptionType::UNDEFINED_INTERNAL);
+    CHECK(data_0.opt_type == protocol::json::OptionType::UNDEFINED_INTERNAL);
     CHECK(data_0.quote_ccy == "BTC"sv);
     CHECK(std::empty(data_0.settle_ccy));
-    CHECK(data_0.state == json::InstrumentState::LIVE);
+    CHECK(data_0.state == protocol::json::InstrumentState::LIVE);
     CHECK(std::isnan(data_0.stk) == true);
     CHECK(data_0.tick_sz == 0.0000001_a);
     CHECK(std::empty(data_0.uly));

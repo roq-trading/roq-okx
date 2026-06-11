@@ -1,0 +1,18 @@
+{
+  "name": "roq/okx/protocol/json/Unsubscribe",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "event",
+      "type": "roq/okx/protocol/json/EventType"
+    },
+    {
+      "name": "arg",
+      "type": "roq/okx/protocol/json/UnsubscribeArg"
+    },
+    {
+      "name": "connId",
+      "type": "std/string_view"
+    }
+  ]
+}

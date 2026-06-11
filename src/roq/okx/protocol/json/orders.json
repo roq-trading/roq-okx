@@ -1,0 +1,15 @@
+{
+  "name": "roq/okx/protocol/json/Orders",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "arg",
+      "type": "roq/okx/protocol/json/OrdersArg"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/protocol/json/OrdersDataItem",
+      "array": "std/span"
+    }
+  ]
+}

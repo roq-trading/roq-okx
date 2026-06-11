@@ -1,0 +1,24 @@
+{
+  "name": "roq/okx/protocol/json/EventType",
+  "type": "enum",
+  "values": [
+    {
+      "name": "error"
+    },
+    {
+      "name": "login"
+    },
+    {
+      "name": "subscribe"
+    },
+    {
+      "name": "unsubscribe"
+    },
+    {
+      "name": "channel-conn-count"
+    },
+    {
+      "name": "notice"
+    }
+  ]
+}

@@ -1,0 +1,66 @@
+{
+  "name": "roq/okx/protocol/json/BalanceAndPositionPositionItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "posId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "tradeId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "instId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "instType",
+      "type": "roq/okx/protocol/json/InstrumentType"
+    },
+    {
+      "name": "mgnMode",
+      "type": "roq/okx/protocol/json/MarginMode"
+    },
+    {
+      "name": "avgPx",
+      "type": "std/double"
+    },
+    {
+      "name": "ccy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "posSide",
+      "type": "roq/okx/protocol/json/PositionSide"
+    },
+    {
+      "name": "pos",
+      "type": "std/double"
+    },
+    {
+      "name": "posCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "uTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "baseBal",
+      "type": "std/double"
+    },
+    {
+      "name": "quoteBal",
+      "type": "std/double"
+    },
+    {
+      "name": "nonSettleAvgPx",
+      "type": "std/double"
+    },
+    {
+      "name": "settledPnl",
+      "type": "std/double"
+    }
+  ]
+}

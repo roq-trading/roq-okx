@@ -1,0 +1,288 @@
+{
+  "name": "roq/okx/protocol/json/OrdersDataItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "accFillSz",
+      "type": "std/double"
+    },
+    {
+      "name": "amendResult",
+      "type": "std/int32"
+    },
+    {
+      "name": "avgPx",
+      "type": "std/double"
+    },
+    {
+      "name": "category",
+      "type": "roq/okx/protocol/json/Category"
+    },
+    {
+      "name": "ccy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "clOrdId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "code",
+      "type": "std/int32"
+    },
+    {
+      "name": "cTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "execType",
+      "type": "roq/okx/protocol/json/OrderFlowType"
+    },
+    {
+      "name": "feeCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "fee",
+      "type": "std/double"
+    },
+    {
+      "name": "fillFeeCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "fillFee",
+      "type": "std/double"
+    },
+    {
+      "name": "fillNotionalUsd",
+      "type": "std/string_view"
+    },
+    {
+      "name": "fillPx",
+      "type": "std/double"
+    },
+    {
+      "name": "fillSz",
+      "type": "std/double"
+    },
+    {
+      "name": "fillTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "instId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "instType",
+      "type": "roq/okx/protocol/json/InstrumentType"
+    },
+    {
+      "name": "lever",
+      "type": "std/double"
+    },
+    {
+      "name": "msg",
+      "type": "std/string_view"
+    },
+    {
+      "name": "notionalUsd",
+      "type": "std/double"
+    },
+    {
+      "name": "ordId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ordType",
+      "type": "roq/okx/protocol/json/OrderType"
+    },
+    {
+      "name": "pnl",
+      "type": "std/double"
+    },
+    {
+      "name": "posSide",
+      "type": "roq/okx/protocol/json/PositionSide"
+    },
+    {
+      "name": "px",
+      "type": "std/double"
+    },
+    {
+      "name": "rebateCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "rebate",
+      "type": "std/double"
+    },
+    {
+      "name": "reduceOnly",
+      "type": "std/bool"
+    },
+    {
+      "name": "reqId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "side",
+      "type": "roq/okx/protocol/json/Side"
+    },
+    {
+      "name": "slOrdPx",
+      "type": "std/double"
+    },
+    {
+      "name": "slTriggerPx",
+      "type": "std/double"
+    },
+    {
+      "name": "slTriggerPxType",
+      "type": "roq/okx/protocol/json/TriggerPriceType"
+    },
+    {
+      "name": "source",
+      "type": "std/string_view"
+    },
+    {
+      "name": "state",
+      "type": "roq/okx/protocol/json/OrderState"
+    },
+    {
+      "name": "sz",
+      "type": "std/double"
+    },
+    {
+      "name": "tag",
+      "type": "std/string_view"
+    },
+    {
+      "name": "tdMode",
+      "type": "roq/okx/protocol/json/TradeMode"
+    },
+    {
+      "name": "tgtCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "tpOrdPx",
+      "type": "std/double"
+    },
+    {
+      "name": "tpTriggerPx",
+      "type": "std/double"
+    },
+    {
+      "name": "tpTriggerPxType",
+      "type": "roq/okx/protocol/json/TriggerPriceType"
+    },
+    {
+      "name": "tradeId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "uTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "algoClOrdId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "algoId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "amendSource",
+      "type": "std/string_view"
+    },
+    {
+      "name": "attachAlgoClOrdId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "cancelSource",
+      "type": "std/string_view"
+    },
+    {
+      "name": "fillFwdPx",
+      "type": "std/double"
+    },
+    {
+      "name": "fillMarkPx",
+      "type": "std/double"
+    },
+    {
+      "name": "fillMarkVol",
+      "type": "std/double"
+    },
+    {
+      "name": "fillPnl",
+      "type": "std/double"
+    },
+    {
+      "name": "lastPx",
+      "type": "std/double"
+    },
+    {
+      "name": "quickMgnType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "stpId",
+      "type": "std/uint32"
+    },
+    {
+      "name": "stpMode",
+      "type": "std/string_view"
+    },
+    {
+      "name": "cancelSourceReason",
+      "type": "std/string_view"
+    },
+    {
+      "name": "isTpLimit",
+      "type": "std/bool"
+    },
+    {
+      "name": "attachAlgoOrds"
+    },
+    {
+      "name": "linkedAlgoOrd"
+    },
+    {
+      "name": "fillPxUsd",
+      "type": "std/double"
+    },
+    {
+      "name": "fillPxVol",
+      "type": "std/double"
+    },
+    {
+      "name": "pxType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "pxUsd",
+      "type": "std/double"
+    },
+    {
+      "name": "pxVol",
+      "type": "std/double"
+    },
+    {
+      "name": "tradeQuoteCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "fillIdxPx",
+      "type": "std/double"
+    },
+    {
+      "name": "outcome",
+      "type": "std/string_view"
+    }
+  ]
+}

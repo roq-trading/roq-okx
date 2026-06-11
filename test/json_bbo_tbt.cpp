@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::BboTbt;
+using value_type = protocol::json::BboTbt;
 
 TEST_CASE("simple", "[json_bbo_tbt]") {
   auto message = R"({)"
@@ -33,7 +33,7 @@ TEST_CASE("simple", "[json_bbo_tbt]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::BBO_TBT);
+    CHECK(obj.arg.channel == protocol::json::Channel::BBO_TBT);
     CHECK(obj.arg.inst_id == "LTC-USDC"sv);
   };
   ParserTester<value_type>::dispatch(helper, message, 8192, 2);

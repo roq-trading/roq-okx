@@ -1,0 +1,23 @@
+{
+  "name": "roq/okx/protocol/json/BooksL2Tbt",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "event",
+      "type": "roq/okx/protocol/json/EventType"
+    },
+    {
+      "name": "arg",
+      "type": "roq/okx/protocol/json/BooksL2TbtArg"
+    },
+    {
+      "name": "action",
+      "type": "roq/okx/protocol/json/Action"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/protocol/json/BooksL2TbtDataItem",
+      "array": "std/span"
+    }
+  ]
+}

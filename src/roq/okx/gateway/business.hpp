@@ -24,13 +24,13 @@
 
 #include "roq/okx/gateway/shared.hpp"
 
-#include "roq/okx/json/parser.hpp"
+#include "roq/okx/protocol/json/parser.hpp"
 
 namespace roq {
 namespace okx {
 namespace gateway {
 
-struct Business final : public web::socket::Client::Handler, public json::Parser::Handler {
+struct Business final : public web::socket::Client::Handler, public protocol::json::Parser::Handler {
   struct Handler {
     virtual void operator()(Trace<StreamStatus> const &) = 0;
     virtual void operator()(Trace<ExternalLatency> const &) = 0;
@@ -75,35 +75,35 @@ struct Business final : public web::socket::Client::Handler, public json::Parser
 
   void parse(std::string_view const &message);
 
-  // json::Parser::Handler
+  // protocol::json::Parser::Handler
 
-  void operator()(Trace<json::Error> const &) override;
-  void operator()(Trace<json::Subscribe> const &) override;
-  void operator()(Trace<json::Unsubscribe> const &) override;
+  void operator()(Trace<protocol::json::Error> const &) override;
+  void operator()(Trace<protocol::json::Subscribe> const &) override;
+  void operator()(Trace<protocol::json::Unsubscribe> const &) override;
 
-  void operator()(Trace<json::Status> const &) override;
-  void operator()(Trace<json::Instruments> const &) override;
-  void operator()(Trace<json::EstimatedPrice> const &) override;
-  void operator()(Trace<json::PriceLimit> const &) override;
-  void operator()(Trace<json::MarkPrice> const &) override;
-  void operator()(Trace<json::Tickers> const &) override;
-  void operator()(Trace<json::Trades> const &) override;
-  void operator()(Trace<json::BboTbt> const &) override;
-  void operator()(Trace<json::BooksL2Tbt> const &) override;
-  void operator()(Trace<json::IndexTickers> const &) override;
-  void operator()(Trace<json::FundingRate> const &) override;
+  void operator()(Trace<protocol::json::Status> const &) override;
+  void operator()(Trace<protocol::json::Instruments> const &) override;
+  void operator()(Trace<protocol::json::EstimatedPrice> const &) override;
+  void operator()(Trace<protocol::json::PriceLimit> const &) override;
+  void operator()(Trace<protocol::json::MarkPrice> const &) override;
+  void operator()(Trace<protocol::json::Tickers> const &) override;
+  void operator()(Trace<protocol::json::Trades> const &) override;
+  void operator()(Trace<protocol::json::BboTbt> const &) override;
+  void operator()(Trace<protocol::json::BooksL2Tbt> const &) override;
+  void operator()(Trace<protocol::json::IndexTickers> const &) override;
+  void operator()(Trace<protocol::json::FundingRate> const &) override;
 
-  void operator()(Trace<json::ChannelConnCount> const &) override;
-  void operator()(Trace<json::Login> const &) override;
-  void operator()(Trace<json::Account> const &) override;
-  void operator()(Trace<json::BalanceAndPosition> const &) override;
-  void operator()(Trace<json::Positions> const &) override;
-  void operator()(Trace<json::Orders> const &) override;
-  void operator()(Trace<json::Order> const &) override;
-  void operator()(Trace<json::AmendOrder> const &) override;
-  void operator()(Trace<json::CancelOrder> const &) override;
+  void operator()(Trace<protocol::json::ChannelConnCount> const &) override;
+  void operator()(Trace<protocol::json::Login> const &) override;
+  void operator()(Trace<protocol::json::Account> const &) override;
+  void operator()(Trace<protocol::json::BalanceAndPosition> const &) override;
+  void operator()(Trace<protocol::json::Positions> const &) override;
+  void operator()(Trace<protocol::json::Orders> const &) override;
+  void operator()(Trace<protocol::json::Order> const &) override;
+  void operator()(Trace<protocol::json::AmendOrder> const &) override;
+  void operator()(Trace<protocol::json::CancelOrder> const &) override;
 
-  void operator()(Trace<json::Candle> const &) override;
+  void operator()(Trace<protocol::json::Candle> const &) override;
 
   // helpers
 

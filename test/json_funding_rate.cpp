@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::FundingRate;
+using value_type = protocol::json::FundingRate;
 
 TEST_CASE("simple", "[json_funding_rate]") {
   auto message = R"({)"
@@ -41,7 +41,7 @@ TEST_CASE("simple", "[json_funding_rate]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::FUNDING_RATE);
+    CHECK(obj.arg.channel == protocol::json::Channel::FUNDING_RATE);
     CHECK(obj.arg.inst_id == "LTC-USDT-SWAP"sv);
     REQUIRE(std::size(obj.data) == 1);
   };

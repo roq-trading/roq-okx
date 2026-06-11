@@ -1,0 +1,21 @@
+{
+  "name": "roq/okx/protocol/json/State",
+  "type": "enum",
+  "values": [
+    {
+      "name": "scheduled"
+    },
+    {
+      "name": "ongoing"
+    },
+    {
+      "name": "completed"
+    },
+    {
+      "name": "canceled"
+    },
+    {
+      "name": "pre_open"
+    }
+  ]
+}

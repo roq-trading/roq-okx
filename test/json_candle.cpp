@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::Candle;
+using value_type = protocol::json::Candle;
 
 TEST_CASE("simple", "[json_candles]") {
   auto message = R"({)"
@@ -25,7 +25,7 @@ TEST_CASE("simple", "[json_candles]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::CANDLE1M);
+    CHECK(obj.arg.channel == protocol::json::Channel::CANDLE1M);
     CHECK(obj.arg.inst_id == "BTC-USDT"sv);
     REQUIRE(std::size(obj.data) == 1);
     auto &d = obj.data;

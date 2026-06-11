@@ -1,0 +1,21 @@
+{
+  "name": "roq/okx/protocol/json/InstrumentType",
+  "type": "enum",
+  "values": [
+    {
+      "name": "SPOT"
+    },
+    {
+      "name": "MARGIN"
+    },
+    {
+      "name": "SWAP"
+    },
+    {
+      "name": "FUTURES"
+    },
+    {
+      "name": "OPTION"
+    }
+  ]
+}

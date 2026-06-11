@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::Tickers;
+using value_type = protocol::json::Tickers;
 
 TEST_CASE("simple", "[json_tickers]") {
   auto message = R"({)"
@@ -41,7 +41,7 @@ TEST_CASE("simple", "[json_tickers]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::TICKERS);
+    CHECK(obj.arg.channel == protocol::json::Channel::TICKERS);
     CHECK(obj.arg.inst_id == "BTC-USD"sv);
     REQUIRE(std::size(obj.data) == 1);
   };

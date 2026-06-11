@@ -4,7 +4,7 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/okx/json/instruments_ack.hpp"
+#include "roq/okx/protocol/json/instruments_ack.hpp"
 
 using namespace roq;
 using namespace roq::okx;
@@ -14,7 +14,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::InstrumentsAck;
+using value_type = protocol::json::InstrumentsAck;
 
 // note! truncated
 TEST_CASE("simple", "[json_instruments_ack]") {

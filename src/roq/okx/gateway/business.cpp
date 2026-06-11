@@ -16,8 +16,8 @@
 
 #include "roq/web/socket/client.hpp"
 
-#include "roq/okx/json/map.hpp"
-#include "roq/okx/json/utils.hpp"
+#include "roq/okx/protocol/json/map.hpp"
+#include "roq/okx/protocol/json/utils.hpp"
 
 using namespace std::literals;
 
@@ -237,7 +237,7 @@ void Business::parse(std::string_view const &message) {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
         log_message();
       }
     } catch (...) {
@@ -247,114 +247,114 @@ void Business::parse(std::string_view const &message) {
   });
 }
 
-// json::Parser::Handler
+// protocol::json::Parser::Handler
 
-void Business::operator()(Trace<json::Error> const &event) {
+void Business::operator()(Trace<protocol::json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
     log::warn("error={}"sv, error);
   });
 }
 
-void Business::operator()(Trace<json::Subscribe> const &event) {
+void Business::operator()(Trace<protocol::json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
     log::info<1>("subscribe={}"sv, subscribe);
-    if (subscribe.arg.channel == json::Channel::INSTRUMENTS && subscribe.arg.inst_type == "FUTURES"sv) {
+    if (subscribe.arg.channel == protocol::json::Channel::INSTRUMENTS && subscribe.arg.inst_type == "FUTURES"sv) {
       log::info("Request instruments..."sv);
       shared_.instruments.request = clock::get_system();
     }
   });
 }
 
-void Business::operator()(Trace<json::Unsubscribe> const &event) {
+void Business::operator()(Trace<protocol::json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("unsubscribe={}"sv, unsubscribe);
   });
 }
 
-void Business::operator()(Trace<json::Status> const &) {
+void Business::operator()(Trace<protocol::json::Status> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::Instruments> const &) {
+void Business::operator()(Trace<protocol::json::Instruments> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::EstimatedPrice> const &) {
+void Business::operator()(Trace<protocol::json::EstimatedPrice> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::PriceLimit> const &) {
+void Business::operator()(Trace<protocol::json::PriceLimit> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::MarkPrice> const &) {
+void Business::operator()(Trace<protocol::json::MarkPrice> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::Tickers> const &) {
+void Business::operator()(Trace<protocol::json::Tickers> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::Trades> const &) {
+void Business::operator()(Trace<protocol::json::Trades> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::BboTbt> const &) {
+void Business::operator()(Trace<protocol::json::BboTbt> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::BooksL2Tbt> const &) {
+void Business::operator()(Trace<protocol::json::BooksL2Tbt> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::IndexTickers> const &) {
+void Business::operator()(Trace<protocol::json::IndexTickers> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::FundingRate> const &) {
+void Business::operator()(Trace<protocol::json::FundingRate> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::ChannelConnCount> const &) {
+void Business::operator()(Trace<protocol::json::ChannelConnCount> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::Login> const &) {
+void Business::operator()(Trace<protocol::json::Login> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::Account> const &) {
+void Business::operator()(Trace<protocol::json::Account> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::BalanceAndPosition> const &) {
+void Business::operator()(Trace<protocol::json::BalanceAndPosition> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::Positions> const &) {
+void Business::operator()(Trace<protocol::json::Positions> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::Orders> const &) {
+void Business::operator()(Trace<protocol::json::Orders> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::Order> const &) {
+void Business::operator()(Trace<protocol::json::Order> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::AmendOrder> const &) {
+void Business::operator()(Trace<protocol::json::AmendOrder> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::CancelOrder> const &) {
+void Business::operator()(Trace<protocol::json::CancelOrder> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void Business::operator()(Trace<json::Candle> const &event) {
+void Business::operator()(Trace<protocol::json::Candle> const &event) {
   auto &[trace_info, candle] = event;
   log::info<3>("candle={}"sv, candle);
   (*connection_).touch(trace_info.source_receive_time);

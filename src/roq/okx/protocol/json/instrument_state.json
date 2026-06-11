@@ -1,0 +1,30 @@
+{
+  "name": "roq/okx/protocol/json/InstrumentState",
+  "type": "enum",
+  "values": [
+    {
+      "name": "live"
+    },
+    {
+      "name": "suspended"
+    },
+    {
+      "name": "preopen"
+    },
+    {
+      "name": "settlement"
+    },
+    {
+      "name": "expired"
+    },
+    {
+      "name": "test"
+    },
+    {
+      "name": "post_only"
+    },
+    {
+      "name": "rebase"
+    }
+  ]
+}

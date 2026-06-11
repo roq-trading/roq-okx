@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::Positions;
+using value_type = protocol::json::Positions;
 
 TEST_CASE("simple", "[json_positions]") {
   auto message =
@@ -69,7 +69,7 @@ TEST_CASE("simple", "[json_positions]") {
       R"(])"
       R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::POSITIONS);
+    CHECK(obj.arg.channel == protocol::json::Channel::POSITIONS);
     CHECK(obj.arg.inst_type == "ANY"sv);
     CHECK(obj.arg.uid == "187956862690435072"sv);
     auto &data = obj.data;
@@ -87,7 +87,7 @@ TEST_CASE("simple", "[json_positions]") {
     CHECK(std::isnan(data_0.gamma_pa) == true);
     CHECK(data_0.imr == 43.69104315276841_a);
     CHECK(data_0.inst_id == "BTC-USDT-SWAP"sv);
-    CHECK(data_0.inst_type == json::InstrumentType::SWAP);
+    CHECK(data_0.inst_type == protocol::json::InstrumentType::SWAP);
     CHECK(data_0.interest == 0.0_a);
     CHECK(data_0.last == 43692.1_a);
     CHECK(data_0.lever == 10.0_a);
@@ -96,7 +96,7 @@ TEST_CASE("simple", "[json_positions]") {
     CHECK(data_0.liq_px == 23739.456120525683_a);
     CHECK(std::isnan(data_0.margin) == true);
     CHECK(data_0.mark_px == 43691.043152768407_a);
-    CHECK(data_0.mgn_mode == json::MarginMode::CROSS);
+    CHECK(data_0.mgn_mode == protocol::json::MarginMode::CROSS);
     CHECK(data_0.mgn_ratio == 102.02149323145969_a);
     CHECK(data_0.mmr == 1.7476417261107364_a);
     CHECK(data_0.notional_usd == 437.3735565851034_a);
@@ -105,7 +105,7 @@ TEST_CASE("simple", "[json_positions]") {
     CHECK(data_0.pos == 1.0_a);
     CHECK(std::empty(data_0.pos_ccy));
     CHECK(data_0.pos_id == "325382268437037058"sv);
-    CHECK(data_0.pos_side == json::PositionSide::NET);
+    CHECK(data_0.pos_side == protocol::json::PositionSide::NET);
     CHECK(std::isnan(data_0.quote_bal) == true);
     CHECK(std::isnan(data_0.theta_bs) == true);
     CHECK(std::isnan(data_0.theta_pa) == true);

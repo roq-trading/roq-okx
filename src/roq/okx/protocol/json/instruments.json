@@ -1,0 +1,15 @@
+{
+  "name": "roq/okx/protocol/json/Instruments",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "arg",
+      "type": "roq/okx/protocol/json/InstrumentsArg"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/protocol/json/InstrumentsDataItem",
+      "array": "std/span"
+    }
+  ]
+}

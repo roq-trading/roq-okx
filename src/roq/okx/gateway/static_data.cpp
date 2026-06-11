@@ -16,8 +16,8 @@
 
 #include "roq/web/socket/client.hpp"
 
-#include "roq/okx/json/map.hpp"
-#include "roq/okx/json/utils.hpp"
+#include "roq/okx/protocol/json/map.hpp"
+#include "roq/okx/protocol/json/utils.hpp"
 
 using namespace std::literals;
 
@@ -281,7 +281,7 @@ void StaticData::parse(std::string_view const &message) {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
       TraceInfo trace_info;
-      if (!json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
         log_message();
       }
     } catch (...) {
@@ -291,39 +291,39 @@ void StaticData::parse(std::string_view const &message) {
   });
 }
 
-// json::Parser::Handler
+// protocol::json::Parser::Handler
 
-void StaticData::operator()(Trace<json::Error> const &event) {
+void StaticData::operator()(Trace<protocol::json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
     log::warn("error={}"sv, error);
   });
 }
 
-void StaticData::operator()(Trace<json::Subscribe> const &event) {
+void StaticData::operator()(Trace<protocol::json::Subscribe> const &event) {
   profile_.subscribe([&]() {
     auto &[trace_info, subscribe] = event;
     log::info<1>("subscribe={}"sv, subscribe);
-    if (subscribe.arg.channel == json::Channel::INSTRUMENTS && subscribe.arg.inst_type == "FUTURES"sv) {
+    if (subscribe.arg.channel == protocol::json::Channel::INSTRUMENTS && subscribe.arg.inst_type == "FUTURES"sv) {
       log::info("Request instruments..."sv);
       shared_.instruments.request = clock::get_system();
     }
   });
 }
 
-void StaticData::operator()(Trace<json::Unsubscribe> const &event) {
+void StaticData::operator()(Trace<protocol::json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("unsubscribe={}"sv, unsubscribe);
   });
 }
 
-void StaticData::operator()(Trace<json::Status> const &event) {
+void StaticData::operator()(Trace<protocol::json::Status> const &event) {
   profile_.status([&]() {
     auto &[trace_info, status] = event;
     log::info("status={}"sv, status);
     for (auto &item : status.data) {
-      if (item.state == json::State::ONGOING) {
+      if (item.state == protocol::json::State::ONGOING) {
         log::warn("*** DISCONNECT: ONGOING MAINTENANCE ***"sv);
         (*connection_).close();
         return;
@@ -332,7 +332,7 @@ void StaticData::operator()(Trace<json::Status> const &event) {
   });
 }
 
-void StaticData::operator()(Trace<json::Instruments> const &event) {
+void StaticData::operator()(Trace<protocol::json::Instruments> const &event) {
   profile_.instruments([&]() {
     auto &[trace_info, instruments] = event;
     log::info<1>("instruments={}"sv, instruments);
@@ -347,7 +347,7 @@ void StaticData::operator()(Trace<json::Instruments> const &event) {
       auto base_currency = [&]() {
         if (std::empty(item.base_ccy)) {
           switch (item.ct_type) {
-            using enum json::ContractType::type_t;
+            using enum protocol::json::ContractType::type_t;
             case UNDEFINED_INTERNAL:
             case UNKNOWN_INTERNAL:
               break;
@@ -362,7 +362,7 @@ void StaticData::operator()(Trace<json::Instruments> const &event) {
       auto quote_currency = [&]() {
         if (std::empty(item.quote_ccy)) {
           switch (item.ct_type) {
-            using enum json::ContractType::type_t;
+            using enum protocol::json::ContractType::type_t;
             case UNDEFINED_INTERNAL:
             case UNKNOWN_INTERNAL:
               break;
@@ -430,7 +430,7 @@ void StaticData::operator()(Trace<json::Instruments> const &event) {
       // trying to reduce the number of symbols where we next extra subscriptions
       // but still avoid not reducing too much
       switch (item.inst_type) {
-        using enum json::InstrumentType::type_t;
+        using enum protocol::json::InstrumentType::type_t;
         case UNDEFINED_INTERNAL:
         case UNKNOWN_INTERNAL:
         case SPOT:
@@ -456,47 +456,47 @@ void StaticData::operator()(Trace<json::Instruments> const &event) {
   });
 }
 
-void StaticData::operator()(Trace<json::EstimatedPrice> const &) {
+void StaticData::operator()(Trace<protocol::json::EstimatedPrice> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::PriceLimit> const &) {
+void StaticData::operator()(Trace<protocol::json::PriceLimit> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::MarkPrice> const &) {
+void StaticData::operator()(Trace<protocol::json::MarkPrice> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::Tickers> const &) {
+void StaticData::operator()(Trace<protocol::json::Tickers> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::Trades> const &) {
+void StaticData::operator()(Trace<protocol::json::Trades> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::BboTbt> const &) {
+void StaticData::operator()(Trace<protocol::json::BboTbt> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::BooksL2Tbt> const &) {
+void StaticData::operator()(Trace<protocol::json::BooksL2Tbt> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::IndexTickers> const &) {
+void StaticData::operator()(Trace<protocol::json::IndexTickers> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::FundingRate> const &) {
+void StaticData::operator()(Trace<protocol::json::FundingRate> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::ChannelConnCount> const &) {
+void StaticData::operator()(Trace<protocol::json::ChannelConnCount> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::Login> const &event) {
+void StaticData::operator()(Trace<protocol::json::Login> const &event) {
   profile_.login([&]() {
     auto &[trace_info, login] = event;
     log::info<1>("login={}"sv, login);
@@ -506,35 +506,35 @@ void StaticData::operator()(Trace<json::Login> const &event) {
   });
 }
 
-void StaticData::operator()(Trace<json::Account> const &) {
+void StaticData::operator()(Trace<protocol::json::Account> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::BalanceAndPosition> const &) {
+void StaticData::operator()(Trace<protocol::json::BalanceAndPosition> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::Positions> const &) {
+void StaticData::operator()(Trace<protocol::json::Positions> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::Orders> const &) {
+void StaticData::operator()(Trace<protocol::json::Orders> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::Order> const &) {
+void StaticData::operator()(Trace<protocol::json::Order> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::AmendOrder> const &) {
+void StaticData::operator()(Trace<protocol::json::AmendOrder> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::CancelOrder> const &) {
+void StaticData::operator()(Trace<protocol::json::CancelOrder> const &) {
   log::fatal("Unexpected"sv);
 }
 
-void StaticData::operator()(Trace<json::Candle> const &) {
+void StaticData::operator()(Trace<protocol::json::Candle> const &) {
   log::fatal("Unexpected"sv);
 }
 

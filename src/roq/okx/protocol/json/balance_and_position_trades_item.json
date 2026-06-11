@@ -1,0 +1,14 @@
+{
+  "name": "roq/okx/protocol/json/BalanceAndPositionTradesItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "instId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "tradeId",
+      "type": "std/string_view"
+    }
+  ]
+}

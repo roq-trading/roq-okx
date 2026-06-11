@@ -4,7 +4,7 @@
 
 #include "roq/core/json/buffer_stack.hpp"
 
-#include "roq/okx/json/candles_ack.hpp"
+#include "roq/okx/protocol/json/candles_ack.hpp"
 
 using namespace roq;
 using namespace roq::okx;
@@ -14,7 +14,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::CandlesAck;
+using value_type = protocol::json::CandlesAck;
 
 // note! truncated
 TEST_CASE("json_candles", "[json_candles_ack]") {

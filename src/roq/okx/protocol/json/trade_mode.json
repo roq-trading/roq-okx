@@ -1,0 +1,15 @@
+{
+  "name": "roq/okx/protocol/json/TradeMode",
+  "type": "enum",
+  "values": [
+    {
+      "name": "cross"
+    },
+    {
+      "name": "isolated"
+    },
+    {
+      "name": "cash"
+    }
+  ]
+}

@@ -1,0 +1,201 @@
+{
+  "name": "roq/okx/protocol/json/InstrumentsDataItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "alias",
+      "type": "std/string_view"
+    },
+    {
+      "name": "baseCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "category",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ctMult",
+      "type": "std/double"
+    },
+    {
+      "name": "ctType",
+      "type": "roq/okx/protocol/json/ContractType"
+    },
+    {
+      "name": "ctValCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ctVal",
+      "type": "std/double"
+    },
+    {
+      "name": "expTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "instId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "instType",
+      "type": "roq/okx/protocol/json/InstrumentType"
+    },
+    {
+      "name": "lever",
+      "type": "std/double"
+    },
+    {
+      "name": "listTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "lotSz",
+      "type": "std/double"
+    },
+    {
+      "name": "minSz",
+      "type": "std/double"
+    },
+    {
+      "name": "optType",
+      "type": "roq/okx/protocol/json/OptionType"
+    },
+    {
+      "name": "quoteCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "settleCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "state",
+      "type": "roq/okx/protocol/json/InstrumentState"
+    },
+    {
+      "name": "stk",
+      "type": "std/double"
+    },
+    {
+      "name": "tickSz",
+      "type": "std/double"
+    },
+    {
+      "name": "uly",
+      "type": "std/string_view"
+    },
+    {
+      "name": "maxIcebergSz",
+      "type": "std/double"
+    },
+    {
+      "name": "maxLmtSz",
+      "type": "std/double"
+    },
+    {
+      "name": "maxMktSz",
+      "type": "std/double"
+    },
+    {
+      "name": "maxStopSz",
+      "type": "std/double"
+    },
+    {
+      "name": "maxTriggerSz",
+      "type": "std/double"
+    },
+    {
+      "name": "maxTwapSz",
+      "type": "std/double"
+    },
+    {
+      "name": "instFamily",
+      "type": "std/string_view"
+    },
+    {
+      "name": "maxLmtAmt",
+      "type": "std/double"
+    },
+    {
+      "name": "maxMktAmt",
+      "type": "std/double"
+    },
+    {
+      "name": "ruleType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "auctionEndTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "futureSettlement",
+      "type": "std/bool"
+    },
+    {
+      "name": "contTdSwTime",
+      "type": "std/string_view"
+    },
+    {
+      "name": "openType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "instIdCode",
+      "type": "std/uint32"
+    },
+    {
+      "name": "tradeQuoteCcyList"
+    },
+    {
+      "name": "preMktSwTime"
+    },
+    {
+      "name": "groupId",
+      "type": "std/uint32"
+    },
+    {
+      "name": "maxPlatOILmt",
+      "type": "std/double"
+    },
+    {
+      "name": "posLmtAmt",
+      "type": "std/double"
+    },
+    {
+      "name": "posLmtPct",
+      "type": "std/double"
+    },
+    {
+      "name": "upcChg"
+    },
+    {
+      "name": "longPosRemainingQuota"
+    },
+    {
+      "name": "shortPosRemainingQuota"
+    },
+    {
+      "name": "instCategory",
+      "type": "std/string_view"
+    },
+    {
+      "name": "freq",
+      "type": "std/string_view"
+    },
+    {
+      "name": "method",
+      "type": "std/string_view"
+    },
+    {
+      "name": "seriesId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "maxPlatOICoinLmt",
+      "type": "std/double"
+    }
+  ]
+}

@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::Orders;
+using value_type = protocol::json::Orders;
 
 TEST_CASE("simple", "[json_orders]") {
   auto message = R"({)"
@@ -72,7 +72,7 @@ TEST_CASE("simple", "[json_orders]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::ORDERS);
+    CHECK(obj.arg.channel == protocol::json::Channel::ORDERS);
     CHECK(obj.arg.inst_type == "ANY"sv);
     CHECK(obj.arg.uid == "33594834598109184"sv);
     auto &data = obj.data;
@@ -82,11 +82,11 @@ TEST_CASE("simple", "[json_orders]") {
     CHECK(data_0.amend_result == 0);
     CHECK(data_0.avg_px == 0.0_a);
     CHECK(data_0.c_time == 1640182694746ms);
-    CHECK(data_0.category == json::Category::NORMAL);
+    CHECK(data_0.category == protocol::json::Category::NORMAL);
     CHECK(std::empty(data_0.ccy));
     CHECK(data_0.cl_ord_id == "abcABC125"sv);
     CHECK(data_0.code == 0);
-    CHECK(data_0.exec_type == json::OrderFlowType::UNDEFINED_INTERNAL);
+    CHECK(data_0.exec_type == protocol::json::OrderFlowType::UNDEFINED_INTERNAL);
     CHECK(data_0.fee == 0.0_a);
     CHECK(data_0.fee_ccy == "BTC"sv);
     CHECK(data_0.fill_fee == 0.0_a);
@@ -96,32 +96,32 @@ TEST_CASE("simple", "[json_orders]") {
     CHECK(data_0.fill_sz == 0.0_a);
     CHECK(data_0.fill_time == 0ms);
     CHECK(data_0.inst_id == "BTC-USD-220325"sv);
-    CHECK(data_0.inst_type == json::InstrumentType::FUTURES);
+    CHECK(data_0.inst_type == protocol::json::InstrumentType::FUTURES);
     CHECK(data_0.lever == 10.0_a);
     CHECK(std::empty(data_0.msg));
     CHECK(data_0.notional_usd == 100.0_a);
     CHECK(data_0.ord_id == "393890002618445825"sv);
-    CHECK(data_0.ord_type == json::OrderType::LIMIT);
+    CHECK(data_0.ord_type == protocol::json::OrderType::LIMIT);
     CHECK(data_0.pnl == 0.0_a);
-    CHECK(data_0.pos_side == json::PositionSide::LONG);
+    CHECK(data_0.pos_side == protocol::json::PositionSide::LONG);
     CHECK(data_0.px == 39919.4_a);
     CHECK(data_0.rebate == 0.0_a);
     CHECK(data_0.rebate_ccy == "BTC"sv);
     CHECK(data_0.reduce_only == false);
     CHECK(std::empty(data_0.req_id));
-    CHECK(data_0.side == json::Side::BUY);
+    CHECK(data_0.side == protocol::json::Side::BUY);
     CHECK(std::isnan(data_0.sl_ord_px) == true);
     CHECK(std::isnan(data_0.sl_trigger_px) == true);
-    CHECK(data_0.sl_trigger_px_type == json::TriggerPriceType::UNDEFINED_INTERNAL);
+    CHECK(data_0.sl_trigger_px_type == protocol::json::TriggerPriceType::UNDEFINED_INTERNAL);
     CHECK(std::empty(data_0.source));
-    CHECK(data_0.state == json::OrderState::LIVE);
+    CHECK(data_0.state == protocol::json::OrderState::LIVE);
     CHECK(data_0.sz == 1.0_a);
     CHECK(std::empty(data_0.tag));
-    CHECK(data_0.td_mode == json::TradeMode::ISOLATED);
+    CHECK(data_0.td_mode == protocol::json::TradeMode::ISOLATED);
     CHECK(std::empty(data_0.tgt_ccy));
     CHECK(std::isnan(data_0.tp_ord_px) == true);
     CHECK(std::isnan(data_0.tp_trigger_px) == true);
-    CHECK(data_0.tp_trigger_px_type == json::TriggerPriceType::UNDEFINED_INTERNAL);
+    CHECK(data_0.tp_trigger_px_type == protocol::json::TriggerPriceType::UNDEFINED_INTERNAL);
     CHECK(std::empty(data_0.trade_id));
     CHECK(data_0.u_time == 1640182694746ms);
   };
@@ -204,7 +204,7 @@ TEST_CASE("simple_2", "[json_orders]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::ORDERS);
+    CHECK(obj.arg.channel == protocol::json::Channel::ORDERS);
     CHECK(obj.arg.inst_type == "ANY"sv);
     CHECK(obj.arg.uid == "474527194543234199"sv);
   };

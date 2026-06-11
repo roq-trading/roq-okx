@@ -1,0 +1,18 @@
+{
+  "name": "roq/okx/protocol/json/BalanceAndPositionBalanceItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "ccy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "cashBal",
+      "type": "std/double"
+    },
+    {
+      "name": "uTime",
+      "type": "std/milliseconds"
+    }
+  ]
+}

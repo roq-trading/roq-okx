@@ -1,0 +1,22 @@
+{
+  "name": "roq/okx/protocol/json/ChannelConnCount",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "event",
+      "type": "roq/okx/protocol/json/EventType"
+    },
+    {
+      "name": "channel",
+      "type": "roq/okx/protocol/json/Channel"
+    },
+    {
+      "name": "connCount",
+      "type": "std/uint32"
+    },
+    {
+      "name": "connId",
+      "type": "std/string_view"
+    }
+  ]
+}

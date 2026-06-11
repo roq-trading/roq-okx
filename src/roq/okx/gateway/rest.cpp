@@ -16,8 +16,8 @@
 
 #include "roq/core/json/parser.hpp"
 
-#include "roq/okx/json/map.hpp"
-#include "roq/okx/json/utils.hpp"
+#include "roq/okx/protocol/json/map.hpp"
+#include "roq/okx/protocol/json/utils.hpp"
 
 using namespace std::literals;
 
@@ -202,12 +202,12 @@ void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::str
       // XXX WHAT ???
     };
     auto handle_success = [&](auto &body) {
-      json::InstrumentsAck instruments_ack{body, decode_buffer_};
+      protocol::json::InstrumentsAck instruments_ack{body, decode_buffer_};
       if (instruments_ack.code == 0) {
         Trace event_2{event, instruments_ack};
         (*this)(event_2);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(instruments_ack.code), instruments_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(instruments_ack.code), instruments_ack.msg);
       }
       if (type == "SPOT"sv) {
         download_instruments_.spot = false;
@@ -225,7 +225,7 @@ void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::str
   });
 }
 
-void Rest::operator()(Trace<json::InstrumentsAck> const &event) {
+void Rest::operator()(Trace<protocol::json::InstrumentsAck> const &event) {
   auto &[trace_info, instruments_ack] = event;
   log::info<4>("instruments_ack={}"sv, instruments_ack);
   std::vector<Symbol> symbols;
@@ -238,7 +238,7 @@ void Rest::operator()(Trace<json::InstrumentsAck> const &event) {
     auto base_currency = [&]() {
       if (std::empty(item.base_ccy)) {
         switch (item.ct_type) {
-          using enum json::ContractType::type_t;
+          using enum protocol::json::ContractType::type_t;
           case UNDEFINED_INTERNAL:
           case UNKNOWN_INTERNAL:
             break;
@@ -253,7 +253,7 @@ void Rest::operator()(Trace<json::InstrumentsAck> const &event) {
     auto quote_currency = [&]() {
       if (std::empty(item.quote_ccy)) {
         switch (item.ct_type) {
-          using enum json::ContractType::type_t;
+          using enum protocol::json::ContractType::type_t;
           case UNDEFINED_INTERNAL:
           case UNKNOWN_INTERNAL:
             break;
@@ -321,7 +321,7 @@ void Rest::operator()(Trace<json::InstrumentsAck> const &event) {
     // trying to reduce the number of symbols where we next extra subscriptions
     // but still avoid not reducing too much
     switch (item.inst_type) {
-      using enum json::InstrumentType::type_t;
+      using enum protocol::json::InstrumentType::type_t;
       case UNDEFINED_INTERNAL:
       case UNKNOWN_INTERNAL:
       case SPOT:
@@ -377,19 +377,19 @@ void Rest::get_candles_ack(Trace<web::rest::Response> const &event, std::string_
       // XXX WHAT ???
     };
     auto handle_success = [&](auto &body) {
-      json::CandlesAck candles_ack{body, decode_buffer_};
+      protocol::json::CandlesAck candles_ack{body, decode_buffer_};
       if (candles_ack.code == 0) {
         Trace event_2{event, candles_ack};
         (*this)(event_2, symbol);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(candles_ack.code), candles_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(candles_ack.code), candles_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
   });
 }
 
-void Rest::operator()(Trace<json::CandlesAck> const &event, std::string_view const &symbol) {
+void Rest::operator()(Trace<protocol::json::CandlesAck> const &event, std::string_view const &symbol) {
   auto &[trace_info, candles_ack] = event;
   log::info<4>("candles_ack={}"sv, candles_ack);
   auto &bars = shared_.bars;

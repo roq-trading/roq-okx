@@ -1,0 +1,78 @@
+{
+  "name": "roq/okx/protocol/json/FundingRateDataItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "fundingRate",
+      "type": "std/double"
+    },
+    {
+      "name": "fundingTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "instId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "instType",
+      "type": "roq/okx/protocol/json/InstrumentType"
+    },
+    {
+      "name": "nextFundingRate",
+      "type": "std/double"
+    },
+    {
+      "name": "nextFundingTime",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "fundingRateType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "formulaType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "impactValue",
+      "type": "std/double"
+    },
+    {
+      "name": "interestRate",
+      "type": "std/double"
+    },
+    {
+      "name": "maxFundingRate",
+      "type": "std/double"
+    },
+    {
+      "name": "minFundingRate",
+      "type": "std/double"
+    },
+    {
+      "name": "method",
+      "type": "std/string_view"
+    },
+    {
+      "name": "premium",
+      "type": "std/double"
+    },
+    {
+      "name": "settFundingRate",
+      "type": "std/double"
+    },
+    {
+      "name": "settState",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ts",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "prevFundingTime",
+      "type": "std/milliseconds"
+    }
+  ]
+}

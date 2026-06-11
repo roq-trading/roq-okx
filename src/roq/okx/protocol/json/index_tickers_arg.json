@@ -1,0 +1,14 @@
+{
+  "name": "roq/okx/protocol/json/IndexTickersArg",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "channel",
+      "type": "roq/okx/protocol/json/Channel"
+    },
+    {
+      "name": "instId",
+      "type": "std/string_view"
+    }
+  ]
+}

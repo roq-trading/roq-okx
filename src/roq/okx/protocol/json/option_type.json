@@ -1,0 +1,14 @@
+{
+  "name": "roq/okx/protocol/json/OptionType",
+  "type": "enum",
+  "values": [
+    {
+      "raw": "C",
+      "name": "call"
+    },
+    {
+      "raw": "P",
+      "name": "put"
+    }
+  ]
+}

@@ -24,8 +24,8 @@
 
 #include "roq/okx/gateway/shared.hpp"
 
-#include "roq/okx/json/candles_ack.hpp"
-#include "roq/okx/json/instruments_ack.hpp"
+#include "roq/okx/protocol/json/candles_ack.hpp"
+#include "roq/okx/protocol/json/instruments_ack.hpp"
 
 namespace roq {
 namespace okx {
@@ -73,13 +73,13 @@ struct Rest final : public web::rest::Client::Handler {
 
   void get_instruments(std::string_view const &type);
   void get_instruments_ack(Trace<web::rest::Response> const &, std::string_view const &type);
-  void operator()(Trace<json::InstrumentsAck> const &);
+  void operator()(Trace<protocol::json::InstrumentsAck> const &);
 
   // candles
 
   void get_candles(std::string_view const &symbol);
   void get_candles_ack(Trace<web::rest::Response> const &, std::string_view const &symbol);
-  void operator()(Trace<json::CandlesAck> const &, std::string_view const &symbol);
+  void operator()(Trace<protocol::json::CandlesAck> const &, std::string_view const &symbol);
 
   // helpers
 

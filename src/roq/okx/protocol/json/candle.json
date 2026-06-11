@@ -1,0 +1,15 @@
+{
+  "name": "roq/okx/protocol/json/Candle",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "arg",
+      "type": "roq/okx/protocol/json/CandleArg"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/protocol/json/CandleDataItem",
+      "array": "std/span"
+    }
+  ]
+}

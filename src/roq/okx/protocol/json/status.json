@@ -1,0 +1,15 @@
+{
+  "name": "roq/okx/protocol/json/Status",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "arg",
+      "type": "roq/okx/protocol/json/StatusArg"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/protocol/json/StatusDataItem",
+      "array": "std/span"
+    }
+  ]
+}

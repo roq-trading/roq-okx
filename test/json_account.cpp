@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::Account;
+using value_type = protocol::json::Account;
 
 TEST_CASE("simple", "[json_account]") {
   auto message = R"({)"
@@ -108,7 +108,7 @@ TEST_CASE("simple", "[json_account]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::ACCOUNT);
+    CHECK(obj.arg.channel == protocol::json::Channel::ACCOUNT);
     CHECK(obj.arg.uid == "33594834598109184"sv);
     REQUIRE(std::size(obj.data) == 1);
     auto &item = obj.data[0];

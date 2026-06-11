@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::BalanceAndPosition;
+using value_type = protocol::json::BalanceAndPosition;
 
 TEST_CASE("simple", "[json_balance_and_position]") {
   auto message = R"({)"
@@ -42,7 +42,7 @@ TEST_CASE("simple", "[json_balance_and_position]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::BALANCE_AND_POSITION);
+    CHECK(obj.arg.channel == protocol::json::Channel::BALANCE_AND_POSITION);
     CHECK(obj.arg.uid == "33594834598109184"sv);
     REQUIRE(std::size(obj.data) == 1);
     auto &d0 = obj.data[0];
@@ -104,7 +104,7 @@ TEST_CASE("simple_2", "[json_balance_and_position]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::BALANCE_AND_POSITION);
+    CHECK(obj.arg.channel == protocol::json::Channel::BALANCE_AND_POSITION);
     CHECK(obj.arg.uid == "187956862690435072"sv);
     REQUIRE(std::size(obj.data) == 1);
     auto &d0 = obj.data[0];
@@ -122,12 +122,12 @@ TEST_CASE("simple_2", "[json_balance_and_position]") {
     CHECK(std::isnan(pos_0.base_bal) == true);
     CHECK(pos_0.ccy == "USDT"sv);
     CHECK(pos_0.inst_id == "BTC-USDT-SWAP"sv);
-    CHECK(pos_0.inst_type == json::InstrumentType::SWAP);
-    CHECK(pos_0.mgn_mode == json::MarginMode::CROSS);
+    CHECK(pos_0.inst_type == protocol::json::InstrumentType::SWAP);
+    CHECK(pos_0.mgn_mode == protocol::json::MarginMode::CROSS);
     CHECK(pos_0.pos == 1.0_a);
     CHECK(std::empty(pos_0.pos_ccy));
     CHECK(pos_0.pos_id == "325382268437037058"sv);
-    CHECK(pos_0.pos_side == json::PositionSide::NET);
+    CHECK(pos_0.pos_side == protocol::json::PositionSide::NET);
     CHECK(std::isnan(pos_0.quote_bal) == true);
     CHECK(pos_0.trade_id == "186646171"sv);
     CHECK(pos_0.u_time == 1644330337903ms);

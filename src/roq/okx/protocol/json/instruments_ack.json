@@ -1,0 +1,19 @@
+{
+  "name": "roq/okx/protocol/json/InstrumentsAck",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "code",
+      "type": "std/int32"
+    },
+    {
+      "name": "msg",
+      "type": "std/string_view"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/protocol/json/InstrumentsDataItem",
+      "array": "std/span"
+    }
+  ]
+}

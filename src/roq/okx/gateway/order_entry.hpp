@@ -23,10 +23,10 @@
 #include "roq/okx/gateway/request.hpp"
 #include "roq/okx/gateway/shared.hpp"
 
-// #include "roq/okx/json/balance_ack.hpp"
-#include "roq/okx/json/fills_ack.hpp"
-#include "roq/okx/json/orders_pending_ack.hpp"
-#include "roq/okx/json/positions_ack.hpp"
+// #include "roq/okx/protocol/json/balance_ack.hpp"
+#include "roq/okx/protocol/json/fills_ack.hpp"
+#include "roq/okx/protocol/json/orders_pending_ack.hpp"
+#include "roq/okx/protocol/json/positions_ack.hpp"
 
 namespace roq {
 namespace okx {
@@ -66,25 +66,25 @@ struct OrderEntry final : public web::rest::Client::Handler {
 
   void get_balance();
   void get_balance_ack(Trace<web::rest::Response> const &);
-  // void operator()(Trace<json::BalanceAck> const &);
+  // void operator()(Trace<protocol::json::BalanceAck> const &);
 
   // positions
 
   void get_positions();
   void get_positions_ack(Trace<web::rest::Response> const &);
-  void operator()(Trace<json::PositionsAck> const &);
+  void operator()(Trace<protocol::json::PositionsAck> const &);
 
   // orders-pending
 
   void get_orders_pending();
   void get_orders_pending_ack(Trace<web::rest::Response> const &);
-  void operator()(Trace<json::OrdersPendingAck> const &);
+  void operator()(Trace<protocol::json::OrdersPendingAck> const &);
 
   // fills
 
   void get_fills();
   void get_fills_ack(Trace<web::rest::Response> const &);
-  void operator()(Trace<json::FillsAck> const &);
+  void operator()(Trace<protocol::json::FillsAck> const &);
 
   // helpers
 

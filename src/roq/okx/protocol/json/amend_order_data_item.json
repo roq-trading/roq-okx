@@ -1,0 +1,38 @@
+{
+  "name": "roq/okx/protocol/json/AmendOrderDataItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "clOrdId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ordId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "reqId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "sCode",
+      "type": "std/int32"
+    },
+    {
+      "name": "sMsg",
+      "type": "std/string_view"
+    },
+    {
+      "name": "tag",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ts",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "subCode",
+      "type": "std/string_view"
+    }
+  ]
+}

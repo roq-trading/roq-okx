@@ -1,0 +1,10 @@
+{
+  "name": "roq/okx/protocol/json/StatusArg",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "channel",
+      "type": "roq/okx/protocol/json/Channel"
+    }
+  ]
+}

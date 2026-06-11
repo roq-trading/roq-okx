@@ -17,8 +17,8 @@
 
 #include "roq/core/json/parser.hpp"
 
-#include "roq/okx/json/map.hpp"
-#include "roq/okx/json/utils.hpp"
+#include "roq/okx/protocol/json/map.hpp"
+#include "roq/okx/protocol/json/utils.hpp"
 
 using namespace std::literals;
 
@@ -244,7 +244,7 @@ void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
     };
     auto handle_success = [&]([[maybe_unused]] auto &body) {
       /*
-      json::BalanceAck balance_ack{body, decode_buffer_};
+      protocol::json::BalanceAck balance_ack{body, decode_buffer_};
       Trace event_2{event, balance_ack};
       (*this)(event_2);
       */
@@ -256,7 +256,7 @@ void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
 }
 
 /*
-void OrderEntry::operator()(Trace<json::BalanceAck> const &event) {
+void OrderEntry::operator()(Trace<protocol::json::BalanceAck> const &event) {
   auto &[trace_info, balance_ack] = event;
   log::info<4>("balance_ack={}"sv, balance_ack);
 }
@@ -295,12 +295,12 @@ void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
       // XXX WHAT ???
     };
     auto handle_success = [&](auto &body) {
-      json::PositionsAck positions_ack{body, decode_buffer_};
+      protocol::json::PositionsAck positions_ack{body, decode_buffer_};
       if (positions_ack.code == 0) {
         Trace event_2{event, positions_ack};
         (*this)(event_2);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(positions_ack.code), positions_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(positions_ack.code), positions_ack.msg);
       }
       download_positions_ = false;
       request_.respond_positions = clock::get_system();  // ack
@@ -309,7 +309,7 @@ void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
   });
 }
 
-void OrderEntry::operator()(Trace<json::PositionsAck> const &event) {
+void OrderEntry::operator()(Trace<protocol::json::PositionsAck> const &event) {
   auto &[trace_info, positions_ack] = event;
   log::info<4>("positions_ack={}"sv, positions_ack);
   for (auto &item : positions_ack.data) {
@@ -366,12 +366,12 @@ void OrderEntry::get_orders_pending_ack(Trace<web::rest::Response> const &event)
       // XXX WHAT ???
     };
     auto handle_success = [&](auto &body) {
-      json::OrdersPendingAck orders_pending_ack{body, decode_buffer_};
+      protocol::json::OrdersPendingAck orders_pending_ack{body, decode_buffer_};
       if (orders_pending_ack.code == 0) {
         Trace event_2{event, orders_pending_ack};
         (*this)(event_2);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(orders_pending_ack.code), orders_pending_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_pending_ack.code), orders_pending_ack.msg);
       }
       download_orders_ = false;
       request_.respond_orders = clock::get_system();  // ack
@@ -380,7 +380,7 @@ void OrderEntry::get_orders_pending_ack(Trace<web::rest::Response> const &event)
   });
 }
 
-void OrderEntry::operator()(Trace<json::OrdersPendingAck> const &event) {
+void OrderEntry::operator()(Trace<protocol::json::OrdersPendingAck> const &event) {
   auto &[trace_info, orders_pending_ack] = event;
   log::info<4>("orders_pending_ack={}"sv, orders_pending_ack);
   for (auto &item : orders_pending_ack.data) {
@@ -478,12 +478,12 @@ void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
       // XXX WHAT ???
     };
     auto handle_success = [&](auto &body) {
-      json::FillsAck fills_ack{body, decode_buffer_};
+      protocol::json::FillsAck fills_ack{body, decode_buffer_};
       if (fills_ack.code == 0) {
         Trace event_2{event, fills_ack};
         (*this)(event_2);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, json::guess_error(fills_ack.code), fills_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(fills_ack.code), fills_ack.msg);
       }
       // download_orders_ = false;
       // request_.respond_orders = clock::get_system();  // ack
@@ -493,7 +493,7 @@ void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
   });
 }
 
-void OrderEntry::operator()(Trace<json::FillsAck> const &event) {
+void OrderEntry::operator()(Trace<protocol::json::FillsAck> const &event) {
   auto &[trace_info, fills_ack] = event;
   log::info<4>("fills_ack={}"sv, fills_ack);
   for (auto &item : fills_ack.data) {

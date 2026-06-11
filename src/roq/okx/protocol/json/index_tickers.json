@@ -1,0 +1,15 @@
+{
+  "name": "roq/okx/protocol/json/IndexTickers",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "arg",
+      "type": "roq/okx/protocol/json/IndexTickersArg"
+    },
+    {
+      "name": "data",
+      "type": "roq/okx/protocol/json/IndexTickersDataItem",
+      "array": "std/span"
+    }
+  ]
+}

@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::Status;
+using value_type = protocol::json::Status;
 
 TEST_CASE("simple", "[json_status]") {
   auto message = R"({)"
@@ -35,7 +35,7 @@ TEST_CASE("simple", "[json_status]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::STATUS);
+    CHECK(obj.arg.channel == protocol::json::Channel::STATUS);
     REQUIRE(std::size(obj.data) == 1);
   };
   ParserTester<value_type>::dispatch(helper, message, 8192, 1);

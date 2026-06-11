@@ -1,0 +1,22 @@
+{
+  "name": "roq/okx/protocol/json/PriceLimitDataItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "instType",
+      "type": "roq/okx/protocol/json/InstrumentType"
+    },
+    {
+      "name": "instId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "buyLmt",
+      "type": "std/double"
+    },
+    {
+      "name": "SellLmt",
+      "type": "std/double"
+    }
+  ]
+}

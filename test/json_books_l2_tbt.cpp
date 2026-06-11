@@ -12,7 +12,7 @@ using namespace std::chrono_literals;
 
 using namespace Catch::literals;
 
-using value_type = json::BooksL2Tbt;
+using value_type = protocol::json::BooksL2Tbt;
 
 // note! truncated
 TEST_CASE("books_snapshot", "[json_books_l2_tbt]") {
@@ -41,9 +41,9 @@ TEST_CASE("books_snapshot", "[json_books_l2_tbt]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::BOOKS);
+    CHECK(obj.arg.channel == protocol::json::Channel::BOOKS);
     CHECK(obj.arg.inst_id == "NEAR-USDT"sv);
-    CHECK(obj.action == json::Action::SNAPSHOT);
+    CHECK(obj.action == protocol::json::Action::SNAPSHOT);
     REQUIRE(std::size(obj.data) == 1);
   };
   ParserTester<value_type>::dispatch(helper, message, 8192, 3);
@@ -70,9 +70,9 @@ TEST_CASE("books_update", "[json_books_l2_tbt]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::BOOKS);
+    CHECK(obj.arg.channel == protocol::json::Channel::BOOKS);
     CHECK(obj.arg.inst_id == "NEAR-USDT"sv);
-    CHECK(obj.action == json::Action::UPDATE);
+    CHECK(obj.action == protocol::json::Action::UPDATE);
     REQUIRE(std::size(obj.data) == 1);
   };
   ParserTester<value_type>::dispatch(helper, message, 8192, 3);
@@ -105,9 +105,9 @@ TEST_CASE("books5", "[json_books_l2_tbt]") {
                  R"(])"
                  R"(})";
   auto helper = [](value_type const &obj) {
-    CHECK(obj.arg.channel == json::Channel::BOOKS5);
+    CHECK(obj.arg.channel == protocol::json::Channel::BOOKS5);
     CHECK(obj.arg.inst_id == "PERP-USDT"sv);
-    CHECK(obj.action == json::Action::UNDEFINED_INTERNAL);
+    CHECK(obj.action == protocol::json::Action::UNDEFINED_INTERNAL);
     REQUIRE(std::size(obj.data) == 1);
     auto &asks = obj.data[0].asks;
     REQUIRE(std::size(asks) == 5);

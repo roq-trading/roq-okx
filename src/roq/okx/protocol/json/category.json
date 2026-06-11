@@ -1,0 +1,24 @@
+{
+  "name": "roq/okx/protocol/json/Category",
+  "type": "enum",
+  "values": [
+    {
+      "name": "normal"
+    },
+    {
+      "name": "twap"
+    },
+    {
+      "name": "adl"
+    },
+    {
+      "name": "full_liquidation"
+    },
+    {
+      "name": "partial_liquidation"
+    },
+    {
+      "name": "ddh"
+    }
+  ]
+}

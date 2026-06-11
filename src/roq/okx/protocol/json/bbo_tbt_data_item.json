@@ -1,0 +1,32 @@
+{
+  "name": "roq/okx/protocol/json/BboTbtDataItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "bids",
+      "type": "roq/okx/protocol/json/BooksL2Item",
+      "array": "std/span"
+    },
+    {
+      "name": "asks",
+      "type": "roq/okx/protocol/json/BooksL2Item",
+      "array": "std/span"
+    },
+    {
+      "name": "instId",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ts",
+      "type": "std/milliseconds"
+    },
+    {
+      "name": "seqId",
+      "type": "std/uint64"
+    },
+    {
+      "name": "checksum",
+      "type": "std/int64"
+    }
+  ]
+}
