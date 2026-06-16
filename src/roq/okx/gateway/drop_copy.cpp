@@ -713,6 +713,7 @@ void DropCopy::operator()(Trace<protocol::json::Order> const &event) {
           .version = {},
           .request_id = item.cl_ord_id,
           .external_order_id = item.ord_id,
+          .client_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
@@ -741,6 +742,7 @@ void DropCopy::operator()(Trace<protocol::json::AmendOrder> const &event) {
           .version = {},
           .request_id = item.req_id,
           .external_order_id = item.ord_id,
+          .client_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
@@ -769,6 +771,7 @@ void DropCopy::operator()(Trace<protocol::json::CancelOrder> const &event) {
           .version = {},
           .request_id = {},
           .external_order_id = item.ord_id,
+          .client_order_id = {},
           .quantity = NaN,
           .price = NaN,
       };
