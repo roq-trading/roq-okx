@@ -92,7 +92,7 @@ struct Controller final : public server::Handler,
   void operator()(Trace<TradeSummary> const &, bool is_last) override;
   void operator()(Trace<StatisticsUpdate> const &, bool is_last) override;
   void operator()(Trace<TimeSeriesUpdate> const &, bool is_last) override;
-  void operator()(Trace<TradeUpdate> const &, bool is_last, uint8_t user_id, std::string_view const &request_id) override;
+  void operator()(Trace<TradeUpdate> const &, bool is_last, uint8_t user_id) override;
   void operator()(Trace<FundsUpdate> const &, bool is_last) override;
   void operator()(Trace<PositionUpdate> const &, bool is_last) override;
 

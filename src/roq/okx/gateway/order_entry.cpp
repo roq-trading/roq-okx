@@ -401,7 +401,7 @@ void OrderEntry::operator()(Trace<protocol::json::OrdersPendingAck> const &event
         .update_time_utc = utils::safe_cast(item.u_time),
         .external_account = {},
         .external_order_id = item.ord_id,
-        .client_order_id = {},
+        .client_order_id = item.cl_ord_id,
         .order_status = map(item.state),
         .error = {},
         .text = {},
@@ -422,7 +422,7 @@ void OrderEntry::operator()(Trace<protocol::json::OrdersPendingAck> const &event
         .update_type = UpdateType::SNAPSHOT,
         .sending_time_utc = {},
     };
-    if (shared_.update_order(item.cl_ord_id, stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
+    if (shared_.update_order(stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
     } else {
       log::warn("*** EXTERNAL ORDER ***"sv);
       log::warn("item={}"sv, item);
@@ -528,7 +528,7 @@ void OrderEntry::operator()(Trace<protocol::json::FillsAck> const &event) {
         .update_time_utc = utils::safe_cast(item.fill_time),
         .external_account = {},
         .external_order_id = item.ord_id,
-        .client_order_id = {},
+        .client_order_id = item.cl_ord_id,
         .fills = {&fill, 1},
         .routing_id = {},
         .update_type = UpdateType::SNAPSHOT,
@@ -536,7 +536,7 @@ void OrderEntry::operator()(Trace<protocol::json::FillsAck> const &event) {
         .user = {},
         .strategy_id = {},
     };
-    create_trace_and_dispatch(handler_, trace_info, trade_update, true, SOURCE_NONE, item.cl_ord_id);
+    create_trace_and_dispatch(handler_, trace_info, trade_update, true, SOURCE_NONE);
   }
 }
 
