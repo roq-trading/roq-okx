@@ -267,13 +267,12 @@ uint16_t DropCopy::operator()(Event<CancelAllOrders> const &event, [[maybe_unuse
   auto &[message_info, cancel_all_orders] = event;
   // XXX FIXME TODO what about orders where we haven't received external_order_id ???
   std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_id;
-  if (shared_.dispatcher_.get_all_orders(
-          [&](auto &order) {
-            if (!std::empty(order.external_order_id)) {
-              symbol_and_external_order_id.emplace_back(order.symbol, order.external_order_id);
-            }
-          },
-          cancel_all_orders)) {
+  auto callback = [&](auto &order) {
+    if (!std::empty(order.external_order_id)) {
+      symbol_and_external_order_id.emplace_back(order.symbol, order.external_order_id);
+    }
+  };
+  if (shared_.dispatcher.get_all_orders(callback, cancel_all_orders)) {
   } else {
     log::info<1>("No orders"sv);
   }
@@ -646,7 +645,7 @@ void DropCopy::operator()(Trace<protocol::json::Orders> const &event) {
           .update_type = UpdateType::INCREMENTAL,
           .sending_time_utc = utils::safe_cast(item.u_time),
       };
-      if (shared_.update_order(stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
+      auto callback = [&]([[maybe_unused]] auto &order) {
         if (item.exec_type != protocol::json::OrderFlowType{}) {
           auto side = map(item.side).template get<Side>();
           auto ref_data = shared_.get_ref_data(shared_.settings.exchange, item.inst_id);
@@ -688,10 +687,8 @@ void DropCopy::operator()(Trace<protocol::json::Orders> const &event) {
           };
           create_trace_and_dispatch(handler_, trace_info, trade_update, true, SOURCE_NONE);
         }
-      } else {
-        log::warn("*** EXTERNAL ORDER ***"sv);
-        log::warn("item={}"sv, item);
-      }
+      };
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, order_update, stream_id_, callback);
     }
   });
 }
@@ -717,10 +714,7 @@ void DropCopy::operator()(Trace<protocol::json::Order> const &event) {
           .quantity = NaN,
           .price = NaN,
       };
-      if (shared_.update_order(stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {})) {
-      } else {
-        log::warn(R"(Did not find order: cl_ord_id="{}")"sv, item.cl_ord_id);
-      }
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_);
     }
   });
 }
@@ -746,10 +740,7 @@ void DropCopy::operator()(Trace<protocol::json::AmendOrder> const &event) {
           .quantity = NaN,
           .price = NaN,
       };
-      if (shared_.update_order(stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {})) {
-      } else {
-        log::warn(R"(Did not find order: cl_ord_id="{}")"sv, item.cl_ord_id);
-      }
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_);
     }
   });
 }
@@ -775,10 +766,7 @@ void DropCopy::operator()(Trace<protocol::json::CancelOrder> const &event) {
           .quantity = NaN,
           .price = NaN,
       };
-      if (shared_.update_order(stream_id_, trace_info, response, []([[maybe_unused]] auto &order) {})) {
-      } else {
-        log::warn("Did not find order: response={}"sv, response);
-      }
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_);
     }
   });
 }

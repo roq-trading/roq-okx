@@ -422,11 +422,7 @@ void OrderEntry::operator()(Trace<protocol::json::OrdersPendingAck> const &event
         .update_type = UpdateType::SNAPSHOT,
         .sending_time_utc = {},
     };
-    if (shared_.update_order(stream_id_, trace_info, order_update, [&]([[maybe_unused]] auto &order) {})) {
-    } else {
-      log::warn("*** EXTERNAL ORDER ***"sv);
-      log::warn("item={}"sv, item);
-    }
+    create_trace_and_dispatch(shared_.dispatcher, trace_info, order_update, stream_id_);
   }
 }
 
