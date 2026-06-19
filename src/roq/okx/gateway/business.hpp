@@ -31,11 +31,7 @@ namespace okx {
 namespace gateway {
 
 struct Business final : public web::socket::Client::Handler, public protocol::json::Parser::Handler {
-  struct Handler {
-    virtual void operator()(Trace<StreamStatus> const &) = 0;
-    virtual void operator()(Trace<ExternalLatency> const &) = 0;
-    virtual void operator()(Trace<TimeSeriesUpdate> const &, bool is_last) = 0;
-  };
+  struct Handler {};
 
   Business(Handler &, io::Context &, uint16_t stream_id, Shared &);
 

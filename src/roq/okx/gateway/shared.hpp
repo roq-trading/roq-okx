@@ -2,9 +2,7 @@
 
 #pragma once
 
-#include <chrono>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "roq/api.hpp"
@@ -29,31 +27,20 @@ struct Shared final {
 
   Shared(Shared const &) = delete;
 
-  auto discard_symbol(std::string_view const &name) const { return dispatcher.discard_symbol(name); }
+  server::Dispatcher &dispatcher;
 
-  template <typename... Args>
-  auto operator()(Args &&...args) {
-    return dispatcher(std::forward<Args>(args)...);
-  }
+  Settings const &settings;
+  API const api;
 
-  template <typename... Args>
-  auto get_ref_data(Args &&...args) {
-    return dispatcher.get_ref_data(std::forward<Args>(args)...);
-  }
+  core::limit::RateLimiter rate_limiter;
 
- public:
-  std::vector<MBPUpdate> bids, asks;
+  core::Symbols symbols;
+  utils::unordered_set<std::string> all_symbols;
+
+  std::vector<MBPUpdate> bids, asks, final_bids, final_asks;
   std::vector<Trade> trades;
 
   // private:
-  server::Dispatcher &dispatcher;
-
- public:
-  Settings const &settings;
-  API const api;
-  core::limit::RateLimiter rate_limiter;
-  core::Symbols symbols;
-  utils::unordered_set<std::string> all_symbols;
   struct {
     std::chrono::nanoseconds request = {};
     std::chrono::nanoseconds response = {};

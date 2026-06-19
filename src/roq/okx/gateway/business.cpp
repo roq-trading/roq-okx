@@ -161,7 +161,7 @@ void Business::operator()(web::socket::Client::Latency const &latency) {
       .account = {},
       .latency = latency.sample,
   };
-  create_trace_and_dispatch(handler_, trace_info, external_latency);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
   latency_.ping.update(latency.sample);
 }
 
@@ -192,7 +192,7 @@ void Business::operator()(ConnectionStatus connection_status, std::string_view c
       .proxy = (*connection_).get_proxy(),
   };
   log::info("stream_status={}"sv, stream_status);
-  create_trace_and_dispatch(handler_, trace_info, stream_status);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
 }
 
 void Business::subscribe_static() {
@@ -392,7 +392,7 @@ void Business::operator()(Trace<protocol::json::Candle> const &event) {
         .update_type = UpdateType::INCREMENTAL,
         .exchange_time_utc = {},  // XXX FIXME
     };
-    create_trace_and_dispatch(handler_, trace_info, time_series_update, true);
+    create_trace_and_dispatch(shared_.dispatcher, trace_info, time_series_update, true);
   }
 }
 

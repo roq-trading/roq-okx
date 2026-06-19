@@ -310,7 +310,7 @@ void DropCopy::operator()(web::socket::Client::Latency const &latency) {
       .account = account_.name,
       .latency = latency.sample,
   };
-  create_trace_and_dispatch(handler_, trace_info, external_latency);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
   latency_.ping.update(latency.sample);
 }
 
@@ -341,7 +341,7 @@ void DropCopy::operator()(ConnectionStatus connection_status, std::string_view c
       .proxy = (*connection_).get_proxy(),
   };
   log::info("stream_status={}"sv, stream_status);
-  create_trace_and_dispatch(handler_, trace_info, stream_status);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
 }
 
 uint32_t DropCopy::download(State state) {
@@ -557,7 +557,7 @@ void DropCopy::operator()(Trace<protocol::json::Account> const &event) {
             .exchange_time_utc = {},
             .sending_time_utc = {},
         };
-        create_trace_and_dispatch(handler_, trace_info, funds_update, true);
+        create_trace_and_dispatch(shared_.dispatcher, trace_info, funds_update, true);
       }
     }
   });
@@ -590,7 +590,7 @@ void DropCopy::operator()(Trace<protocol::json::Positions> const &event) {
           .exchange_time_utc = {},
           .sending_time_utc = {},
       };
-      create_trace_and_dispatch(handler_, trace_info, position_update, true);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, position_update, true);
     }
   });
 }
@@ -648,7 +648,7 @@ void DropCopy::operator()(Trace<protocol::json::Orders> const &event) {
       auto callback = [&]([[maybe_unused]] auto &order) {
         if (item.exec_type != protocol::json::OrderFlowType{}) {
           auto side = map(item.side).template get<Side>();
-          auto ref_data = shared_.get_ref_data(shared_.settings.exchange, item.inst_id);
+          auto ref_data = shared_.dispatcher.get_ref_data(shared_.settings.exchange, item.inst_id);
           auto profit_loss_amount = utils::compute_profit_loss_amount(side, item.fill_sz, item.fill_px, ref_data.multiplier);
           auto fill = Fill{
               .exchange_time_utc = utils::safe_cast(item.c_time),
@@ -685,7 +685,7 @@ void DropCopy::operator()(Trace<protocol::json::Orders> const &event) {
               .user = {},
               .strategy_id = {},
           };
-          create_trace_and_dispatch(handler_, trace_info, trade_update, true, SOURCE_NONE);
+          create_trace_and_dispatch(shared_.dispatcher, trace_info, trade_update, true, SOURCE_NONE);
         }
       };
       create_trace_and_dispatch(shared_.dispatcher, trace_info, order_update, stream_id_, callback);

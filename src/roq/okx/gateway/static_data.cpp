@@ -158,7 +158,7 @@ void StaticData::operator()(web::socket::Client::Latency const &latency) {
       .account = {},
       .latency = latency.sample,
   };
-  create_trace_and_dispatch(handler_, trace_info, external_latency);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
   latency_.ping.update(latency.sample);
 }
 
@@ -189,7 +189,7 @@ void StaticData::operator()(ConnectionStatus connection_status, std::string_view
       .proxy = (*connection_).get_proxy(),
   };
   log::info("stream_status={}"sv, stream_status);
-  create_trace_and_dispatch(handler_, trace_info, stream_status);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
 }
 
 uint32_t StaticData::download(State state) {
@@ -343,7 +343,7 @@ void StaticData::operator()(Trace<protocol::json::Instruments> const &event) {
     for (auto &item : instruments.data) {
       log::info<2>("item={}"sv, item);
       auto symbol = item.inst_id;
-      auto discard = shared_.discard_symbol(symbol);
+      auto discard = shared_.dispatcher.discard_symbol(symbol);
       auto base_currency = [&]() {
         if (std::empty(item.base_ccy)) {
           switch (item.ct_type) {
@@ -408,7 +408,7 @@ void StaticData::operator()(Trace<protocol::json::Instruments> const &event) {
           .sending_time_utc = {},
           .discard = discard,
       };
-      create_trace_and_dispatch(handler_, trace_info, reference_data, true);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, reference_data, true);
       if (discard) {
         log::info<1>(R"(Drop symbol="{}")"sv, symbol);
         continue;
@@ -426,7 +426,7 @@ void StaticData::operator()(Trace<protocol::json::Instruments> const &event) {
           .exchange_sequence = {},
           .sending_time_utc = {},
       };
-      create_trace_and_dispatch(handler_, trace_info, market_status, true);
+      create_trace_and_dispatch(shared_.dispatcher, trace_info, market_status, true);
       // trying to reduce the number of symbols where we next extra subscriptions
       // but still avoid not reducing too much
       switch (item.inst_type) {

@@ -23,7 +23,6 @@
 #include "roq/okx/gateway/request.hpp"
 #include "roq/okx/gateway/shared.hpp"
 
-// #include "roq/okx/protocol/json/balance_ack.hpp"
 #include "roq/okx/protocol/json/fills_ack.hpp"
 #include "roq/okx/protocol/json/orders_pending_ack.hpp"
 #include "roq/okx/protocol/json/positions_ack.hpp"
@@ -33,13 +32,7 @@ namespace okx {
 namespace gateway {
 
 struct OrderEntry final : public web::rest::Client::Handler {
-  struct Handler {
-    virtual void operator()(Trace<StreamStatus> const &) = 0;
-    virtual void operator()(Trace<ExternalLatency> const &) = 0;
-    virtual void operator()(Trace<TradeUpdate> const &, bool is_last, uint8_t user_id) = 0;
-    virtual void operator()(Trace<FundsUpdate> const &, bool is_last) = 0;
-    virtual void operator()(Trace<PositionUpdate> const &, bool is_last) = 0;
-  };
+  struct Handler {};
 
   OrderEntry(Handler &, io::Context &context, uint16_t stream_id, Account &, Shared &, Request &);
 
