@@ -3,8 +3,6 @@
 #pragma once
 
 #include <string>
-#include <string_view>
-#include <utility>
 #include <vector>
 
 #include "roq/utils/metrics/counter.hpp"
@@ -16,6 +14,7 @@
 #include "roq/web/socket/client.hpp"
 
 #include "roq/core/download.hpp"
+
 #include "roq/core/timer_queue.hpp"
 
 #include "roq/core/json/buffer_stack.hpp"
@@ -44,10 +43,6 @@ struct StaticData final : public web::socket::Client::Handler, public protocol::
 
   StaticData(StaticData const &) = delete;
 
-  uint16_t stream_id() const { return stream_id_; }
-
-  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
-
   void operator()(Event<Start> const &);
   void operator()(Event<Stop> const &);
   void operator()(Event<Timer> const &);
@@ -65,7 +60,12 @@ struct StaticData final : public web::socket::Client::Handler, public protocol::
   void operator()(web::socket::Client::Text const &) override;
   void operator()(web::socket::Client::Binary const &) override;
 
- private:
+  // helpers
+
+  uint16_t stream_id() const { return stream_id_; }
+
+  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
+
   void operator()(ConnectionStatus, std::string_view const &reason = {});
 
   enum class State {

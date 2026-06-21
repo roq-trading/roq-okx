@@ -6,7 +6,6 @@
 
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 #include "roq/server.hpp"
@@ -89,7 +88,7 @@ struct Controller final : public server::Handler,
 
   void operator()(StaticData::SymbolsUpdate &) override;
 
-  // utilities
+  // helpers
 
   void ensure_symbol_slices(size_t size);
 
@@ -120,8 +119,6 @@ struct Controller final : public server::Handler,
   std::unique_ptr<StaticData> static_data_;
   std::vector<std::unique_ptr<MarketData>> market_data_;
   std::unique_ptr<Business> business_;
-  // cache
-  std::vector<MBPUpdate> bids_, asks_;
 };
 
 }  // namespace gateway
