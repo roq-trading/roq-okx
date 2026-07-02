@@ -196,6 +196,18 @@
     {
       "name": "maxPlatOICoinLmt",
       "type": "std/double"
+    },
+    {
+      "name": "floatPxLmtPct",
+      "type": "std/double"
+    },
+    {
+      "name": "initPxLmtPct",
+      "type": "std/double"
+    },
+    {
+      "name": "maxPxLmtPct",
+      "type": "std/double"
     }
   ]
 }
