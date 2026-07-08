@@ -283,6 +283,10 @@
     {
       "name": "outcome",
       "type": "std/string_view"
+    },
+    {
+      "name": "slippage",
+      "type": "std/double"
     }
   ]
 }
