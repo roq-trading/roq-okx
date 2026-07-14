@@ -83,6 +83,7 @@ Business::Business(Handler &handler, io::Context &context, uint16_t stream_id, S
           .error = create_metrics(shared.settings, name_, "error"sv),
           .subscribe = create_metrics(shared.settings, name_, "subscribe"sv),
           .unsubscribe = create_metrics(shared.settings, name_, "unsubscribe"sv),
+          .notice = create_metrics(shared.settings, name_, "notice"sv),
           .candles = create_metrics(shared.settings, name_, "candles"sv),
       },
       latency_{
@@ -117,6 +118,7 @@ void Business::operator()(metrics::Writer &writer) const {
       .write(profile_.error, metrics::Type::PROFILE)
       .write(profile_.subscribe, metrics::Type::PROFILE)
       .write(profile_.unsubscribe, metrics::Type::PROFILE)
+      .write(profile_.notice, metrics::Type::PROFILE)
       .write(profile_.candles, metrics::Type::PROFILE)
       // latency
       .write(latency_.ping, metrics::Type::LATENCY)
@@ -267,6 +269,13 @@ void Business::operator()(Trace<protocol::json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("unsubscribe={}"sv, unsubscribe);
+  });
+}
+
+void Business::operator()(Trace<protocol::json::Notice> const &event) {
+  profile_.notice([&]() {
+    auto &[trace_info, notice] = event;
+    log::warn("notice={}"sv, notice);
   });
 }
 

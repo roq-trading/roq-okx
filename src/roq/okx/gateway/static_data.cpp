@@ -82,6 +82,7 @@ StaticData::StaticData(Handler &handler, io::Context &context, uint16_t stream_i
           .error = create_metrics(shared.settings, name_, "error"sv),
           .subscribe = create_metrics(shared.settings, name_, "subscribe"sv),
           .unsubscribe = create_metrics(shared.settings, name_, "unsubscribe"sv),
+          .notice = create_metrics(shared.settings, name_, "notice"sv),
           .login = create_metrics(shared.settings, name_, "login"sv),
           .status = create_metrics(shared.settings, name_, "status"sv),
           .instruments = create_metrics(shared.settings, name_, "instruments"sv),
@@ -117,6 +118,7 @@ void StaticData::operator()(metrics::Writer &writer) const {
       .write(profile_.parse, metrics::Type::PROFILE)
       .write(profile_.error, metrics::Type::PROFILE)
       .write(profile_.subscribe, metrics::Type::PROFILE)
+      .write(profile_.notice, metrics::Type::PROFILE)
       .write(profile_.unsubscribe, metrics::Type::PROFILE)
       .write(profile_.login, metrics::Type::PROFILE)
       .write(profile_.status, metrics::Type::PROFILE)
@@ -309,6 +311,13 @@ void StaticData::operator()(Trace<protocol::json::Unsubscribe> const &event) {
   profile_.unsubscribe([&]() {
     auto &[trace_info, unsubscribe] = event;
     log::info<1>("unsubscribe={}"sv, unsubscribe);
+  });
+}
+
+void StaticData::operator()(Trace<protocol::json::Notice> const &event) {
+  profile_.notice([&]() {
+    auto &[trace_info, notice] = event;
+    log::warn("notice={}"sv, notice);
   });
 }
 

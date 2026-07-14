@@ -88,8 +88,8 @@ bool Parser::dispatch(
             result = dispatch_helper<ChannelConnCount>(handler, message, buffer_stack, trace_info);
             return true;
           case NOTICE:
-            log::warn(R"(DEBUG message="{}")"sv, message);
-            return true;  // note! drop
+            result = dispatch_helper<Notice>(handler, message, buffer_stack, trace_info);
+            return true;
         }
         break;
       }

@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* The notice event was not being parsed (#614)
+
 ## 1.1.6 &ndash; 2026-07-08
 
 ### Removed

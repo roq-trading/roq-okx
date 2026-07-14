@@ -17,9 +17,10 @@ set(SOURCES
     json_estimated_price.cpp
     json_funding_rate.cpp
     json_index_tickers.cpp
-    json_instruments_ack.cpp
     json_instruments.cpp
+    json_instruments_ack.cpp
     json_mark_price.cpp
+    json_notice.cpp
     json_order.cpp
     json_orders.cpp
     json_orders_pending_ack.cpp

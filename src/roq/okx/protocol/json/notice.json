@@ -1,0 +1,22 @@
+{
+  "name": "roq/okx/protocol/json/Notice",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "event",
+      "type": "roq/okx/protocol/json/EventType"
+    },
+    {
+      "name": "msg",
+      "type": "std/string_view"
+    },
+    {
+      "name": "code",
+      "type": "std/int32"
+    },
+    {
+      "name": "connId",
+      "type": "std/string_view"
+    }
+  ]
+}

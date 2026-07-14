@@ -9,6 +9,7 @@
 #include "roq/core/json/buffer_stack.hpp"
 
 #include "roq/okx/protocol/json/error.hpp"
+#include "roq/okx/protocol/json/notice.hpp"
 #include "roq/okx/protocol/json/subscribe.hpp"
 #include "roq/okx/protocol/json/unsubscribe.hpp"
 
@@ -50,6 +51,7 @@ struct Parser final {
     virtual void operator()(Trace<protocol::json::Error> const &) = 0;
     virtual void operator()(Trace<protocol::json::Subscribe> const &) = 0;
     virtual void operator()(Trace<protocol::json::Unsubscribe> const &) = 0;
+    virtual void operator()(Trace<protocol::json::Notice> const &) = 0;
     // push
     // - public
     virtual void operator()(Trace<protocol::json::Status> const &) = 0;

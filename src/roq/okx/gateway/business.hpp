@@ -72,6 +72,7 @@ struct Business final : public web::socket::Client::Handler, public protocol::js
   void operator()(Trace<protocol::json::Error> const &) override;
   void operator()(Trace<protocol::json::Subscribe> const &) override;
   void operator()(Trace<protocol::json::Unsubscribe> const &) override;
+  void operator()(Trace<protocol::json::Notice> const &) override;
 
   void operator()(Trace<protocol::json::Status> const &) override;
   void operator()(Trace<protocol::json::Instruments> const &) override;
@@ -115,7 +116,7 @@ struct Business final : public web::socket::Client::Handler, public protocol::js
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, error, subscribe, unsubscribe, candles;
+    utils::metrics::Profile parse, error, subscribe, unsubscribe, notice, candles;
   } profile_;
   struct {
     utils::metrics::Latency ping, heartbeat;
