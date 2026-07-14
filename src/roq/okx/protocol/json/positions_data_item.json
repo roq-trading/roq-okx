@@ -272,6 +272,10 @@
     {
       "name": "positionExpireTime",
       "type": "std/milliseconds"
+    },
+    {
+      "name": "ruleType",
+      "type": "roq/okx/protocol/json/Category"
     }
   ]
 }
