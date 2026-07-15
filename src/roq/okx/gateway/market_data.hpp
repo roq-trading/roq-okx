@@ -130,7 +130,7 @@ struct MarketData final : public web::socket::Client::Handler, public protocol::
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, error, subscribe, unsubscribe, notice, login, estimated_price, price_limit, mark_price, tickers, trades, bbo_tbt,
+    utils::metrics::Profile parse, error, subscribe, unsubscribe, notice, status, login, estimated_price, price_limit, mark_price, tickers, trades, bbo_tbt,
         books_l2_tbt, index_tickers, funding_rate;
   } profile_;
   struct {

@@ -324,9 +324,9 @@ void StaticData::operator()(Trace<protocol::json::Notice> const &event) {
 void StaticData::operator()(Trace<protocol::json::Status> const &event) {
   profile_.status([&]() {
     auto &[trace_info, status] = event;
-    log::info("status={}"sv, status);
+    log::warn("status={}"sv, status);
     for (auto &item : status.data) {
-      if (item.state == protocol::json::State::ONGOING) {
+      if (item.service_type == 0 && item.state == protocol::json::State::ONGOING) {
         log::warn("*** DISCONNECT: ONGOING MAINTENANCE ***"sv);
         (*connection_).close();
         return;

@@ -6,6 +6,7 @@ All notable changes will be documented in this file.
 
 ### Fixed
 
+* Only disconnect the public WS connections when the `service_type` is WS (#615)
 * The notice event was not being parsed (#614)
 
 ## 1.1.6 &ndash; 2026-07-08
