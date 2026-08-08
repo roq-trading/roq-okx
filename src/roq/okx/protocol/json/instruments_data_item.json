@@ -208,6 +208,14 @@
     {
       "name": "maxPxLmtPct",
       "type": "std/double"
+    },
+    {
+      "name": "rpiMinLevel",
+      "type": "std/double"
+    },
+    {
+      "name": "rpiMinPxBand",
+      "type": "std/double"
     }
   ]
 }
