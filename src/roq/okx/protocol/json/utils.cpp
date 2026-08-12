@@ -22,6 +22,8 @@ roq::Error guess_error(int32_t code) {
       return Error::INVALID_QUANTITY;
     case 51400:  // Order cancellation failed as the order has been filled, canceled or does not exist.
       return Error::TOO_LATE_TO_MODIFY_OR_CANCEL;
+    case 51511:  // Modification failed as the order price did not meet the requirement for Post Only.
+      return Error::MODIFY_HAS_NO_EFFECT;
     case 52916:  // Insufficient balance in funding account
       return Error::INSUFFICIENT_FUNDS;
     case 58102:  // Rate limit reached. Please refer to API docs and throttle requests accordingly.

@@ -611,6 +611,23 @@ void DropCopy::operator()(Trace<protocol::json::Orders> const &event) {
       if (item.code != 0) {
         log::warn<1>(R"(*** ERROR CODE={}, MSG="{}" ***)"sv, item.code, item.msg);
       }
+      if (item.amend_result < 0) {
+        auto error = protocol::json::guess_error(item.code);
+        auto response = server::oms::Response{
+            .request_type = RequestType::MODIFY_ORDER,
+            .origin = Origin::EXCHANGE,
+            .request_status = RequestStatus::REJECTED,
+            .error = error,
+            .text = item.msg,
+            .version = {},
+            .request_id = {},
+            .external_order_id = item.ord_id,
+            .client_order_id = item.cl_ord_id,
+            .quantity = NaN,
+            .price = NaN,
+        };
+        create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_);
+      }
       auto remaining_quantity = item.sz - item.acc_fill_sz;
       auto order_update = server::oms::OrderUpdate{
           .account = account_.name,
@@ -729,6 +746,9 @@ void DropCopy::operator()(Trace<protocol::json::AmendOrder> const &event) {
     log::debug("amend_order_ack={}"sv, amend_order_ack);
     auto order_status = amend_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : amend_order_ack.data) {
+      if (item.s_code == 0) {
+        continue;
+      }
       auto error = protocol::json::guess_error(item.s_code);
       auto response = server::oms::Response{
           .request_type = RequestType::MODIFY_ORDER,

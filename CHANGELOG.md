@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* Rejected `POST_ONLY` order amend follows a different response path (#621)
+
 ### Added
 
 * Add self-trade prevention mode (`stpMode`) to order placement requests (#620)
