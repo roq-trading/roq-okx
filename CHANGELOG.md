@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Added
+
+* Add self-trade prevention mode (`stpMode`) to order placement requests (#620)
+
 ## 1.1.7 &ndash; 2026-08-08
 
 ### Fixed

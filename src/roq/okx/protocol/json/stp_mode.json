@@ -1,0 +1,15 @@
+{
+  "name": "roq/okx/protocol/json/StpMode",
+  "type": "enum",
+  "values": [
+    {
+      "name": "cancel_maker"
+    },
+    {
+      "name": "cancel_taker"
+    },
+    {
+      "name": "cancel_both"
+    }
+  ]
+}

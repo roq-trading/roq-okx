@@ -141,7 +141,7 @@ TEST_CASE("create_order", "[json_encoder]") {
   auto ref_data = create_ref_data();
   uint64_t request_id = 0;
   auto result =
-      protocol::json::Encoder::batch_orders(buffer, create_order, order, ref_data, "1234"sv, request_id, protocol::json::TradeMode::CROSS, "1"sv, "BTC"sv);
+      protocol::json::Encoder::batch_orders(buffer, create_order, order, ref_data, "1234"sv, request_id, protocol::json::TradeMode::CROSS, {}, "1"sv, "BTC"sv);
   CHECK(
       result == R"({)"
                 R"("id":"1",)"

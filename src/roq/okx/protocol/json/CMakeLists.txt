@@ -89,6 +89,7 @@ set(AUTOGEN_SCHEMAS
     status.json
     status_arg.json
     status_data_item.json
+    stp_mode.json
     subscribe.json
     subscribe_arg.json
     tickers.json

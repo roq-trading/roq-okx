@@ -164,7 +164,7 @@ DropCopy::DropCopy(Handler &handler, io::Context &context, uint16_t stream_id, A
           .heartbeat = create_metrics(shared.settings, name_, "heartbeat"sv),
       },
       account_{account}, shared_{shared}, request_{request}, download_{{}, [this](auto state) { return download(state); }},
-      trade_mode_{shared.settings.trade_mode} {
+      trade_mode_{shared.settings.trade_mode}, stp_mode_{shared.settings.stp_mode} {
 }
 
 bool DropCopy::ready() const {
@@ -224,6 +224,7 @@ uint16_t DropCopy::operator()(
       request_id,
       request_id_,
       trade_mode_,
+      stp_mode_,
       shared_.settings.price_amend_type,
       shared_.settings.test_margin_currency);
   log::debug(R"(message="{}")"sv, message);

@@ -84,6 +84,7 @@ state.hpp
 status.hpp
 status_arg.hpp
 status_data_item.hpp
+stp_mode.hpp
 subscribe.hpp
 subscribe_arg.hpp
 tickers.hpp
@@ -180,6 +181,7 @@ state.cpp
 status.cpp
 status_arg.cpp
 status_data_item.cpp
+stp_mode.cpp
 subscribe.cpp
 subscribe_arg.cpp
 tickers.cpp

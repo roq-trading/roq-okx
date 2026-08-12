@@ -17,6 +17,13 @@
       "description": "Trade mode (:code:`cross`, :code:`isolated` or :code:`cash`)"
     },
     {
+      "name": "stp_mode",
+      "type": "std/string",
+      "required": false,
+      "default": "",
+      "description": "STP mode (:code:`cancel_maker`, :code:`cancel_taker` or :code:`cancel_both`)"
+    },
+    {
       "name": "price_amend_type",
       "type": "std/string",
       "default": "0",

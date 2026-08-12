@@ -84,6 +84,7 @@ std::string_view Encoder::batch_orders(
     std::string_view const &request_id,
     uint64_t &request_id_2,
     TradeMode trade_mode,
+    StpMode stp_mode,
     std::string_view const &price_amend_type,
     std::string_view const &margin_currency) {
   buffer.clear();
@@ -107,6 +108,9 @@ std::string_view Encoder::batch_orders(
   std::string extras;
   if (trade_mode_2 == protocol::json::TradeMode::type_t::CROSS && !std::empty(margin_currency)) {
     extras = fmt::format(R"(,"ccy":"{}")"sv, margin_currency);
+  }
+  if (stp_mode != protocol::json::StpMode::type_t::UNDEFINED_INTERNAL) {
+    extras = fmt::format(R"(,"stpMode":"{}")"sv, stp_mode.as_raw_text());
   }
   switch (order_type) {
     using enum protocol::json::OrderType::type_t;

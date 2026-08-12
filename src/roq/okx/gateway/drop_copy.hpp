@@ -23,6 +23,7 @@
 #include "roq/okx/gateway/shared.hpp"
 
 #include "roq/okx/protocol/json/parser.hpp"
+#include "roq/okx/protocol/json/stp_mode.hpp"
 #include "roq/okx/protocol/json/trade_mode.hpp"
 
 namespace roq {
@@ -166,6 +167,7 @@ struct DropCopy final : public web::socket::Client::Handler, protocol::json::Par
   core::Download<State> download_;
   // other
   protocol::json::TradeMode const trade_mode_;
+  protocol::json::StpMode const stp_mode_;
 };
 
 }  // namespace gateway

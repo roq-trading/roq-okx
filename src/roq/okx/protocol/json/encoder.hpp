@@ -12,6 +12,7 @@
 #include "roq/server/oms/order.hpp"
 #include "roq/server/oms/ref_data.hpp"
 
+#include "roq/okx/protocol/json/stp_mode.hpp"
 #include "roq/okx/protocol/json/trade_mode.hpp"
 
 namespace roq {
@@ -28,6 +29,7 @@ struct Encoder final {
       std::string_view const &request_id,
       uint64_t &request_id_2,
       TradeMode,
+      StpMode,
       std::string_view const &price_amend_type,
       std::string_view const &margin_currency);
 
