@@ -462,6 +462,9 @@ Comments
   * :code:`--ws_books_use_public` is an opt-out flag because the gateway will
     by default use a realtime feed if an account has been configured.
 
+* **ALWAYS** use :code:`--price_amend_type=0` (the default) when working with order modifications.
+  Please refer to issue `#621 <https://github.com/roq-trading/roq-issues/issues/621>`__.
+
 
 References
 ----------
