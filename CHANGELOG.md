@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Changed
+
+* Exchange logon policy (experimental) (#625)
+
 ### Fixed
 
 * Rejected `POST_ONLY` order amend follows a different response path (#621)

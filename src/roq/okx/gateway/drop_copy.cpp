@@ -452,7 +452,12 @@ void DropCopy::parse(std::string_view const &message) {
 void DropCopy::operator()(Trace<protocol::json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
-    log::fatal("error={}"sv, error);
+    if (shared_.settings.experimental.retry_logon) {
+      log::warn("[{}] error={}"sv, account_.name, error);
+      (*connection_).close();
+    } else {
+      log::fatal("[{}] error={}"sv, account_.name, error);
+    }
   });
 }
 
