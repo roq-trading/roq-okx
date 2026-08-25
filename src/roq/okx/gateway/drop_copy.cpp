@@ -453,7 +453,8 @@ void DropCopy::operator()(Trace<protocol::json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
     if (shared_.settings.experimental.retry_logon) {
-      log::warn("[{}] error={}"sv, account_.name, error);
+      log::error("[{}] error={}"sv, account_.name, error);
+      log::warn("Disconnecting..."sv);
       (*connection_).close();
     } else {
       log::fatal("[{}] error={}"sv, account_.name, error);
