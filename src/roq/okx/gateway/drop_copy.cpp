@@ -79,7 +79,7 @@ auto create_connection(auto &handler, auto &settings, auto &context) {
 struct create_metrics final : public utils::metrics::Factory {
   create_metrics(auto &settings, auto &group, auto const &function) : utils::metrics::Factory{settings.app.name, group, function} {}
 };
-
+/*
 std::pair<protocol::json::OrderType, bool> compute_order_attributes(auto order_type, auto time_in_force, auto execution_instructions) {
   auto log_no_mapping_exists = [&]() {
     log::error("No mapping exists for order_type={}, time_in_force={}, execution_instructions={}"sv, order_type, time_in_force, execution_instructions);
@@ -130,6 +130,7 @@ std::pair<protocol::json::OrderType, bool> compute_order_attributes(auto order_t
   }
   return {order_type_, reduce_only};
 }
+*/
 }  // namespace
 
 // === IMPLEMENTATION ===
