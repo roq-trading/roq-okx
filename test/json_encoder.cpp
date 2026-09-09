@@ -186,8 +186,8 @@ TEST_CASE("modify_order", "[json_encoder]") {
 TEST_CASE("cancel_all_orders_1", "[json_encoder]") {
   std::string buffer;
   CancelAllOrders cancel_all_orders;
-  std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_id{{
-      {"BTC"sv, "order_id:1234"sv},
+  std::vector<std::pair<int32_t, std::string_view>> symbol_and_external_order_id{{
+      {123, "order_id:1234"sv},
   }};
   auto result = protocol::json::Encoder::batch_cancel_orders(buffer, cancel_all_orders, "1234"sv, symbol_and_external_order_id);
   CHECK(
@@ -195,7 +195,7 @@ TEST_CASE("cancel_all_orders_1", "[json_encoder]") {
                 R"("id":"1234",)"
                 R"("op":"batch-cancel-orders",)"
                 R"("args":[{)"
-                R"("instId":"BTC",)"
+                R"("instIdCode":123,)"
                 R"("ordId":"order_id:1234")"
                 R"(})"
                 R"(])"
@@ -205,9 +205,9 @@ TEST_CASE("cancel_all_orders_1", "[json_encoder]") {
 TEST_CASE("cancel_all_orders_2", "[json_encoder]") {
   std::string buffer;
   CancelAllOrders cancel_all_orders;
-  std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_id{{
-      {"BTC"sv, "order_id:1234"sv},
-      {"ETH"sv, "order_id:2345"sv},
+  std::vector<std::pair<int32_t, std::string_view>> symbol_and_external_order_id{{
+      {123, "order_id:1234"sv},
+      {234, "order_id:2345"sv},
   }};
   auto result = protocol::json::Encoder::batch_cancel_orders(buffer, cancel_all_orders, "1234"sv, symbol_and_external_order_id);
   CHECK(
@@ -215,10 +215,10 @@ TEST_CASE("cancel_all_orders_2", "[json_encoder]") {
                 R"("id":"1234",)"
                 R"("op":"batch-cancel-orders",)"
                 R"("args":[{)"
-                R"("instId":"BTC",)"
+                R"("instIdCode":123,)"
                 R"("ordId":"order_id:1234")"
                 R"(},{)"
-                R"("instId":"ETH",)"
+                R"("instIdCode":234,)"
                 R"("ordId":"order_id:2345")"
                 R"(})"
                 R"(])"

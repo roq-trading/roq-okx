@@ -260,18 +260,20 @@ uint16_t DropCopy::operator()(
 uint16_t DropCopy::operator()(Event<CancelAllOrders> const &event, [[maybe_unused]] std::string_view const &request_id) {
   auto &[message_info, cancel_all_orders] = event;
   // XXX FIXME TODO what about orders where we haven't received external_order_id ???
-  std::vector<std::pair<std::string_view, std::string_view>> symbol_and_external_order_id;
-  auto callback = [&](auto &order) {
-    if (!std::empty(order.external_order_id)) {
-      symbol_and_external_order_id.emplace_back(order.symbol, order.external_order_id);
+  std::vector<std::pair<int32_t, std::string_view>> external_security_id_and_order_id;
+  auto helper = [&](auto &order) {
+    if (std::empty(order.external_order_id)) {
+      return;
     }
+    auto ref_data = shared_.dispatcher.get_ref_data(order.exchange, order.symbol);
+    external_security_id_and_order_id.emplace_back(ref_data.external_security_id, order.external_order_id);
   };
-  if (shared_.dispatcher.get_all_orders(callback, cancel_all_orders)) {
+  if (shared_.dispatcher.get_all_orders(helper, cancel_all_orders)) {
   } else {
     log::info<1>("No orders"sv);
   }
-  if (!std::empty(symbol_and_external_order_id)) {
-    auto message = protocol::json::Encoder::batch_cancel_orders(encode_buffer_, cancel_all_orders, request_id, symbol_and_external_order_id);
+  if (!std::empty(external_security_id_and_order_id)) {
+    auto message = protocol::json::Encoder::batch_cancel_orders(encode_buffer_, cancel_all_orders, request_id, external_security_id_and_order_id);
     log::debug(R"(message="{}")"sv, message);
     (*connection_).send_text(message);
   }

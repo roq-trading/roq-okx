@@ -6,6 +6,7 @@ All notable changes will be documented in this file.
 
 ### Fixed
 
+* CancelAllOrders should use instIdCode (instead of instId) (#632)
 * Missing OrderAck when API key not permissioned for trading (#631)
 
 ## 1.1.8 &ndash; 2026-09-04

@@ -280,7 +280,6 @@ std::string_view Encoder::batch_cancel_orders(
       order_id_type,
       order_id,
       ref_data.external_security_id);
-  log::warn("{}"sv, buffer);
   return buffer;
 }
 
@@ -288,7 +287,7 @@ std::string_view Encoder::batch_cancel_orders(
     std::string &buffer,
     CancelAllOrders const &,
     std::string_view const &request_id,
-    std::span<std::pair<std::string_view, std::string_view>> const &symbol_and_external_order_id) {
+    std::span<std::pair<int32_t, std::string_view>> const &external_security_id_and_order_id) {
   buffer.clear();
   fmt::format_to(
       std::back_inserter(buffer),
@@ -298,7 +297,7 @@ std::string_view Encoder::batch_cancel_orders(
       R"("args":[)"sv,
       request_id);
   auto first = true;
-  for (auto &[symbol, external_order_id] : symbol_and_external_order_id) {
+  for (auto &[external_security_id, external_order_id] : external_security_id_and_order_id) {
     if (!first) {
       fmt::format_to(std::back_inserter(buffer), ","sv);
     } else {
@@ -307,10 +306,10 @@ std::string_view Encoder::batch_cancel_orders(
     fmt::format_to(
         std::back_inserter(buffer),
         R"({{)"
-        R"("instId":"{}",)"
+        R"("instIdCode":{},)"
         R"("ordId":"{}")"
         R"(}})",
-        symbol,
+        external_security_id,
         external_order_id);
   }
   fmt::format_to(
