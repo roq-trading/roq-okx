@@ -82,7 +82,6 @@ std::string_view Encoder::batch_orders(
     server::oms::Order const &order,
     server::oms::RefData const &ref_data,
     std::string_view const &request_id,
-    uint64_t &request_id_2,
     TradeMode trade_mode,
     StpMode stp_mode,
     std::string_view const &price_amend_type,
@@ -135,7 +134,7 @@ std::string_view Encoder::batch_orders(
             R"(}})"
             R"(])"
             R"(}})"sv,
-            ++request_id_2,
+            request_id,
             request_id,
             trade_mode_2.as_raw_text(),
             position_side.as_raw_text(),
@@ -164,7 +163,7 @@ std::string_view Encoder::batch_orders(
             R"(}})"
             R"(])"
             R"(}})"sv,
-            ++request_id_2,
+            request_id,
             request_id,
             trade_mode_2.as_raw_text(),
             position_side.as_raw_text(),
@@ -198,7 +197,7 @@ std::string_view Encoder::batch_orders(
           R"(}})"
           R"(])"
           R"(}})"sv,
-          ++request_id_2,
+          request_id,
           request_id,
           trade_mode_2.as_raw_text(),
           position_side.as_raw_text(),
@@ -222,7 +221,6 @@ std::string_view Encoder::batch_amend_orders(
     server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     [[maybe_unused]] std::string_view const &previous_request_id,
-    uint64_t &request_id_2,
     std::string_view const &price_amend_type) {
   buffer.clear();
   auto has_external_order_id = !std::empty(order.external_order_id);
@@ -245,7 +243,7 @@ std::string_view Encoder::batch_amend_orders(
       R"(}})"
       R"(])"
       R"(}})"sv,
-      ++request_id_2,
+      request_id,
       order_id_type,
       order_id,
       ref_data.external_security_id,
@@ -261,9 +259,8 @@ std::string_view Encoder::batch_cancel_orders(
     roq::CancelOrder const &,
     server::oms::Order const &order,
     server::oms::RefData const &ref_data,
-    [[maybe_unused]] std::string_view const &request_id,
-    [[maybe_unused]] std::string_view const &previous_request_id,
-    uint64_t &request_id_2) {
+    std::string_view const &request_id,
+    [[maybe_unused]] std::string_view const &previous_request_id) {
   buffer.clear();
   auto has_external_order_id = !std::empty(order.external_order_id);
   auto order_id_type = has_external_order_id ? "ordId"sv : "clOrdId"sv;
@@ -279,26 +276,27 @@ std::string_view Encoder::batch_cancel_orders(
       R"(}})"
       R"(])"
       R"(}})"sv,
-      ++request_id_2,
+      request_id,
       order_id_type,
       order_id,
       ref_data.external_security_id);
+  log::warn("{}"sv, buffer);
   return buffer;
 }
 
 std::string_view Encoder::batch_cancel_orders(
     std::string &buffer,
     CancelAllOrders const &,
-    [[maybe_unused]] std::string_view const &request_id,
-    uint64_t &request_id_2,
+    std::string_view const &request_id,
     std::span<std::pair<std::string_view, std::string_view>> const &symbol_and_external_order_id) {
+  buffer.clear();
   fmt::format_to(
       std::back_inserter(buffer),
       R"({{)"
       R"("id":"{}",)"
       R"("op":"batch-cancel-orders",)"
       R"("args":[)"sv,
-      ++request_id_2);
+      request_id);
   auto first = true;
   for (auto &[symbol, external_order_id] : symbol_and_external_order_id) {
     if (!first) {
@@ -319,6 +317,7 @@ std::string_view Encoder::batch_cancel_orders(
       std::back_inserter(buffer),
       R"(])"
       R"(}})"sv);
+  log::warn("{}"sv, buffer);
   return buffer;
 }
 

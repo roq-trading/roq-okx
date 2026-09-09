@@ -144,8 +144,6 @@ struct DropCopy final : public web::socket::Client::Handler, protocol::json::Par
   // buffers
   core::json::BufferStack decode_buffer_;
   std::string encode_buffer_;
-  // session
-  uint64_t request_id_ = {};
   // metrics
   struct {
     utils::metrics::Counter disconnect;

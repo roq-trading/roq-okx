@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* Missing OrderAck when API key not permissioned for trading (#631)
+
 ## 1.1.8 &ndash; 2026-09-04
 
 ### Changed

@@ -39,8 +39,6 @@ auto const SUPPORTS = Mask{
     SupportType::FUNDS,
 };
 
-uint64_t const REQUEST_ID = 1'000'000;
-
 size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 }  // namespace
 
@@ -137,7 +135,7 @@ std::pair<protocol::json::OrderType, bool> compute_order_attributes(auto order_t
 
 DropCopy::DropCopy(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account.name)}, connection_{create_connection(*this, shared.settings, context)},
-      decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH}, request_id_{static_cast<uint64_t>(stream_id_) * REQUEST_ID},
+      decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
@@ -223,7 +221,6 @@ uint16_t DropCopy::operator()(
       order,
       ref_data,
       request_id,
-      request_id_,
       trade_mode_,
       stp_mode_,
       shared_.settings.price_amend_type,
@@ -241,7 +238,7 @@ uint16_t DropCopy::operator()(
     std::string_view const &previous_request_id) {
   auto &[message_info, modify_order] = event;
   auto message = protocol::json::Encoder::batch_amend_orders(
-      encode_buffer_, modify_order, order, ref_data, request_id, previous_request_id, request_id_, shared_.settings.price_amend_type);
+      encode_buffer_, modify_order, order, ref_data, request_id, previous_request_id, shared_.settings.price_amend_type);
   log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
@@ -254,7 +251,7 @@ uint16_t DropCopy::operator()(
     std::string_view const &request_id,
     std::string_view const &previous_request_id) {
   auto &[message_info, cancel_order] = event;
-  auto message = protocol::json::Encoder::batch_cancel_orders(encode_buffer_, cancel_order, order, ref_data, request_id, previous_request_id, request_id_);
+  auto message = protocol::json::Encoder::batch_cancel_orders(encode_buffer_, cancel_order, order, ref_data, request_id, previous_request_id);
   log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
@@ -274,7 +271,7 @@ uint16_t DropCopy::operator()(Event<CancelAllOrders> const &event, [[maybe_unuse
     log::info<1>("No orders"sv);
   }
   if (!std::empty(symbol_and_external_order_id)) {
-    auto message = protocol::json::Encoder::batch_cancel_orders(encode_buffer_, cancel_all_orders, request_id, request_id_, symbol_and_external_order_id);
+    auto message = protocol::json::Encoder::batch_cancel_orders(encode_buffer_, cancel_all_orders, request_id, symbol_and_external_order_id);
     log::debug(R"(message="{}")"sv, message);
     (*connection_).send_text(message);
   }
@@ -726,22 +723,40 @@ void DropCopy::operator()(Trace<protocol::json::Order> const &event) {
     log::info<1>("order_ack={}"sv, order_ack);
     log::debug("order_ack={}"sv, order_ack);
     auto order_status = order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
-    for (auto &item : order_ack.data) {
-      auto error = protocol::json::guess_error(item.s_code);
+    if (std::empty(order_ack.data)) {
+      auto error = protocol::json::guess_error(order_ack.code);
       auto response = server::oms::Response{
           .request_type = RequestType::CREATE_ORDER,
           .origin = Origin::EXCHANGE,
           .request_status = order_status,
           .error = error,
-          .text = item.s_msg,
+          .text = order_ack.msg,
           .version = {},
-          .request_id = item.cl_ord_id,
-          .external_order_id = item.ord_id,
-          .client_order_id = item.cl_ord_id,
+          .request_id = order_ack.id,
+          .external_order_id = {},
+          .client_order_id = order_ack.id,
           .quantity = NaN,
           .price = NaN,
       };
       create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_);
+    } else {
+      for (auto &item : order_ack.data) {
+        auto error = protocol::json::guess_error(item.s_code);
+        auto response = server::oms::Response{
+            .request_type = RequestType::CREATE_ORDER,
+            .origin = Origin::EXCHANGE,
+            .request_status = order_status,
+            .error = error,
+            .text = item.s_msg,
+            .version = {},
+            .request_id = item.cl_ord_id,
+            .external_order_id = item.ord_id,
+            .client_order_id = item.cl_ord_id,
+            .quantity = NaN,
+            .price = NaN,
+        };
+        create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_);
+      }
     }
   });
 }

@@ -16,6 +16,8 @@ roq::Error guess_error(int32_t code) {
   switch (code) {
     case 0:
       return {};
+    case 50124:  // This API Key does not have trading permission for the market (UNDOC)
+      return Error::NOT_AUTHORIZED;
     case 51008:  // Order failed. Insufficient {param0} balance in account
       return Error::INSUFFICIENT_FUNDS;
     case 51185:  // The maximum value allowed per order is {maxOrderValue} USD
