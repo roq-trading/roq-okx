@@ -292,13 +292,14 @@ void MarketData::subscribe(std::span<Symbol const> const &symbols) {
     return result;
   };
   subscribe(get_books_channel(!std::empty(account_)), "instId"sv, symbols);
-  subscribe("index-tickers"sv, "instId"sv, symbols);
+  // note! different channels available for underlying vs futures/swap
   for (auto &symbol : symbols) {
-    log::info(R"(DEBUG SUBSCRIBE stream_id={}, inst_id="{}")"sv, stream_id_, static_cast<std::string_view>(symbol));
-    if (shared_.settings.misc.include_bad_subscriptions ||
-        shared_.extended_symbols.find(static_cast<std::string_view>(symbol)) != shared_.extended_symbols.end()) {
-      // subscribe("index-tickers"sv, "instId"sv, symbol);
+    auto extended = shared_.extended_symbols.find(static_cast<std::string_view>(symbol)) != std::end(shared_.extended_symbols);
+    if (shared_.settings.misc.include_bad_subscriptions || extended) {
       subscribe("funding-rate"sv, "instId"sv, symbol);
+    }
+    if (shared_.settings.misc.include_bad_subscriptions || !extended) {
+      subscribe("index-tickers"sv, "instId"sv, symbol);
     }
   }
 }

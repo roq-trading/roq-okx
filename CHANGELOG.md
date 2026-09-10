@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Changed
+
+* Only subscribe index-tickers for underlying (#633)
+
 ### Fixed
 
 * CancelAllOrders should use instIdCode (instead of instId) (#632)
