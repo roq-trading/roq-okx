@@ -384,6 +384,7 @@ void StaticData::operator()(Trace<protocol::json::Instruments> const &event) {
           .description = {},
           .security_type = map(item.inst_type),
           .external_security_id = utils::safe_cast(item.inst_id_code),
+          .market_segment = {},
           .cfi_code = {},
           .base_currency = base_currency,
           .quote_currency = quote_currency,
