@@ -22,7 +22,8 @@ namespace json {
 // === HELPERS ===
 
 namespace {
-std::pair<protocol::json::OrderType, bool> compute_order_attributes(auto order_type, auto time_in_force, auto execution_instructions) {
+std::pair<protocol::json::OrderType, bool> compute_order_attributes(
+    auto order_type, auto time_in_force, auto execution_instructions, auto execution_destination) {
   auto log_no_mapping_exists = [&]() {
     log::error("No mapping exists for order_type={}, time_in_force={}, execution_instructions={}"sv, order_type, time_in_force, execution_instructions);
   };
@@ -63,7 +64,11 @@ std::pair<protocol::json::OrderType, bool> compute_order_attributes(auto order_t
         order_type_ = protocol::json::OrderType::MARKET;
         break;
       case LIMIT:
-        order_type_ = protocol::json::OrderType::LIMIT;
+        if (execution_destination == "RPI"sv) {
+          order_type_ = protocol::json::OrderType::RPI;
+        } else {
+          order_type_ = protocol::json::OrderType::LIMIT;
+        }
         break;
       default:
         log_no_mapping_exists();
@@ -89,7 +94,8 @@ std::string_view Encoder::batch_orders(
   buffer.clear();
   protocol::json::PositionSide position_side = protocol::json::PositionSide::NET;  // XXX should be configurable
   auto side = map(create_order.side).template get<protocol::json::Side>();
-  auto [order_type, reduce_only] = compute_order_attributes(create_order.order_type, create_order.time_in_force, create_order.execution_instructions);
+  auto [order_type, reduce_only] =
+      compute_order_attributes(create_order.order_type, create_order.time_in_force, create_order.execution_instructions, create_order.execution_destination);
   auto trade_mode_2 = [&]() -> protocol::json::TradeMode {
     switch (create_order.margin_mode) {
       using enum MarginMode;

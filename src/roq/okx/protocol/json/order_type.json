@@ -19,6 +19,9 @@
     },
     {
       "name": "optimal_limit_ioc"
+    },
+    {
+      "name": "rpi"
     }
   ]
 }

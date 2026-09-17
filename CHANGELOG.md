@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Added
+
+* Support RPI orders (#639)
+
 ### Changed
 
 * Only subscribe index-tickers for underlying (#633)
