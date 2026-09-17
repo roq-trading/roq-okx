@@ -389,6 +389,7 @@ void OrderEntry::operator()(Trace<protocol::json::OrdersPendingAck> const &event
         .order_type = {},
         .time_in_force = {},
         .execution_instructions = {},
+        .execution_destination = {},
         .create_time_utc = {},
         .update_time_utc = utils::safe_cast(item.u_time),
         .external_account = {},
