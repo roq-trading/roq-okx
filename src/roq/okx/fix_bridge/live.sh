@@ -22,4 +22,5 @@ $PREFIX ./roq-okx-fix-bridge \
   --event_log_dir "$HOME/var/lib/roq/data" \
   --client_listen_address "$HOME/run/$NAME.sock" \
   --service_listen_address "$HOME/run/metrics/${NAME}.sock" \
+  --fix_bridge_comp_id "$NAME" \
   $@
