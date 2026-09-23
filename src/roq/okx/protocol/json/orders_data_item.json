@@ -287,6 +287,10 @@
     {
       "name": "slippage",
       "type": "std/double"
+    },
+    {
+      "name": "riskBypassResult",
+      "type": "std/string_view"
     }
   ]
 }
