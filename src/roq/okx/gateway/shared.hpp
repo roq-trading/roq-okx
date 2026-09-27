@@ -18,6 +18,8 @@
 #include "roq/okx/gateway/api.hpp"
 #include "roq/okx/gateway/settings.hpp"
 
+#include "roq/okx/tools/rate_limit.hpp"
+
 namespace roq {
 namespace okx {
 namespace gateway {
@@ -31,6 +33,8 @@ struct Shared final {
 
   Settings const &settings;
   API const api;
+
+  tools::RateLimit rate_limit;
 
   core::limit::RateLimiter rate_limiter;
 
