@@ -18,7 +18,7 @@
 #include "roq/okx/gateway/api.hpp"
 #include "roq/okx/gateway/settings.hpp"
 
-#include "roq/okx/tools/rate_limit.hpp"
+#include "roq/okx/tools/throttle.hpp"
 
 namespace roq {
 namespace okx {
@@ -34,7 +34,7 @@ struct Shared final {
   Settings const &settings;
   API const api;
 
-  tools::RateLimit rate_limit;
+  tools::Throttle throttle;
 
   core::limit::RateLimiter rate_limiter;
 

@@ -61,7 +61,7 @@ auto create_connection(auto &handler, auto &settings, auto &context, auto &share
       .decode_buffer_size = settings.misc.decode_buffer_size,
       .encode_buffer_size = settings.misc.encode_buffer_size,
   };
-  return web::socket::Client::create(handler, context, config, shared.rate_limit, []() { return std::string(); });
+  return web::socket::Client::create(handler, context, config, shared.throttle, []() { return std::string(); });
 }
 
 struct create_metrics final : public utils::metrics::Factory {
@@ -130,25 +130,25 @@ void StaticData::operator()(metrics::Writer &writer) const {
 
 // web::socket::Client::Handler
 
-void StaticData::operator()(web::socket::Client::Connected const &) {
+void StaticData::operator()(Trace<web::socket::Connected> const &) {
 }
 
-void StaticData::operator()(web::socket::Client::Disconnected const &) {
+void StaticData::operator()(Trace<web::socket::Disconnected> const &) {
   ++counter_.disconnect;
   (*this)(ConnectionStatus::DISCONNECTED);
   download_.reset();
   subscribe_queue_.clear();
 }
 
-void StaticData::operator()(web::socket::Client::Ready const &) {
+void StaticData::operator()(Trace<web::socket::Ready> const &) {
   download_.begin();
 }
 
-void StaticData::operator()(web::socket::Client::Close const &) {
+void StaticData::operator()(Trace<web::socket::Close> const &) {
 }
 
-void StaticData::operator()(web::socket::Client::Latency const &latency) {
-  TraceInfo trace_info;
+void StaticData::operator()(Trace<web::socket::Latency> const &event) {
+  auto &[trace_info, latency] = event;
   auto external_latency = ExternalLatency{
       .stream_id = stream_id_,
       .account = {},
@@ -158,11 +158,12 @@ void StaticData::operator()(web::socket::Client::Latency const &latency) {
   latency_.ping.update(latency.sample);
 }
 
-void StaticData::operator()(web::socket::Client::Text const &text) {
+void StaticData::operator()(Trace<web::socket::Text> const &event) {
+  auto &[trace_info, text] = event;
   parse(text.payload);
 }
 
-void StaticData::operator()(web::socket::Client::Binary const &) {
+void StaticData::operator()(Trace<web::socket::Binary> const &) {
   log::fatal("Unexpected: binary"sv);
 }
 
