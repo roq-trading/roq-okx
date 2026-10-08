@@ -93,6 +93,8 @@ Business::Business(Handler &handler, io::Context &context, uint16_t stream_id, S
       shared_{shared} {
 }
 
+// server::Stream
+
 void Business::operator()(Event<Start> const &) {
   (*connection_).start();
 }
@@ -102,10 +104,10 @@ void Business::operator()(Event<Stop> const &) {
 }
 
 void Business::operator()(Event<Timer> const &event) {
-  auto now = event.value.now;
-  (*connection_).refresh(now);
+  auto &[trace_info, timer] = event;
+  (*connection_).refresh(timer.now);
   if ((*connection_).ready()) {
-    check_subscribe_queue(now);
+    check_subscribe_queue(timer.now);
   }
 }
 
@@ -125,6 +127,30 @@ void Business::operator()(metrics::Writer &writer) const {
       .write(latency_.heartbeat, metrics::Type::LATENCY);
 }
 
+void Business::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {
+  auto &[trace_info, connection_status] = event;
+  connection_status_ = connection_status;
+  auto stream_status = StreamStatus{
+      .stream_id = stream_id_,
+      .account = {},
+      .supports = SUPPORTS,
+      .transport = Transport::TCP,
+      .protocol = Protocol::WS,
+      .encoding = {Encoding::JSON},
+      .priority = Priority::PRIMARY,
+      .connection_status = connection_status_,
+      .reason = reason,
+      .interface = (*connection_).get_interface(),
+      .authority = (*connection_).get_current_authority(),
+      .path = (*connection_).get_current_path(),
+      .proxy = (*connection_).get_proxy(),
+  };
+  log::info("stream_status={}"sv, stream_status);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
+}
+
+// server::MarketDataStream
+
 void Business::subscribe(size_t start_from) {
   if (ready()) {
     subscribe(shared_.symbols.get_all(start_from));
@@ -136,20 +162,24 @@ void Business::subscribe(size_t start_from) {
 void Business::operator()(Trace<web::socket::Connected> const &) {
 }
 
-void Business::operator()(Trace<web::socket::Disconnected> const &) {
+void Business::operator()(Trace<web::socket::Disconnected> const &event) {
+  auto &[trace_info, disconnected] = event;
   ++counter_.disconnect;
-  (*this)(ConnectionStatus::DISCONNECTED);
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::DISCONNECTED);
   subscribe_queue_.clear();
 }
 
-void Business::operator()(Trace<web::socket::Ready> const &) {
-  (*this)(ConnectionStatus::DOWNLOADING, "subscribe"sv);
+void Business::operator()(Trace<web::socket::Ready> const &event) {
+  auto &[trace_info, ready] = event;
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::DOWNLOADING, "subscribe"sv);
   subscribe_static();
   subscribe(shared_.symbols.get_all());
-  (*this)(ConnectionStatus::READY);
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
 }
 
-void Business::operator()(Trace<web::socket::Close> const &) {
+void Business::operator()(Trace<web::socket::Close> const &event) {
+  auto &[trace_info, close] = event;
+  log::warn("close={}"sv, close);
 }
 
 void Business::operator()(Trace<web::socket::Latency> const &event) {
@@ -170,80 +200,6 @@ void Business::operator()(Trace<web::socket::Text> const &event) {
 
 void Business::operator()(Trace<web::socket::Binary> const &) {
   log::fatal("Unexpected: binary"sv);
-}
-
-void Business::operator()(ConnectionStatus connection_status, std::string_view const &reason) {
-  connection_status_ = connection_status;
-  TraceInfo trace_info;
-  auto stream_status = StreamStatus{
-      .stream_id = stream_id_,
-      .account = {},
-      .supports = SUPPORTS,
-      .transport = Transport::TCP,
-      .protocol = Protocol::WS,
-      .encoding = {Encoding::JSON},
-      .priority = Priority::PRIMARY,
-      .connection_status = connection_status_,
-      .reason = reason,
-      .interface = (*connection_).get_interface(),
-      .authority = (*connection_).get_current_authority(),
-      .path = (*connection_).get_current_path(),
-      .proxy = (*connection_).get_proxy(),
-  };
-  log::info("stream_status={}"sv, stream_status);
-  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
-}
-
-void Business::subscribe_static() {
-  // subscribe("status"sv);
-}
-
-void Business::subscribe(std::span<Symbol const> const &symbols) {
-  if (std::empty(symbols)) {
-    return;
-  }
-  if (shared_.settings.download.time_series_lookback.count()) {
-    subscribe("candle1m"sv, "instId"sv, symbols);
-    for (auto &symbol : symbols) {
-      shared_.time_series_request_queue.emplace_back(symbol);
-    }
-  }
-}
-
-void Business::subscribe(std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values) {
-  assert(!std::empty(values));
-  auto prefix = fmt::format(
-      R"({{)"
-      R"("channel":"{}",)"
-      R"("{}":")"sv,
-      channel,
-      selector);
-  auto separator = fmt::format(R"("}},{})"sv, prefix);
-  auto message = fmt::format(
-      R"({{)"
-      R"("op":"subscribe",)"
-      R"("args":[)"
-      R"({}{}"}})"
-      R"(])"
-      R"(}})"sv,
-      prefix,
-      fmt::join(values, separator));
-  subscribe_queue_.emplace_back(message);
-}
-
-void Business::parse(std::string_view const &message) {
-  profile_.parse([&]() {
-    auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
-    try {
-      TraceInfo trace_info;
-      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
-        log_message();
-      }
-    } catch (...) {
-      log_message();
-      utils::exceptions::Unhandled::terminate();
-    }
-  });
 }
 
 // protocol::json::Parser::Handler
@@ -402,10 +358,62 @@ void Business::operator()(Trace<protocol::json::Candle> const &event) {
   }
 }
 
-// request
+// helpers
 
 void Business::check_subscribe_queue(std::chrono::nanoseconds now) {
   subscribe_queue_.dispatch([&](auto now) { return shared_.rate_limiter.can_request(now); }, [&](auto &message) { (*connection_).send_text(message); }, now);
+}
+
+void Business::subscribe_static() {
+  // subscribe("status"sv);
+}
+
+void Business::subscribe(std::span<Symbol const> const &symbols) {
+  if (std::empty(symbols)) {
+    return;
+  }
+  if (shared_.settings.download.time_series_lookback.count()) {
+    subscribe("candle1m"sv, "instId"sv, symbols);
+    for (auto &symbol : symbols) {
+      shared_.time_series_request_queue.emplace_back(symbol);
+    }
+  }
+}
+
+void Business::subscribe(std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values) {
+  assert(!std::empty(values));
+  auto prefix = fmt::format(
+      R"({{)"
+      R"("channel":"{}",)"
+      R"("{}":")"sv,
+      channel,
+      selector);
+  auto separator = fmt::format(R"("}},{})"sv, prefix);
+  auto message = fmt::format(
+      R"({{)"
+      R"("op":"subscribe",)"
+      R"("args":[)"
+      R"({}{}"}})"
+      R"(])"
+      R"(}})"sv,
+      prefix,
+      fmt::join(values, separator));
+  subscribe_queue_.emplace_back(message);
+}
+
+void Business::parse(std::string_view const &message) {
+  profile_.parse([&]() {
+    auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
+    try {
+      TraceInfo trace_info;
+      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+        log_message();
+      }
+    } catch (...) {
+      log_message();
+      utils::exceptions::Unhandled::terminate();
+    }
+  });
 }
 
 }  // namespace gateway

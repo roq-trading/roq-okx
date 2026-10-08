@@ -105,6 +105,8 @@ OrderEntry::OrderEntry(Handler &handler, io::Context &context, uint16_t stream_i
       account_{account}, shared_{shared}, request_{request} {
 }
 
+// server::Stream
+
 void OrderEntry::operator()(Event<Start> const &) {
   (*connection_).start();
 }
@@ -114,8 +116,8 @@ void OrderEntry::operator()(Event<Stop> const &) {
 }
 
 void OrderEntry::operator()(Event<Timer> const &event) {
-  auto now = event.value.now;
-  (*connection_).refresh(now);
+  auto &[trace_info, timer] = event;
+  (*connection_).refresh(timer.now);
   if (ready() && !download_balance_) {
     if (request_.respond_balance < request_.request_balance) {
       log::info<1>("Download balance..."sv);
@@ -157,9 +159,9 @@ void OrderEntry::operator()(metrics::Writer &writer) const {
       .write(latency_.ping, metrics::Type::LATENCY);
 }
 
-void OrderEntry::operator()(ConnectionStatus connection_status, std::string_view const &reason) {
+void OrderEntry::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {
+  auto &[trace_info, connection_status] = event;
   connection_status_ = connection_status;
-  TraceInfo trace_info;
   auto stream_status = StreamStatus{
       .stream_id = stream_id_,
       .account = {},
@@ -181,13 +183,15 @@ void OrderEntry::operator()(ConnectionStatus connection_status, std::string_view
 
 // web::rest::Client::Handler
 
-void OrderEntry::operator()(Trace<web::rest::Connected> const &) {
-  (*this)(ConnectionStatus::READY);
+void OrderEntry::operator()(Trace<web::rest::Connected> const &event) {
+  auto &[trace_info, connected] = event;
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
 }
 
-void OrderEntry::operator()(Trace<web::rest::Disconnected> const &) {
+void OrderEntry::operator()(Trace<web::rest::Disconnected> const &event) {
+  auto &[trace_info, disconnected] = event;
   ++counter_.disconnect;
-  (*this)(ConnectionStatus::DISCONNECTED);
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::DISCONNECTED);
   download_orders_ = false;
 }
 
@@ -237,8 +241,7 @@ void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
     auto handle_success = [&]([[maybe_unused]] auto &body) {
       /*
       protocol::json::BalanceAck balance_ack{body, decode_buffer_};
-      Trace event_2{event, balance_ack};
-      (*this)(event_2);
+      create_trace_and_dispatch_2(trace_info, balance_ack);
       */
       download_balance_ = false;
       request_.respond_balance = clock::get_system();  // ack
@@ -282,6 +285,7 @@ void OrderEntry::get_positions() {
 
 void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
   profile_.positions_ack([&]() {
+    auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       // XXX WHAT ???
@@ -289,8 +293,7 @@ void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
     auto handle_success = [&](auto &body) {
       protocol::json::PositionsAck positions_ack{body, decode_buffer_};
       if (positions_ack.code == 0) {
-        Trace event_2{event, positions_ack};
-        (*this)(event_2);
+        create_trace_and_dispatch_2(trace_info, positions_ack);
       } else {
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(positions_ack.code), positions_ack.msg);
       }
@@ -353,6 +356,7 @@ void OrderEntry::get_orders_pending() {
 
 void OrderEntry::get_orders_pending_ack(Trace<web::rest::Response> const &event) {
   profile_.orders_pending_ack([&]() {
+    auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       // XXX WHAT ???
@@ -360,8 +364,7 @@ void OrderEntry::get_orders_pending_ack(Trace<web::rest::Response> const &event)
     auto handle_success = [&](auto &body) {
       protocol::json::OrdersPendingAck orders_pending_ack{body, decode_buffer_};
       if (orders_pending_ack.code == 0) {
-        Trace event_2{event, orders_pending_ack};
-        (*this)(event_2);
+        create_trace_and_dispatch_2(trace_info, orders_pending_ack);
       } else {
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_pending_ack.code), orders_pending_ack.msg);
       }
@@ -462,6 +465,7 @@ void OrderEntry::get_fills() {
 
 void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
   profile_.fills_ack([&]() {
+    auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       // XXX WHAT ???
@@ -469,8 +473,7 @@ void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
     auto handle_success = [&](auto &body) {
       protocol::json::FillsAck fills_ack{body, decode_buffer_};
       if (fills_ack.code == 0) {
-        Trace event_2{event, fills_ack};
-        (*this)(event_2);
+        create_trace_and_dispatch_2(trace_info, fills_ack);
       } else {
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(fills_ack.code), fills_ack.msg);
       }

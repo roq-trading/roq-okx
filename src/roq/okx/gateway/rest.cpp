@@ -2,6 +2,8 @@
 
 #include "roq/okx/gateway/rest.hpp"
 
+#include "roq/logging.hpp"
+
 #include "roq/mask.hpp"
 
 #include "roq/utils/safe_cast.hpp"
@@ -89,6 +91,8 @@ Rest::Rest(Handler &handler, io::Context &context, uint16_t stream_id, Shared &s
       shared_{shared} {
 }
 
+// server::Stream
+
 void Rest::operator()(Event<Start> const &) {
   (*connection_).start();
 }
@@ -98,10 +102,10 @@ void Rest::operator()(Event<Stop> const &) {
 }
 
 void Rest::operator()(Event<Timer> const &event) {
-  auto now = event.value.now;
-  (*connection_).refresh(now);
+  auto &[trace_info, timer] = event;
+  (*connection_).refresh(timer.now);
   if (ready()) {
-    check_request_queue(now);
+    check_request_queue(timer.now);
   }
 }
 
@@ -118,9 +122,9 @@ void Rest::operator()(metrics::Writer &writer) const {
       .write(latency_.ping, metrics::Type::LATENCY);
 }
 
-void Rest::operator()(ConnectionStatus connection_status, std::string_view const &reason) {
+void Rest::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {
+  auto &[trace_info, connection_status] = event;
   connection_status_ = connection_status;
-  TraceInfo trace_info;
   auto stream_status = StreamStatus{
       .stream_id = stream_id_,
       .account = {},
@@ -142,13 +146,15 @@ void Rest::operator()(ConnectionStatus connection_status, std::string_view const
 
 // web::rest::Client::Handler
 
-void Rest::operator()(Trace<web::rest::Connected> const &) {
-  (*this)(ConnectionStatus::READY);
+void Rest::operator()(Trace<web::rest::Connected> const &event) {
+  auto &[trace_info, connected] = event;
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
 }
 
-void Rest::operator()(Trace<web::rest::Disconnected> const &) {
+void Rest::operator()(Trace<web::rest::Disconnected> const &event) {
+  auto &[trace_info, disconnected] = event;
   ++counter_.disconnect;
-  (*this)(ConnectionStatus::DISCONNECTED);
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::DISCONNECTED);
   download_instruments_ = {};
 }
 
@@ -189,6 +195,7 @@ void Rest::get_instruments(std::string_view const &type) {
 
 void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::string_view const &type) {
   profile_.instruments_ack([&]() {
+    auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       // XXX WHAT ???
@@ -196,8 +203,7 @@ void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::str
     auto handle_success = [&](auto &body) {
       protocol::json::InstrumentsAck instruments_ack{body, decode_buffer_};
       if (instruments_ack.code == 0) {
-        Trace event_2{event, instruments_ack};
-        (*this)(event_2);
+        create_trace_and_dispatch_2(trace_info, instruments_ack);
       } else {
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(instruments_ack.code), instruments_ack.msg);
       }
@@ -365,6 +371,7 @@ void Rest::get_candles(std::string_view const &symbol) {
 
 void Rest::get_candles_ack(Trace<web::rest::Response> const &event, std::string_view const &symbol) {
   profile_.candles_ack([&]() {
+    auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       // XXX WHAT ???
@@ -372,8 +379,7 @@ void Rest::get_candles_ack(Trace<web::rest::Response> const &event, std::string_
     auto handle_success = [&](auto &body) {
       protocol::json::CandlesAck candles_ack{body, decode_buffer_};
       if (candles_ack.code == 0) {
-        Trace event_2{event, candles_ack};
-        (*this)(event_2, symbol);
+        create_trace_and_dispatch_2(trace_info, candles_ack, symbol);
       } else {
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(candles_ack.code), candles_ack.msg);
       }

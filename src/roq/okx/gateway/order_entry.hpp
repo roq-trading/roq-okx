@@ -16,6 +16,8 @@
 
 #include "roq/server.hpp"
 
+#include "roq/server/stream.hpp"
+
 #include "roq/okx/gateway/account.hpp"
 #include "roq/okx/gateway/request.hpp"
 #include "roq/okx/gateway/shared.hpp"
@@ -28,18 +30,27 @@ namespace roq {
 namespace okx {
 namespace gateway {
 
-struct OrderEntry final : public web::rest::Client::Handler {
+struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public web::rest::Client::Handler {
   struct Handler {};
 
   OrderEntry(Handler &, io::Context &context, uint16_t stream_id, Account &, Shared &, Request &);
 
-  OrderEntry(OrderEntry const &) = delete;
+  // protected:
+  friend base_type;
 
-  void operator()(Event<Start> const &);
-  void operator()(Event<Stop> const &);
-  void operator()(Event<Timer> const &);
+  // server::Stream
 
-  void operator()(metrics::Writer &) const;
+  uint16_t stream_id() const override { return stream_id_; }
+
+  bool ready() const override { return connection_status_ == ConnectionStatus::READY; }
+
+  void operator()(Event<Start> const &) override;
+  void operator()(Event<Stop> const &) override;
+  void operator()(Event<Timer> const &) override;
+
+  void operator()(metrics::Writer &) const override;
+
+  void operator()(Trace<ConnectionStatus> const &, std::string_view const &reason = {}) override;
 
  protected:
   // web::rest::Client::Handler
@@ -47,12 +58,6 @@ struct OrderEntry final : public web::rest::Client::Handler {
   void operator()(Trace<web::rest::Connected> const &) override;
   void operator()(Trace<web::rest::Disconnected> const &) override;
   void operator()(Trace<web::rest::Latency> const &) override;
-
-  // helpers
-
-  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
-
-  void operator()(ConnectionStatus, std::string_view const &reason = {});
 
   // balance
 

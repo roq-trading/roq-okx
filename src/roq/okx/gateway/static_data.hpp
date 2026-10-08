@@ -13,13 +13,15 @@
 
 #include "roq/web/socket/client.hpp"
 
-#include "roq/core/download.hpp"
+#include "roq/core/download_2.hpp"
 
 #include "roq/core/timer_queue.hpp"
 
 #include "roq/core/json/buffer_stack.hpp"
 
 #include "roq/server.hpp"
+
+#include "roq/server/stream.hpp"
 
 #include "roq/okx/gateway/account.hpp"
 #include "roq/okx/gateway/shared.hpp"
@@ -30,7 +32,7 @@ namespace roq {
 namespace okx {
 namespace gateway {
 
-struct StaticData final : public web::socket::Client::Handler, public protocol::json::Parser::Handler {
+struct StaticData final : public Base<StaticData>, public server::Stream, public web::socket::Client::Handler, public protocol::json::Parser::Handler {
   struct SymbolsUpdate final {
     std::vector<Symbol> &symbols;
   };
@@ -41,13 +43,22 @@ struct StaticData final : public web::socket::Client::Handler, public protocol::
 
   StaticData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
 
-  StaticData(StaticData const &) = delete;
+  // protected:
+  friend base_type;
 
-  void operator()(Event<Start> const &);
-  void operator()(Event<Stop> const &);
-  void operator()(Event<Timer> const &);
+  // server::Stream
 
-  void operator()(metrics::Writer &) const;
+  uint16_t stream_id() const override { return stream_id_; }
+
+  bool ready() const override { return connection_status_ == ConnectionStatus::READY; }
+
+  void operator()(Event<Start> const &) override;
+  void operator()(Event<Stop> const &) override;
+  void operator()(Event<Timer> const &) override;
+
+  void operator()(metrics::Writer &) const override;
+
+  void operator()(Trace<ConnectionStatus> const &, std::string_view const &reason = {}) override;
 
  protected:
   // web::socket::Client::Handler
@@ -60,30 +71,13 @@ struct StaticData final : public web::socket::Client::Handler, public protocol::
   void operator()(Trace<web::socket::Text> const &) override;
   void operator()(Trace<web::socket::Binary> const &) override;
 
-  // helpers
-
-  uint16_t stream_id() const { return stream_id_; }
-
-  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
-
-  void operator()(ConnectionStatus, std::string_view const &reason = {});
+  // core::Download
 
   enum class State {
     UNDEFINED = 0,
     LOGIN,
     DONE,
   };
-
-  uint32_t download(State);
-
-  void login();
-
-  void subscribe_static();
-
-  void subscribe(std::string_view const &channel);
-  void subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value);
-
-  void parse(std::string_view const &message);
 
   // protocol::json::Parser::Handler
 
@@ -120,6 +114,17 @@ struct StaticData final : public web::socket::Client::Handler, public protocol::
 
   void check_subscribe_queue(std::chrono::nanoseconds now);
 
+  int32_t download(Trace<State> const &);
+
+  void login();
+
+  void subscribe_static();
+
+  void subscribe(std::string_view const &channel);
+  void subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value);
+
+  void parse(std::string_view const &message);
+
  private:
   Handler &handler_;
   // config
@@ -145,7 +150,7 @@ struct StaticData final : public web::socket::Client::Handler, public protocol::
   Shared &shared_;
   // state
   ConnectionStatus connection_status_ = {};
-  core::Download<State> download_;
+  core::Download2<State> download_;
   // queue
   core::TimerQueue<std::string> subscribe_queue_;
   // sequencing

@@ -12,11 +12,13 @@
 
 #include "roq/web/socket/client.hpp"
 
-#include "roq/core/download.hpp"
+#include "roq/core/download_2.hpp"
 
 #include "roq/core/json/buffer_stack.hpp"
 
 #include "roq/server.hpp"
+
+#include "roq/server/stream.hpp"
 
 #include "roq/okx/gateway/account.hpp"
 #include "roq/okx/gateway/request.hpp"
@@ -30,18 +32,29 @@ namespace roq {
 namespace okx {
 namespace gateway {
 
-struct DropCopy final : public web::socket::Client::Handler, protocol::json::Parser::Handler {
+struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream, public web::socket::Client::Handler, protocol::json::Parser::Handler {
   struct Handler {};
 
   DropCopy(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request &);
 
-  DropCopy(DropCopy const &) = delete;
+  // protected:
+  friend base_type;
 
-  void operator()(Event<Start> const &);
-  void operator()(Event<Stop> const &);
-  void operator()(Event<Timer> const &);
+  // server::Stream
 
-  void operator()(metrics::Writer &) const;
+  uint16_t stream_id() const override { return stream_id_; }
+
+  bool ready() const override;
+
+  void operator()(Event<Start> const &) override;
+  void operator()(Event<Stop> const &) override;
+  void operator()(Event<Timer> const &) override;
+
+  void operator()(metrics::Writer &) const override;
+
+  void operator()(Trace<ConnectionStatus> const &, std::string_view const &reason = {}) override;
+
+  // server::OrderActionStream
 
   uint16_t operator()(Event<CreateOrder> const &, server::oms::Order const &, server::oms::RefData const &, std::string_view const &request_id);
   uint16_t operator()(
@@ -101,11 +114,7 @@ struct DropCopy final : public web::socket::Client::Handler, protocol::json::Par
 
   void operator()(Trace<protocol::json::Candle> const &) override;
 
-  // helpers
-
-  bool ready() const;
-
-  void operator()(ConnectionStatus, std::string_view const &reason = {});
+  // core::Download
 
   enum class State {
     UNDEFINED = 0,
@@ -117,7 +126,9 @@ struct DropCopy final : public web::socket::Client::Handler, protocol::json::Par
     DONE,
   };
 
-  uint32_t download(State);
+  int32_t download(Trace<State> const &);
+
+  // helpers
 
   void login();
 
@@ -135,6 +146,7 @@ struct DropCopy final : public web::socket::Client::Handler, protocol::json::Par
   void check_response_positions();
   void check_response_orders();
 
+ private:
   Handler &handler_;
   // config
   uint16_t const stream_id_;
@@ -162,7 +174,7 @@ struct DropCopy final : public web::socket::Client::Handler, protocol::json::Par
   Request &request_;
   // state
   ConnectionStatus connection_status_ = {};
-  core::Download<State> download_;
+  core::Download2<State> download_;
   // other
   protocol::json::TradeMode const trade_mode_;
   protocol::json::StpMode const stp_mode_;

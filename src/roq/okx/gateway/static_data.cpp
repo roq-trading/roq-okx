@@ -91,8 +91,10 @@ StaticData::StaticData(Handler &handler, io::Context &context, uint16_t stream_i
           .ping = create_metrics(shared.settings, name_, "ping"sv),
           .heartbeat = create_metrics(shared.settings, name_, "heartbeat"sv),
       },
-      account_{account}, shared_{shared}, download_{{}, [this](auto state) { return download(state); }} {
+      account_{account}, shared_{shared}, download_{{}, [this](auto &event) { return download(event); }} {
 }
+
+// server::Stream
 
 void StaticData::operator()(Event<Start> const &) {
   (*connection_).start();
@@ -103,10 +105,10 @@ void StaticData::operator()(Event<Stop> const &) {
 }
 
 void StaticData::operator()(Event<Timer> const &event) {
-  auto now = event.value.now;
-  (*connection_).refresh(now);
+  auto &[trace_info, timer] = event;
+  (*connection_).refresh(timer.now);
   if ((*connection_).ready()) {
-    check_subscribe_queue(now);
+    check_subscribe_queue(timer.now);
   }
 }
 
@@ -128,23 +130,49 @@ void StaticData::operator()(metrics::Writer &writer) const {
       .write(latency_.heartbeat, metrics::Type::LATENCY);
 }
 
+void StaticData::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {
+  auto &[trace_info, connection_status] = event;
+  connection_status_ = connection_status;
+  auto stream_status = StreamStatus{
+      .stream_id = stream_id_,
+      .account = {},
+      .supports = SUPPORTS,
+      .transport = Transport::TCP,
+      .protocol = Protocol::WS,
+      .encoding = {Encoding::JSON},
+      .priority = Priority::PRIMARY,
+      .connection_status = connection_status_,
+      .reason = reason,
+      .interface = (*connection_).get_interface(),
+      .authority = (*connection_).get_current_authority(),
+      .path = (*connection_).get_current_path(),
+      .proxy = (*connection_).get_proxy(),
+  };
+  log::info("stream_status={}"sv, stream_status);
+  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
+}
+
 // web::socket::Client::Handler
 
 void StaticData::operator()(Trace<web::socket::Connected> const &) {
 }
 
-void StaticData::operator()(Trace<web::socket::Disconnected> const &) {
+void StaticData::operator()(Trace<web::socket::Disconnected> const &event) {
+  auto &[trace_info, disconnected] = event;
   ++counter_.disconnect;
-  (*this)(ConnectionStatus::DISCONNECTED);
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::DISCONNECTED);
   download_.reset();
   subscribe_queue_.clear();
 }
 
-void StaticData::operator()(Trace<web::socket::Ready> const &) {
-  download_.begin();
+void StaticData::operator()(Trace<web::socket::Ready> const &event) {
+  auto &[trace_info, ready] = event;
+  download_.begin(trace_info);
 }
 
-void StaticData::operator()(Trace<web::socket::Close> const &) {
+void StaticData::operator()(Trace<web::socket::Close> const &event) {
+  auto &[trace_info, close] = event;
+  log::warn("close={}"sv, close);
 }
 
 void StaticData::operator()(Trace<web::socket::Latency> const &event) {
@@ -167,29 +195,10 @@ void StaticData::operator()(Trace<web::socket::Binary> const &) {
   log::fatal("Unexpected: binary"sv);
 }
 
-void StaticData::operator()(ConnectionStatus connection_status, std::string_view const &reason) {
-  connection_status_ = connection_status;
-  TraceInfo trace_info;
-  auto stream_status = StreamStatus{
-      .stream_id = stream_id_,
-      .account = {},
-      .supports = SUPPORTS,
-      .transport = Transport::TCP,
-      .protocol = Protocol::WS,
-      .encoding = {Encoding::JSON},
-      .priority = Priority::PRIMARY,
-      .connection_status = connection_status_,
-      .reason = reason,
-      .interface = (*connection_).get_interface(),
-      .authority = (*connection_).get_current_authority(),
-      .path = (*connection_).get_current_path(),
-      .proxy = (*connection_).get_proxy(),
-  };
-  log::info("stream_status={}"sv, stream_status);
-  create_trace_and_dispatch(shared_.dispatcher, trace_info, stream_status);
-}
+// core::Download
 
-uint32_t StaticData::download(State state) {
+int32_t StaticData::download(Trace<State> const &event) {
+  auto &[trace_info, state] = event;
   switch (state) {
     using enum State;
     case UNDEFINED:
@@ -200,92 +209,17 @@ uint32_t StaticData::download(State state) {
         log::info("Using public channels (no authentication)"sv);
         return 0;
       } else {
-        (*this)(ConnectionStatus::LOGIN_SENT);
+        create_trace_and_dispatch_2(trace_info, ConnectionStatus::LOGIN_SENT);
         login();
         return 1;
       }
     case DONE:
-      (*this)(ConnectionStatus::READY);
+      create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
       subscribe_static();
       return 0;
   }
   assert(false);
   return 0;
-}
-
-void StaticData::login() {
-  auto now = clock::get_realtime<std::chrono::seconds>();
-  auto timestamp = fmt::format("{}"sv, now.count());
-  auto sign = account_.create_sign(timestamp);
-  auto message = fmt::format(
-      R"({{)"
-      R"("op":"login",)"
-      R"("args":[{{)"
-      R"("apiKey":"{}",)"
-      R"("passphrase":"{}",)"
-      R"("timestamp":"{}",)"
-      R"("sign":"{}")"
-      R"(}})"
-      R"(])"
-      R"(}})"sv,
-      account_.get_key(),
-      account_.get_passphrase(),
-      timestamp,
-      sign);
-  (*connection_).send_text(message);
-  (*this)(ConnectionStatus::LOGIN_SENT);
-}
-
-void StaticData::subscribe_static() {
-  subscribe("status"sv);
-  subscribe("instruments"sv, "instType"sv, "SPOT"sv);
-  subscribe("instruments"sv, "instType"sv, "SWAP"sv);
-  subscribe("instruments"sv, "instType"sv, "FUTURES"sv);
-  // subscribe("instruments"sv, "instType"sv, "OPTION"sv);
-}
-
-void StaticData::subscribe(std::string_view const &channel) {
-  auto message = fmt::format(
-      R"({{)"
-      R"("op":"subscribe",)"
-      R"("args":[{{)"
-      R"("channel":"{}")"
-      R"(}})"
-      R"(])"
-      R"(}})"sv,
-      channel);
-  subscribe_queue_.emplace_back(message);
-}
-
-void StaticData::subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value) {
-  auto message = fmt::format(
-      R"({{)"
-      R"("op":"subscribe",)"
-      R"("args":[{{)"
-      R"("channel":"{}",)"
-      R"("{}":"{}")"
-      R"(}})"
-      R"(])"
-      R"(}})"sv,
-      channel,
-      selector,
-      value);
-  subscribe_queue_.emplace_back(message);
-}
-
-void StaticData::parse(std::string_view const &message) {
-  profile_.parse([&]() {
-    auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
-    try {
-      TraceInfo trace_info;
-      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
-        log_message();
-      }
-    } catch (...) {
-      log_message();
-      utils::exceptions::Unhandled::terminate();
-    }
-  });
 }
 
 // protocol::json::Parser::Handler
@@ -507,7 +441,7 @@ void StaticData::operator()(Trace<protocol::json::Login> const &event) {
     log::info<1>("login={}"sv, login);
     (*connection_).touch(trace_info.source_receive_time);
     auto state = State::LOGIN;
-    download_.check_relaxed(state);
+    download_.check_relaxed(trace_info, state);
   });
 }
 
@@ -547,6 +481,82 @@ void StaticData::operator()(Trace<protocol::json::Candle> const &) {
 
 void StaticData::check_subscribe_queue(std::chrono::nanoseconds now) {
   subscribe_queue_.dispatch([&](auto now) { return shared_.rate_limiter.can_request(now); }, [&](auto &message) { (*connection_).send_text(message); }, now);
+}
+
+void StaticData::login() {
+  auto now = clock::get_realtime<std::chrono::seconds>();
+  auto timestamp = fmt::format("{}"sv, now.count());
+  auto sign = account_.create_sign(timestamp);
+  auto message = fmt::format(
+      R"({{)"
+      R"("op":"login",)"
+      R"("args":[{{)"
+      R"("apiKey":"{}",)"
+      R"("passphrase":"{}",)"
+      R"("timestamp":"{}",)"
+      R"("sign":"{}")"
+      R"(}})"
+      R"(])"
+      R"(}})"sv,
+      account_.get_key(),
+      account_.get_passphrase(),
+      timestamp,
+      sign);
+  (*connection_).send_text(message);
+  TraceInfo trace_info;  // XXX FIXME TODO
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::LOGIN_SENT);
+}
+
+void StaticData::subscribe_static() {
+  subscribe("status"sv);
+  subscribe("instruments"sv, "instType"sv, "SPOT"sv);
+  subscribe("instruments"sv, "instType"sv, "SWAP"sv);
+  subscribe("instruments"sv, "instType"sv, "FUTURES"sv);
+  // subscribe("instruments"sv, "instType"sv, "OPTION"sv);
+}
+
+void StaticData::subscribe(std::string_view const &channel) {
+  auto message = fmt::format(
+      R"({{)"
+      R"("op":"subscribe",)"
+      R"("args":[{{)"
+      R"("channel":"{}")"
+      R"(}})"
+      R"(])"
+      R"(}})"sv,
+      channel);
+  subscribe_queue_.emplace_back(message);
+}
+
+void StaticData::subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value) {
+  auto message = fmt::format(
+      R"({{)"
+      R"("op":"subscribe",)"
+      R"("args":[{{)"
+      R"("channel":"{}",)"
+      R"("{}":"{}")"
+      R"(}})"
+      R"(])"
+      R"(}})"sv,
+      channel,
+      selector,
+      value);
+  subscribe_queue_.emplace_back(message);
+}
+
+void StaticData::parse(std::string_view const &message) {
+  profile_.parse([&]() {
+    auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
+    try {
+      TraceInfo trace_info;
+      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+        log_message();
+      }
+    } catch (...) {
+      log_message();
+      utils::exceptions::Unhandled::terminate();
+    }
+  });
 }
 
 }  // namespace gateway

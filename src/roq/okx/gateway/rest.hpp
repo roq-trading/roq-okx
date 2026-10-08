@@ -12,11 +12,11 @@
 
 #include "roq/web/rest/client.hpp"
 
-#include "roq/core/download.hpp"
-
 #include "roq/core/json/buffer_stack.hpp"
 
 #include "roq/server.hpp"
+
+#include "roq/server/stream.hpp"
 
 #include "roq/okx/gateway/shared.hpp"
 
@@ -27,7 +27,7 @@ namespace roq {
 namespace okx {
 namespace gateway {
 
-struct Rest final : public web::rest::Client::Handler {
+struct Rest final : public Base<Rest>, public server::Stream, public web::rest::Client::Handler {
   struct SymbolsUpdate final {
     std::span<Symbol const> symbols;
   };
@@ -38,15 +38,22 @@ struct Rest final : public web::rest::Client::Handler {
 
   Rest(Handler &, io::Context &context, uint16_t stream_id, Shared &);
 
-  Rest(Rest const &) = delete;
+  // protected:
+  friend base_type;
 
-  bool ready() const { return connection_status_ == ConnectionStatus::READY; }
+  // server::Stream
 
-  void operator()(Event<Start> const &);
-  void operator()(Event<Stop> const &);
-  void operator()(Event<Timer> const &);
+  uint16_t stream_id() const override { return stream_id_; }
 
-  void operator()(metrics::Writer &) const;
+  bool ready() const override { return connection_status_ == ConnectionStatus::READY; }
+
+  void operator()(Event<Start> const &) override;
+  void operator()(Event<Stop> const &) override;
+  void operator()(Event<Timer> const &) override;
+
+  void operator()(metrics::Writer &) const override;
+
+  void operator()(Trace<ConnectionStatus> const &, std::string_view const &reason = {}) override;
 
  protected:
   // web::rest::Client::Handler
@@ -54,10 +61,6 @@ struct Rest final : public web::rest::Client::Handler {
   void operator()(Trace<web::rest::Connected> const &) override;
   void operator()(Trace<web::rest::Disconnected> const &) override;
   void operator()(Trace<web::rest::Latency> const &) override;
-
-  void operator()(ConnectionStatus, std::string_view const &reason = {});
-
-  bool downloading() const { return download_instruments_.spot || download_instruments_.swap || download_instruments_.futures; }
 
   // instruments
 
@@ -74,6 +77,7 @@ struct Rest final : public web::rest::Client::Handler {
   // helpers
 
   void check_request_queue(std::chrono::nanoseconds now);
+  bool downloading() const { return download_instruments_.spot || download_instruments_.swap || download_instruments_.futures; }
 
   void process_response(Trace<web::rest::Response> const &, auto error_handler, auto success_handler);
 
