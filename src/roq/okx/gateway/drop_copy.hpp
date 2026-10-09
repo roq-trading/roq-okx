@@ -56,21 +56,21 @@ struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream,
 
   // server::OrderActionStream
 
-  uint16_t operator()(Event<CreateOrder> const &, server::oms::Order const &, server::oms::RefData const &, std::string_view const &request_id);
+  uint16_t operator()(Event<CreateOrder> const &, server::oms::Order const &, server::oms::RefData const &, std::string_view const &request_id) override;
   uint16_t operator()(
       Event<ModifyOrder> const &,
       server::oms::Order const &,
       server::oms::RefData const &,
       std::string_view const &request_id,
-      std::string_view const &previous_request_id);
+      std::string_view const &previous_request_id) override;
   uint16_t operator()(
       Event<CancelOrder> const &,
       server::oms::Order const &,
       server::oms::RefData const &,
       std::string_view const &request_id,
-      std::string_view const &previous_request_id);
+      std::string_view const &previous_request_id) override;
 
-  uint16_t operator()(Event<CancelAllOrders> const &, std::string_view const &request_id);
+  uint16_t operator()(Event<CancelAllOrders> const &, std::string_view const &request_id) override;
 
  protected:
   // web::socket::Client::Handler
