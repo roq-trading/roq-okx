@@ -223,12 +223,8 @@ void OrderEntry::get_balance() {
         .body = {},
         .quality_of_service = {},
     };
-    auto callback = [this]([[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      get_balance_ack(event);
-    };
-    (*connection_)("balance"sv, request, callback);
+    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_balance_ack(event); };
+    (*connection_)(request, callback, "balance"sv);
   });
 }
 
@@ -274,12 +270,8 @@ void OrderEntry::get_positions() {
         .body = {},
         .quality_of_service = {},
     };
-    auto callback = [this]([[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      get_positions_ack(event);
-    };
-    (*connection_)("positions"sv, request, callback);
+    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_positions_ack(event); };
+    (*connection_)(request, callback, "positions"sv);
   });
 }
 
@@ -345,12 +337,8 @@ void OrderEntry::get_orders_pending() {
         .body = {},
         .quality_of_service = {},
     };
-    auto callback = [this]([[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      get_orders_pending_ack(event);
-    };
-    (*connection_)("orders-pending"sv, request, callback);
+    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_orders_pending_ack(event); };
+    (*connection_)(request, callback, "orders-pending"sv);
   });
 }
 
@@ -454,12 +442,8 @@ void OrderEntry::get_fills() {
         .body = body,
         .quality_of_service = {},
     };
-    auto callback = [this]([[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      get_fills_ack(event);
-    };
-    (*connection_)("fills"sv, request, callback);
+    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_fills_ack(event); };
+    (*connection_)(request, callback, "fills"sv);
   });
 }
 

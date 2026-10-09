@@ -184,12 +184,8 @@ void Rest::get_instruments(std::string_view const &type) {
         .body = {},
         .quality_of_service = {},
     };
-    auto callback = [this, type = std::string{type}]([[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      get_instruments_ack(event, type);
-    };
-    (*connection_)("instruments"sv, request, callback);
+    auto callback = [this, type = std::string{type}](auto &event, [[maybe_unused]] auto &request_id) { get_instruments_ack(event, type); };
+    (*connection_)(request, callback, "instruments"sv);
   });
 }
 
@@ -360,12 +356,8 @@ void Rest::get_candles(std::string_view const &symbol) {
         .body = {},
         .quality_of_service = {},
     };
-    auto callback = [this, symbol = std::string{symbol}]([[maybe_unused]] auto &request_id, auto &response) {
-      TraceInfo trace_info;
-      Trace event{trace_info, response};
-      get_candles_ack(event, symbol);
-    };
-    (*connection_)("candles"sv, request, callback);
+    auto callback = [this, symbol = std::string{symbol}](auto &event, [[maybe_unused]] auto &request_id) { get_candles_ack(event, symbol); };
+    (*connection_)(request, callback, "candles"sv);
   });
 }
 
