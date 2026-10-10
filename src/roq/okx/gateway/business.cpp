@@ -95,15 +95,15 @@ Business::Business(Handler &handler, io::Context &context, uint16_t stream_id, S
 
 // server::Stream
 
-void Business::operator()(Event<Start> const &) {
+void Business::operator()(Trace<Start> const &) {
   (*connection_).start();
 }
 
-void Business::operator()(Event<Stop> const &) {
+void Business::operator()(Trace<Stop> const &) {
   (*connection_).stop();
 }
 
-void Business::operator()(Event<Timer> const &event) {
+void Business::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
   (*connection_).refresh(timer.now);
   if ((*connection_).ready()) {

@@ -96,15 +96,15 @@ StaticData::StaticData(Handler &handler, io::Context &context, uint16_t stream_i
 
 // server::Stream
 
-void StaticData::operator()(Event<Start> const &) {
+void StaticData::operator()(Trace<Start> const &) {
   (*connection_).start();
 }
 
-void StaticData::operator()(Event<Stop> const &) {
+void StaticData::operator()(Trace<Stop> const &) {
   (*connection_).stop();
 }
 
-void StaticData::operator()(Event<Timer> const &event) {
+void StaticData::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
   (*connection_).refresh(timer.now);
   if ((*connection_).ready()) {
