@@ -123,7 +123,7 @@ struct MarketData final : public Base<MarketData>,
   void subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value);
   void subscribe(std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values);
 
-  void parse(std::string_view const &message);
+  void parse(TraceInfo const &, std::string_view const &message);
 
  private:
   [[maybe_unused]] Handler &handler_;

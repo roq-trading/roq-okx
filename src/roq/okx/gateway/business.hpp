@@ -106,7 +106,7 @@ struct Business final : public Base<Business>, public server::MarketDataStream, 
 
   void subscribe(std::string_view const &channel, std::string_view const &selector, std::span<Symbol const> const &values);
 
-  void parse(std::string_view const &message);
+  void parse(TraceInfo const &, std::string_view const &message);
 
  private:
   [[maybe_unused]] Handler &handler_;

@@ -188,7 +188,7 @@ void StaticData::operator()(Trace<web::socket::Latency> const &event) {
 
 void StaticData::operator()(Trace<web::socket::Text> const &event) {
   auto &[trace_info, text] = event;
-  parse(text.payload);
+  parse(trace_info, text.payload);
 }
 
 void StaticData::operator()(Trace<web::socket::Binary> const &) {
@@ -390,7 +390,7 @@ void StaticData::operator()(Trace<protocol::json::Instruments> const &event) {
       auto symbols_update = SymbolsUpdate{
           .symbols = symbols,
       };
-      handler_(symbols_update);
+      create_trace_and_dispatch(handler_, trace_info, symbols_update);
     }
   });
 }
@@ -544,11 +544,10 @@ void StaticData::subscribe(std::string_view const &channel, std::string_view con
   subscribe_queue_.emplace_back(message);
 }
 
-void StaticData::parse(std::string_view const &message) {
+void StaticData::parse(TraceInfo const &trace_info, std::string_view const &message) {
   profile_.parse([&]() {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
-      TraceInfo trace_info;
       if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
         log_message();
       }

@@ -31,7 +31,8 @@ namespace roq {
 namespace okx {
 namespace gateway {
 
-struct Controller final : public server::Handler,
+struct Controller final : public Base<Controller>,
+                          public server::Handler,
                           public Rest::Handler,
                           public OrderEntry::Handler,
                           public DropCopy::Handler,
@@ -47,6 +48,8 @@ struct Controller final : public server::Handler,
   Controller(Controller const &) = delete;
 
  protected:
+  friend base_type;
+
   // server::Handler
 
   void operator()(Trace<Start> const &) override;
@@ -81,17 +84,13 @@ struct Controller final : public server::Handler,
 
   void operator()(metrics::Writer &) const override;
 
-  // Rest::Handler
+  // Rest::Handler + StaticData::Handler
 
-  void operator()(Rest::SymbolsUpdate &) override;
-
-  // StaticData::Handler
-
-  void operator()(StaticData::SymbolsUpdate &) override;
+  void operator()(Trace<SymbolsUpdate> const &) override;
 
   // helpers
 
-  void ensure_symbol_slices(size_t size);
+  void ensure_symbol_slices(TraceInfo const &, size_t size);
 
   template <typename... Args>
   void dispatch(Args &&...);

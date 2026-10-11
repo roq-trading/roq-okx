@@ -25,6 +25,7 @@
 
 #include "roq/okx/gateway/account.hpp"
 #include "roq/okx/gateway/shared.hpp"
+#include "roq/okx/gateway/symbols_update.hpp"
 
 #include "roq/okx/protocol/json/parser.hpp"
 
@@ -33,12 +34,8 @@ namespace okx {
 namespace gateway {
 
 struct StaticData final : public Base<StaticData>, public server::Stream, public web::socket::Client::Handler, public protocol::json::Parser::Handler {
-  struct SymbolsUpdate final {
-    std::vector<Symbol> &symbols;
-  };
-
   struct Handler {
-    virtual void operator()(SymbolsUpdate &) = 0;
+    virtual void operator()(Trace<SymbolsUpdate> const &) = 0;
   };
 
   StaticData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
@@ -123,7 +120,7 @@ struct StaticData final : public Base<StaticData>, public server::Stream, public
   void subscribe(std::string_view const &channel);
   void subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value);
 
-  void parse(std::string_view const &message);
+  void parse(TraceInfo const &, std::string_view const &message);
 
  private:
   Handler &handler_;
