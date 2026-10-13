@@ -46,9 +46,8 @@ auto create_crypto(auto &config, auto &name) -> tools::Crypto {
 Account::Account(Config const &config, std::string_view const &name) : name{name}, crypto_{create_crypto(config, name)} {
 }
 
-std::string Account::create_headers(web::http::Method method, std::string_view const &path, std::string_view const &body) {
-  auto timestamp = clock::get_realtime<std::chrono::milliseconds>();
-  return crypto_.create_headers(method, path, body, timestamp);
+std::string Account::create_headers(TraceInfo const &trace_info, web::http::Method method, std::string_view const &path, std::string_view const &body) {
+  return crypto_.create_headers(method, path, body, utils::safe_cast(trace_info.origin_create_time_utc));
 }
 
 }  // namespace gateway

@@ -14,9 +14,9 @@
 
 #include "roq/core/download_2.hpp"
 
-#include "roq/core/timer_queue.hpp"
-
 #include "roq/core/json/buffer_stack.hpp"
+
+#include "roq/core/limit/queue.hpp"
 
 #include "roq/server.hpp"
 
@@ -114,9 +114,9 @@ struct MarketData final : public Base<MarketData>,
 
   // helpers
 
-  void check_subscribe_queue(std::chrono::nanoseconds now);
+  void check_subscribe_queue(TraceInfo const &);
 
-  void login();
+  void login(TraceInfo const &);
 
   void subscribe(std::span<Symbol const> const &symbols);
 
@@ -154,7 +154,7 @@ struct MarketData final : public Base<MarketData>,
   ConnectionStatus connection_status_ = {};
   core::Download2<State> download_;
   // queue
-  core::TimerQueue<std::string> subscribe_queue_;
+  core::limit::Queue<std::string> subscribe_queue_;
   // sequencing
   utils::unordered_map<std::string, int64_t> sequence_;
 };

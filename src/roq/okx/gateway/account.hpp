@@ -28,7 +28,7 @@ struct Account final {
 
   std::string create_sign(std::string_view const &timestamp) { return crypto_.create_sign(timestamp); }
 
-  std::string create_headers(web::http::Method, std::string_view const &path, std::string_view const &body);
+  std::string create_headers(TraceInfo const &, web::http::Method, std::string_view const &path, std::string_view const &body);
 
   std::string const name;
 

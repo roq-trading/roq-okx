@@ -103,7 +103,7 @@ MarketData::MarketData(Handler &handler, io::Context &context, uint16_t stream_i
           .ping = create_metrics(shared.settings, name_, "ping"sv),
           .heartbeat = create_metrics(shared.settings, name_, "heartbeat"sv),
       },
-      account_{account}, shared_{shared}, download_{{}, [this](auto &event) { return download(event); }} {
+      account_{account}, shared_{shared}, download_{{}, [this](auto &event) { return download(event); }}, subscribe_queue_{shared_.rate_limiter} {
 }
 
 // server::Stream
@@ -120,7 +120,7 @@ void MarketData::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
   (*connection_).refresh(timer.now);
   if ((*connection_).ready()) {
-    check_subscribe_queue(timer.now);
+    check_subscribe_queue(trace_info);
   }
 }
 
@@ -238,7 +238,7 @@ int32_t MarketData::download(Trace<State> const &event) {
         return 0;
       } else {
         create_trace_and_dispatch_2(trace_info, ConnectionStatus::LOGIN_SENT);
-        login();
+        login(trace_info);
         return 1;
       }
     case DONE:
@@ -265,7 +265,7 @@ void MarketData::operator()(Trace<protocol::json::Subscribe> const &event) {
     log::info<1>("subscribe={}"sv, subscribe);
     if (subscribe.arg.channel == protocol::json::Channel::INSTRUMENTS && subscribe.arg.inst_type == "FUTURES"sv) {
       log::info("Request instruments..."sv);
-      shared_.instruments.request = clock::get_system();
+      shared_.instruments.request = trace_info.origin_create_time;
     }
   });
 }
@@ -646,12 +646,13 @@ void MarketData::operator()(Trace<protocol::json::Candle> const &) {
 
 // helpers
 
-void MarketData::check_subscribe_queue(std::chrono::nanoseconds now) {
-  subscribe_queue_.dispatch([&](auto now) { return shared_.rate_limiter.can_request(now); }, [&](auto &message) { (*connection_).send_text(message); }, now);
+void MarketData::check_subscribe_queue(TraceInfo const &trace_info) {
+  auto callback = [&]([[maybe_unused]] auto &trace_info, auto &message) { (*connection_).send_text(message); };
+  subscribe_queue_.dispatch(trace_info, callback);
 }
 
-void MarketData::login() {
-  auto now = clock::get_realtime<std::chrono::seconds>();
+void MarketData::login(TraceInfo const &trace_info) {
+  auto now = std::chrono::duration_cast<std::chrono::seconds>(trace_info.origin_create_time_utc);
   auto timestamp = fmt::format("{}"sv, now.count());
   auto sign = account_.create_sign(timestamp);
   auto message = fmt::format(

@@ -61,25 +61,25 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
 
   // balance
 
-  void get_balance();
+  void get_balance(TraceInfo const &);
   void get_balance_ack(Trace<web::rest::Response> const &);
   // void operator()(Trace<protocol::json::BalanceAck> const &);
 
   // positions
 
-  void get_positions();
+  void get_positions(TraceInfo const &);
   void get_positions_ack(Trace<web::rest::Response> const &);
   void operator()(Trace<protocol::json::PositionsAck> const &);
 
   // orders-pending
 
-  void get_orders_pending();
+  void get_orders_pending(TraceInfo const &);
   void get_orders_pending_ack(Trace<web::rest::Response> const &);
   void operator()(Trace<protocol::json::OrdersPendingAck> const &);
 
   // fills
 
-  void get_fills();
+  void get_fills(TraceInfo const &);
   void get_fills_ack(Trace<web::rest::Response> const &);
   void operator()(Trace<protocol::json::FillsAck> const &);
 

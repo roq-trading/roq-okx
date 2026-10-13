@@ -121,22 +121,22 @@ void OrderEntry::operator()(Trace<Timer> const &event) {
   if (ready() && !download_balance_) {
     if (request_.respond_balance < request_.request_balance) {
       log::info<1>("Download balance..."sv);
-      get_balance();
+      get_balance(trace_info);
       download_balance_ = true;
     }
   }
   if (ready() && !download_positions_) {
     if (request_.respond_positions < request_.request_positions) {
       log::info<1>("Download positions..."sv);
-      get_positions();
+      get_positions(trace_info);
       download_positions_ = true;
     }
   }
   if (ready() && !download_orders_) {
     if (request_.respond_orders < request_.request_orders) {
       log::info<1>("Download orders..."sv);
-      get_orders_pending();
-      get_fills();
+      get_orders_pending(trace_info);
+      get_fills(trace_info);
       download_orders_ = true;
     }
   }
@@ -208,11 +208,11 @@ void OrderEntry::operator()(Trace<web::rest::Latency> const &event) {
 
 // balance
 
-void OrderEntry::get_balance() {
+void OrderEntry::get_balance(TraceInfo const &trace_info) {
   profile_.balance([&]() {
     auto method = web::http::Method::GET;
     auto path = shared_.api.simple.account_balance;
-    auto headers = account_.create_headers(method, path, {});
+    auto headers = account_.create_headers(trace_info, method, path, {});
     auto request = web::rest::Request{
         .method = method,
         .path = path,
@@ -230,6 +230,7 @@ void OrderEntry::get_balance() {
 
 void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
   profile_.balance_ack([&]() {
+    auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
       log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
       // XXX WHAT ???
@@ -240,7 +241,7 @@ void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
       create_trace_and_dispatch_2(trace_info, balance_ack);
       */
       download_balance_ = false;
-      request_.respond_balance = clock::get_system();  // ack
+      request_.respond_balance = trace_info.origin_create_time;
     };
     process_response(event, handle_error, handle_success);
   });
@@ -255,11 +256,11 @@ void OrderEntry::operator()(Trace<protocol::json::BalanceAck> const &event) {
 
 // positions
 
-void OrderEntry::get_positions() {
+void OrderEntry::get_positions(TraceInfo const &trace_info) {
   profile_.positions([&]() {
     auto method = web::http::Method::GET;
     auto path = shared_.api.simple.account_positions;
-    auto headers = account_.create_headers(method, path, {});
+    auto headers = account_.create_headers(trace_info, method, path, {});
     auto request = web::rest::Request{
         .method = method,
         .path = path,
@@ -290,7 +291,7 @@ void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(positions_ack.code), positions_ack.msg);
       }
       download_positions_ = false;
-      request_.respond_positions = clock::get_system();  // ack
+      request_.respond_positions = trace_info.origin_create_time;
     };
     process_response(event, handle_error, handle_success);
   });
@@ -322,11 +323,11 @@ void OrderEntry::operator()(Trace<protocol::json::PositionsAck> const &event) {
 
 // orders-pending
 
-void OrderEntry::get_orders_pending() {
+void OrderEntry::get_orders_pending(TraceInfo const &trace_info) {
   profile_.orders_pending([&]() {
     auto method = web::http::Method::GET;
     auto path = shared_.api.simple.trade_orders_pending;
-    auto headers = account_.create_headers(method, path, {});
+    auto headers = account_.create_headers(trace_info, method, path, {});
     auto request = web::rest::Request{
         .method = method,
         .path = path,
@@ -357,7 +358,7 @@ void OrderEntry::get_orders_pending_ack(Trace<web::rest::Response> const &event)
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_pending_ack.code), orders_pending_ack.msg);
       }
       download_orders_ = false;
-      request_.respond_orders = clock::get_system();  // ack
+      request_.respond_orders = trace_info.origin_create_time;
     };
     process_response(event, handle_error, handle_success);
   });
@@ -412,9 +413,9 @@ void OrderEntry::operator()(Trace<protocol::json::OrdersPendingAck> const &event
 
 // fills
 
-void OrderEntry::get_fills() {
+void OrderEntry::get_fills(TraceInfo const &trace_info) {
   profile_.fills([&]() {
-    auto now = clock::get_realtime<std::chrono::milliseconds>();
+    auto now = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.origin_create_time_utc);
     auto lookback = get_download_trades_lookback(shared_.settings, download_trades_is_first_);
     log::info<1>("Download trades: lookback={}"sv, lookback);
     auto begin = std::chrono::duration_cast<std::chrono::milliseconds>(now - lookback);
@@ -431,7 +432,7 @@ void OrderEntry::get_fills() {
         limit);
     auto method = web::http::Method::GET;
     auto path = shared_.api.simple.trade_fills;
-    auto headers = account_.create_headers(method, path, body);
+    auto headers = account_.create_headers(trace_info, method, path, body);
     auto request = web::rest::Request{
         .method = method,
         .path = path,
@@ -462,7 +463,7 @@ void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(fills_ack.code), fills_ack.msg);
       }
       // download_orders_ = false;
-      // request_.respond_orders = clock::get_system();  // ack
+      // request_.respond_orders = trace_info.origin_create_time;
       download_trades_is_first_ = false;
     };
     process_response(event, handle_error, handle_success);

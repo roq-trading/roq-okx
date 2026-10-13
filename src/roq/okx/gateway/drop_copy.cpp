@@ -361,7 +361,7 @@ int32_t DropCopy::download(Trace<State> const &event) {
       break;
     case LOGIN:
       create_trace_and_dispatch_2(trace_info, ConnectionStatus::LOGIN_SENT);
-      login();
+      login(trace_info);
       return 1;
     case SUBSCRIBE:
       create_trace_and_dispatch_2(trace_info, ConnectionStatus::DOWNLOADING, "subscribe"sv);
@@ -369,15 +369,15 @@ int32_t DropCopy::download(Trace<State> const &event) {
       return 1;
     case BALANCE:
       create_trace_and_dispatch_2(trace_info, ConnectionStatus::DOWNLOADING, "balance"sv);
-      request_balance();
+      request_balance(trace_info);
       return 1;
     case POSITIONS:
       create_trace_and_dispatch_2(trace_info, ConnectionStatus::DOWNLOADING, "positions"sv);
-      request_positions();
+      request_positions(trace_info);
       return 1;
     case ORDERS:
       create_trace_and_dispatch_2(trace_info, ConnectionStatus::DOWNLOADING, "orders"sv);
-      request_orders();
+      request_orders(trace_info);
       return 1;
     case DONE:
       create_trace_and_dispatch_2(trace_info, ConnectionStatus::READY);
@@ -765,19 +765,19 @@ void DropCopy::operator()(Trace<protocol::json::Candle> const &) {
 
 // request
 
-void DropCopy::request_balance() {
+void DropCopy::request_balance(TraceInfo const &trace_info) {
   log::info("Requesting balance download..."sv);
-  request_.request_balance = clock::get_system();
+  request_.request_balance = trace_info.origin_create_time;
 }
 
-void DropCopy::request_positions() {
+void DropCopy::request_positions(TraceInfo const &trace_info) {
   log::info("Requesting positions download..."sv);
-  request_.request_positions = clock::get_system();
+  request_.request_positions = trace_info.origin_create_time;
 }
 
-void DropCopy::request_orders() {
+void DropCopy::request_orders(TraceInfo const &trace_info) {
   log::info("Requesting order download..."sv);
-  request_.request_orders = clock::get_system();
+  request_.request_orders = trace_info.origin_create_time;
 }
 
 // response
@@ -817,8 +817,8 @@ void DropCopy::check_response_orders() {
 
 // helpers
 
-void DropCopy::login() {
-  auto now = clock::get_realtime<std::chrono::seconds>();
+void DropCopy::login(TraceInfo const &trace_info) {
+  auto now = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.origin_create_time_utc);
   auto timestamp = fmt::format("{}"sv, now.count());
   auto sign = account_.create_sign(timestamp);
   auto message = fmt::format(

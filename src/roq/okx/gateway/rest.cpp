@@ -105,7 +105,7 @@ void Rest::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
   (*connection_).refresh(timer.now);
   if (ready()) {
-    check_request_queue(timer.now);
+    check_request_queue(trace_info);
   }
 }
 
@@ -209,10 +209,10 @@ void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::str
         download_instruments_.swap = false;
       } else if (type == "FUTURES"sv) {
         download_instruments_.futures = false;
-        shared_.instruments.response = clock::get_system();
+        shared_.instruments.response = trace_info.origin_create_time;
       } else if (type == "OPTION"sv) {
         // download_instruments_.option = false;
-        // shared_.instruments.response = clock::get_system();
+        // shared_.instruments.response = trace_info.origin_create_time;
       }
     };
     process_response(event, handle_error, handle_success);
@@ -423,7 +423,7 @@ void Rest::operator()(Trace<protocol::json::CandlesAck> const &event, std::strin
 
 // request
 
-void Rest::check_request_queue([[maybe_unused]] std::chrono::nanoseconds now) {
+void Rest::check_request_queue(TraceInfo const &trace_info) {
   if (!downloading() && shared_.instruments.response < shared_.instruments.request) {
     log::info("Download instruments..."sv);
     get_instruments("SPOT"sv);
@@ -431,9 +431,8 @@ void Rest::check_request_queue([[maybe_unused]] std::chrono::nanoseconds now) {
     get_instruments("FUTURES"sv);
     download_instruments_.spot = download_instruments_.swap = download_instruments_.futures = true;
   }
-  auto can_request = [&](auto now) { return shared_.rate_limiter.can_request(now); };
-  auto request = [&](auto &symbol) { get_candles(symbol); };
-  shared_.time_series_request_queue.dispatch(can_request, request, now);
+  auto callback = [&]([[maybe_unused]] auto &trace_info, auto &symbol) { get_candles(symbol); };
+  shared_.time_series_request_queue.dispatch(trace_info, callback);
 }
 
 // helpers

@@ -130,7 +130,7 @@ struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream,
 
   // helpers
 
-  void login();
+  void login(TraceInfo const &);
 
   void subscribe();
   void subscribe(std::string_view const &channel);
@@ -138,9 +138,9 @@ struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream,
 
   void parse(TraceInfo const &, std::string_view const &message);
 
-  void request_balance();
-  void request_positions();
-  void request_orders();
+  void request_balance(TraceInfo const &);
+  void request_positions(TraceInfo const &);
+  void request_orders(TraceInfo const &);
 
   void check_response_balance();
   void check_response_positions();

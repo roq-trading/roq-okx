@@ -73,7 +73,7 @@ struct Rest final : public Base<Rest>, public server::Stream, public web::rest::
 
   // helpers
 
-  void check_request_queue(std::chrono::nanoseconds now);
+  void check_request_queue(TraceInfo const &);
   bool downloading() const { return download_instruments_.spot || download_instruments_.swap || download_instruments_.futures; }
 
   void process_response(Trace<web::rest::Response> const &, auto error_handler, auto success_handler);
