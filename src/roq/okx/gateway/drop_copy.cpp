@@ -183,9 +183,9 @@ void DropCopy::operator()(Trace<Stop> const &) {
 void DropCopy::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
   (*connection_).refresh(timer.now);
-  check_response_balance();
-  check_response_positions();
-  check_response_orders();
+  check_response_balance(trace_info);
+  check_response_positions(trace_info);
+  check_response_orders(trace_info);
 }
 
 void DropCopy::operator()(metrics::Writer &writer) const {
@@ -767,50 +767,47 @@ void DropCopy::operator()(Trace<protocol::json::Candle> const &) {
 
 void DropCopy::request_balance(TraceInfo const &trace_info) {
   log::info("Requesting balance download..."sv);
-  request_.request_balance = trace_info.origin_create_time;
+  request_.balance.request(trace_info);
 }
 
 void DropCopy::request_positions(TraceInfo const &trace_info) {
   log::info("Requesting positions download..."sv);
-  request_.request_positions = trace_info.origin_create_time;
+  request_.positions.request(trace_info);
 }
 
 void DropCopy::request_orders(TraceInfo const &trace_info) {
   log::info("Requesting order download..."sv);
-  request_.request_orders = trace_info.origin_create_time;
+  request_.orders.request(trace_info);
 }
 
 // response
 
-void DropCopy::check_response_balance() {
+void DropCopy::check_response_balance(TraceInfo const &trace_info) {
   if (download_.state() != State::BALANCE) {
     return;
   }
-  if (request_.request_balance < request_.respond_balance) {
+  if (request_.balance.has_response()) {
     log::info("Balance download has completed!"sv);
-    TraceInfo trace_info;  // XXX FIXME TODO
     download_.check(trace_info, State::BALANCE);
   }
 }
 
-void DropCopy::check_response_positions() {
+void DropCopy::check_response_positions(TraceInfo const &trace_info) {
   if (download_.state() != State::POSITIONS) {
     return;
   }
-  if (request_.request_positions < request_.respond_positions) {
+  if (request_.positions.has_response()) {
     log::info("Positions download has completed!"sv);
-    TraceInfo trace_info;  // XXX FIXME TODO
     download_.check(trace_info, State::POSITIONS);
   }
 }
 
-void DropCopy::check_response_orders() {
+void DropCopy::check_response_orders(TraceInfo const &trace_info) {
   if (download_.state() != State::ORDERS) {
     return;
   }
-  if (request_.request_orders < request_.respond_orders) {
+  if (request_.orders.has_response()) {
     log::info("Order download has completed!"sv);
-    TraceInfo trace_info;  // XXX FIXME TODO
     download_.check(trace_info, State::ORDERS);
   }
 }

@@ -24,6 +24,7 @@
 #include "roq/server/stream.hpp"
 
 #include "roq/okx/gateway/account.hpp"
+#include "roq/okx/gateway/request_2.hpp"
 #include "roq/okx/gateway/shared.hpp"
 #include "roq/okx/gateway/symbols_update.hpp"
 
@@ -38,7 +39,7 @@ struct StaticData final : public Base<StaticData>, public server::Stream, public
     virtual void operator()(Trace<SymbolsUpdate> const &) = 0;
   };
 
-  StaticData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &);
+  StaticData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request2 &);
 
   // protected:
   friend base_type;
@@ -145,6 +146,8 @@ struct StaticData final : public Base<StaticData>, public server::Stream, public
   Account &account_;
   // cache
   Shared &shared_;
+  // request
+  Request2 &request_;
   // state
   ConnectionStatus connection_status_ = {};
   core::Download2<State> download_;

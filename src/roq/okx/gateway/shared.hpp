@@ -46,12 +46,6 @@ struct Shared final {
   std::vector<MBPUpdate> bids, asks, final_bids, final_asks;
   std::vector<Trade> trades;
 
-  // private:
-  struct {
-    std::chrono::nanoseconds request = {};
-    std::chrono::nanoseconds response = {};
-  } instruments;
-
   // experimental
   utils::unordered_set<std::string> extended_symbols;
 

@@ -23,6 +23,7 @@
 #include "roq/server/stream.hpp"
 
 #include "roq/okx/gateway/account.hpp"
+#include "roq/okx/gateway/request_2.hpp"
 #include "roq/okx/gateway/shared.hpp"
 
 #include "roq/okx/protocol/json/parser.hpp"
@@ -37,7 +38,7 @@ struct MarketData final : public Base<MarketData>,
                           public protocol::json::Parser::Handler {
   struct Handler {};
 
-  MarketData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, size_t index);
+  MarketData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request2 &, size_t index);
 
   // protected:
   friend base_type;
@@ -150,6 +151,8 @@ struct MarketData final : public Base<MarketData>,
   Account &account_;
   // cache
   Shared &shared_;
+  // request
+  Request2 &request_;
   // state
   ConnectionStatus connection_status_ = {};
   core::Download2<State> download_;

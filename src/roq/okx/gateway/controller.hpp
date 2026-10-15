@@ -17,6 +17,7 @@
 #include "roq/okx/gateway/account.hpp"
 #include "roq/okx/gateway/config.hpp"
 #include "roq/okx/gateway/request.hpp"
+#include "roq/okx/gateway/request_2.hpp"
 #include "roq/okx/gateway/settings.hpp"
 #include "roq/okx/gateway/shared.hpp"
 
@@ -109,7 +110,8 @@ struct Controller final : public Base<Controller>,
   io::Context &context_;
   // shared
   Shared shared_;
-  utils::unordered_map<std::string, Request> request_;
+  utils::unordered_map<std::string, std::unique_ptr<Request>> const requests_;
+  Request2 request_2_;
   // seed
   uint16_t stream_id_ = {};
   // streams

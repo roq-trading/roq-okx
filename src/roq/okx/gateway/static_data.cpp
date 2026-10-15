@@ -71,7 +71,7 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-StaticData::StaticData(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared)
+StaticData::StaticData(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request2 &request)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, connection_{create_connection(*this, shared.settings, context, shared)},
       decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
@@ -91,7 +91,8 @@ StaticData::StaticData(Handler &handler, io::Context &context, uint16_t stream_i
           .ping = create_metrics(shared.settings, name_, "ping"sv),
           .heartbeat = create_metrics(shared.settings, name_, "heartbeat"sv),
       },
-      account_{account}, shared_{shared}, download_{{}, [this](auto &event) { return download(event); }}, subscribe_queue_{shared_.rate_limiter} {
+      account_{account}, shared_{shared}, request_{request}, download_{{}, [this](auto &event) { return download(event); }},
+      subscribe_queue_{shared_.rate_limiter} {
 }
 
 // server::Stream
@@ -237,7 +238,7 @@ void StaticData::operator()(Trace<protocol::json::Subscribe> const &event) {
     log::info<1>("subscribe={}"sv, subscribe);
     if (subscribe.arg.channel == protocol::json::Channel::INSTRUMENTS && subscribe.arg.inst_type == "FUTURES"sv) {
       log::info("Request instruments..."sv);
-      shared_.instruments.request = trace_info.origin_create_time;
+      request_.instruments.request(trace_info);
     }
   });
 }

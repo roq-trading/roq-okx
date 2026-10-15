@@ -45,22 +45,31 @@ auto &get_account(auto &accounts, auto &master_account) {
 }
 
 template <typename R>
-R create_request(auto &config) {
+R create_requests(auto &config, auto &shared) {
   using result_type = std::remove_cvref_t<R>;
   result_type result;
   for (auto &[_, account] : config.accounts) {
-    result.try_emplace(static_cast<std::string_view>(account.name), Request{});
+    auto request = std::make_unique<Request>(shared);
+    result.try_emplace(static_cast<std::string_view>(account.name), std::move(request));
   }
   return result;
 }
 
+Request &get_request(auto &requests, auto &account) {
+  auto iter = requests.find(account);
+  if (iter == std::end(requests)) {
+    log::fatal("Unexpected"sv);
+  }
+  return *(*iter).second;
+}
+
 template <typename R>
-R create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &request_by_account) {
+R create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &requests) {
   using result_type = std::remove_cvref_t<R>;
   result_type result;
   for (auto &[_, item] : accounts) {
     auto &account = *item;
-    auto &request = request_by_account[account.name];
+    auto &request = get_request(requests, account.name);
     auto obj = std::make_unique<OrderEntry>(gateway, context, ++stream_id, account, shared, request);
     result.try_emplace(static_cast<std::string_view>(account.name), std::move(obj));
   }
@@ -68,25 +77,25 @@ R create_order_entry(auto &gateway, auto &context, auto &stream_id, auto &accoun
 }
 
 template <typename R>
-R create_drop_copy(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &request_by_account) {
+R create_drop_copy(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &shared, auto &requests) {
   using result_type = std::remove_cvref_t<R>;
   result_type result;
   for (auto &[_, item] : accounts) {
     auto &account = *item;
-    auto &request = request_by_account[account.name];
+    auto &request = get_request(requests, account.name);
     auto obj = std::make_unique<DropCopy>(gateway, context, ++stream_id, account, shared, request);
     result.try_emplace(static_cast<std::string_view>(account.name), std::move(obj));
   }
   return result;
 }
 
-auto create_static_data(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &master_account, auto &shared) {
-  return std::make_unique<StaticData>(gateway, context, ++stream_id, get_account(accounts, master_account), shared);
+auto create_static_data(auto &gateway, auto &context, auto &stream_id, auto &accounts, auto &master_account, auto &shared, auto &request) {
+  return std::make_unique<StaticData>(gateway, context, ++stream_id, get_account(accounts, master_account), shared, request);
 }
 
-auto create_business(auto &gateway, auto &settings, auto &context, auto &stream_id, auto &shared) {
+auto create_business(auto &gateway, auto &settings, auto &context, auto &stream_id, auto &shared, auto &request) {
   if (settings.download.time_series_lookback.count()) {
-    return std::make_unique<Business>(gateway, context, stream_id, shared);
+    return std::make_unique<Business>(gateway, context, stream_id, shared, request);
   }
   return std::unique_ptr<Business>();
 }
@@ -104,11 +113,12 @@ uint8_t Controller::parse_api(Settings const &) {
 
 Controller::Controller(server::Dispatcher &dispatcher, Settings const &settings, Config const &config, io::Context &context)
     : dispatcher_{dispatcher}, accounts_{create_accounts<decltype(accounts_)>(config)}, master_account_{config.get_master_account()}, context_{context},
-      shared_{dispatcher, settings}, request_{create_request<decltype(request_)>(config)}, rest_{*this, context_, ++stream_id_, shared_},
-      order_entry_{create_order_entry<decltype(order_entry_)>(*this, context_, ++stream_id_, accounts_, shared_, request_)},
-      drop_copy_{create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_, request_)},
-      static_data_{create_static_data(*this, context_, stream_id_, accounts_, master_account_, shared_)},
-      business_{create_business(*this, settings, context_, stream_id_, shared_)} {
+      shared_{dispatcher, settings}, requests_{create_requests<decltype(requests_)>(config, shared_)}, request_2_{shared_},
+      rest_{*this, context_, ++stream_id_, shared_, request_2_},
+      order_entry_{create_order_entry<decltype(order_entry_)>(*this, context_, ++stream_id_, accounts_, shared_, requests_)},
+      drop_copy_{create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_, requests_)},
+      static_data_{create_static_data(*this, context_, stream_id_, accounts_, master_account_, shared_, request_2_)},
+      business_{create_business(*this, settings, context_, stream_id_, shared_, request_2_)} {
 }
 
 // server::Handler
@@ -235,7 +245,7 @@ void Controller::ensure_symbol_slices(TraceInfo const &trace_info, size_t size) 
     auto stream_id = ++stream_id_;
     auto index = std::size(market_data_);
     log::info("Create MarketData (stream_id={}, index={})"sv, stream_id, index);
-    auto market_data = std::make_unique<MarketData>(*this, context_, stream_id, get_account(accounts_, master_account_), shared_, index);
+    auto market_data = std::make_unique<MarketData>(*this, context_, stream_id, get_account(accounts_, master_account_), shared_, request_2_, index);
     Start start;
     create_trace_and_dispatch(*market_data, trace_info, start);
     market_data_.emplace_back(std::move(market_data));

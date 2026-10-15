@@ -113,9 +113,6 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
   Request &request_;
   // state
   ConnectionStatus connection_status_ = {};
-  bool download_balance_ = false;
-  bool download_positions_ = false;
-  bool download_orders_ = false;
   bool download_trades_is_first_ = true;
 };
 

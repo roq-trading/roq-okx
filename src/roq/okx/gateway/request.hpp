@@ -2,22 +2,30 @@
 
 #pragma once
 
-#include <chrono>
+#include "roq/core/limit/request.hpp"
+
+#include "roq/okx/gateway/shared.hpp"
 
 namespace roq {
 namespace okx {
 namespace gateway {
 
-struct Request final {
-  // balance
-  std::chrono::nanoseconds request_balance = {};
-  std::chrono::nanoseconds respond_balance = {};
-  // position
-  std::chrono::nanoseconds request_positions = {};
-  std::chrono::nanoseconds respond_positions = {};
-  // orders
-  std::chrono::nanoseconds request_orders = {};
-  std::chrono::nanoseconds respond_orders = {};
+struct Request final : public core::limit::Request::Handler {
+  explicit Request(Shared &);
+
+  // core::Request::Handler
+
+  bool ready() const override;
+  bool can_request(TraceInfo const &) override;
+
+  // ...
+
+  core::limit::Request balance;
+  core::limit::Request positions;
+  core::limit::Request orders;
+
+ private:
+  Shared &shared_;
 };
 
 }  // namespace gateway

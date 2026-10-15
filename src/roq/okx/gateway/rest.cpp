@@ -73,7 +73,7 @@ struct create_metrics final : public utils::metrics::Factory {
 
 // === IMPLEMENTATION ===
 
-Rest::Rest(Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared)
+Rest::Rest(Handler &handler, io::Context &context, uint16_t stream_id, Shared &shared, Request2 &request)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_)}, connection_{create_connection(*this, shared.settings, context, shared)},
       decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
@@ -88,7 +88,7 @@ Rest::Rest(Handler &handler, io::Context &context, uint16_t stream_id, Shared &s
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
       },
-      shared_{shared} {
+      shared_{shared}, request_{request} {
 }
 
 // server::Stream
@@ -209,13 +209,15 @@ void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::str
         download_instruments_.swap = false;
       } else if (type == "FUTURES"sv) {
         download_instruments_.futures = false;
-        shared_.instruments.response = trace_info.origin_create_time;
       } else if (type == "OPTION"sv) {
         // download_instruments_.option = false;
-        // shared_.instruments.response = trace_info.origin_create_time;
       }
     };
     process_response(event, handle_error, handle_success);
+    if (!downloading()) {
+      log::warn("DEBUG Download instruments has completed"sv);
+      request_.instruments.commit(trace_info);
+    }
   });
 }
 
@@ -424,13 +426,14 @@ void Rest::operator()(Trace<protocol::json::CandlesAck> const &event, std::strin
 // request
 
 void Rest::check_request_queue(TraceInfo const &trace_info) {
-  if (!downloading() && shared_.instruments.response < shared_.instruments.request) {
-    log::info("Download instruments..."sv);
+  request_.instruments.check_pending(trace_info, [this]([[maybe_unused]] auto &trace_info) {
     get_instruments("SPOT"sv);
+    download_instruments_.spot = true;
     get_instruments("SWAP"sv);
+    download_instruments_.swap = true;
     get_instruments("FUTURES"sv);
-    download_instruments_.spot = download_instruments_.swap = download_instruments_.futures = true;
-  }
+    download_instruments_.futures = true;
+  });
   auto callback = [&]([[maybe_unused]] auto &trace_info, auto &symbol) { get_candles(symbol); };
   shared_.time_series_request_queue.dispatch(trace_info, callback);
 }

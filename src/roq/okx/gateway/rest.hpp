@@ -18,6 +18,7 @@
 
 #include "roq/server/stream.hpp"
 
+#include "roq/okx/gateway/request_2.hpp"
 #include "roq/okx/gateway/shared.hpp"
 #include "roq/okx/gateway/symbols_update.hpp"
 
@@ -33,7 +34,7 @@ struct Rest final : public Base<Rest>, public server::Stream, public web::rest::
     virtual void operator()(Trace<SymbolsUpdate> const &) = 0;
   };
 
-  Rest(Handler &, io::Context &context, uint16_t stream_id, Shared &);
+  Rest(Handler &, io::Context &context, uint16_t stream_id, Shared &, Request2 &);
 
   // protected:
   friend base_type;
@@ -99,6 +100,8 @@ struct Rest final : public Base<Rest>, public server::Stream, public web::rest::
   } latency_;
   // shared
   Shared &shared_;
+  // request
+  Request2 &request_;
   // state
   ConnectionStatus connection_status_ = {};
   struct {

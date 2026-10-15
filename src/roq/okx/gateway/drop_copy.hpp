@@ -142,9 +142,9 @@ struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream,
   void request_positions(TraceInfo const &);
   void request_orders(TraceInfo const &);
 
-  void check_response_balance();
-  void check_response_positions();
-  void check_response_orders();
+  void check_response_balance(TraceInfo const &);
+  void check_response_positions(TraceInfo const &);
+  void check_response_orders(TraceInfo const &);
 
  private:
   Handler &handler_;

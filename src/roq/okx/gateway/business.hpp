@@ -20,6 +20,7 @@
 
 #include "roq/server/stream.hpp"
 
+#include "roq/okx/gateway/request_2.hpp"
 #include "roq/okx/gateway/shared.hpp"
 
 #include "roq/okx/protocol/json/parser.hpp"
@@ -31,7 +32,7 @@ namespace gateway {
 struct Business final : public Base<Business>, public server::MarketDataStream, public web::socket::Client::Handler, public protocol::json::Parser::Handler {
   struct Handler {};
 
-  Business(Handler &, io::Context &, uint16_t stream_id, Shared &);
+  Business(Handler &, io::Context &, uint16_t stream_id, Shared &, Request2 &);
 
   // protected:
   friend base_type;
@@ -129,6 +130,8 @@ struct Business final : public Base<Business>, public server::MarketDataStream, 
   } latency_;
   // cache
   Shared &shared_;
+  // request
+  Request2 &request_;
   // state
   ConnectionStatus connection_status_ = {};
   // queue

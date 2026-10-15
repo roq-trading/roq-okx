@@ -117,27 +117,14 @@ void OrderEntry::operator()(Trace<Stop> const &) {
 
 void OrderEntry::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
-  (*connection_).refresh(timer.now);
-  if (ready() && !download_balance_) {
-    if (request_.respond_balance < request_.request_balance) {
-      log::info<1>("Download balance..."sv);
-      get_balance(trace_info);
-      download_balance_ = true;
-    }
-  }
-  if (ready() && !download_positions_) {
-    if (request_.respond_positions < request_.request_positions) {
-      log::info<1>("Download positions..."sv);
-      get_positions(trace_info);
-      download_positions_ = true;
-    }
-  }
-  if (ready() && !download_orders_) {
-    if (request_.respond_orders < request_.request_orders) {
-      log::info<1>("Download orders..."sv);
-      get_orders_pending(trace_info);
-      get_fills(trace_info);
-      download_orders_ = true;
+  if ((*connection_).refresh(timer.now)) {
+    if (ready()) {
+      request_.balance.check_pending(trace_info, [this](auto &trace_info) { get_balance(trace_info); });
+      request_.positions.check_pending(trace_info, [this](auto &trace_info) { get_positions(trace_info); });
+      request_.orders.check_pending(trace_info, [this](auto &trace_info) {
+        get_orders_pending(trace_info);
+        get_fills(trace_info);  // note!
+      });
     }
   }
 }
@@ -192,7 +179,6 @@ void OrderEntry::operator()(Trace<web::rest::Disconnected> const &event) {
   auto &[trace_info, disconnected] = event;
   ++counter_.disconnect;
   create_trace_and_dispatch_2(trace_info, ConnectionStatus::DISCONNECTED);
-  download_orders_ = false;
 }
 
 void OrderEntry::operator()(Trace<web::rest::Latency> const &event) {
@@ -240,10 +226,9 @@ void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
       protocol::json::BalanceAck balance_ack{body, decode_buffer_};
       create_trace_and_dispatch_2(trace_info, balance_ack);
       */
-      download_balance_ = false;
-      request_.respond_balance = trace_info.origin_create_time;
     };
     process_response(event, handle_error, handle_success);
+    request_.balance.commit(trace_info);
   });
 }
 
@@ -290,10 +275,9 @@ void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
       } else {
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(positions_ack.code), positions_ack.msg);
       }
-      download_positions_ = false;
-      request_.respond_positions = trace_info.origin_create_time;
     };
     process_response(event, handle_error, handle_success);
+    request_.positions.commit(trace_info);
   });
 }
 
@@ -357,8 +341,7 @@ void OrderEntry::get_orders_pending_ack(Trace<web::rest::Response> const &event)
       } else {
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_pending_ack.code), orders_pending_ack.msg);
       }
-      download_orders_ = false;
-      request_.respond_orders = trace_info.origin_create_time;
+      request_.orders.commit(trace_info);
     };
     process_response(event, handle_error, handle_success);
   });
@@ -462,8 +445,6 @@ void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
       } else {
         handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(fills_ack.code), fills_ack.msg);
       }
-      // download_orders_ = false;
-      // request_.respond_orders = trace_info.origin_create_time;
       download_trades_is_first_ = false;
     };
     process_response(event, handle_error, handle_success);
