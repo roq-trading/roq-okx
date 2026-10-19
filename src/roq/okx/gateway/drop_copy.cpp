@@ -815,7 +815,7 @@ void DropCopy::check_response_orders(TraceInfo const &trace_info) {
 // helpers
 
 void DropCopy::login(TraceInfo const &trace_info) {
-  auto now = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.origin_create_time_utc);
+  auto now = std::chrono::duration_cast<std::chrono::seconds>(trace_info.origin_create_time_utc);
   auto timestamp = fmt::format("{}"sv, now.count());
   auto sign = account_.create_sign(timestamp);
   auto message = fmt::format(
@@ -833,6 +833,7 @@ void DropCopy::login(TraceInfo const &trace_info) {
       account_.get_passphrase(),
       timestamp,
       sign);
+  log::warn("DEBUG {}"sv, message);
   (*connection_).send_text(message);
 }
 

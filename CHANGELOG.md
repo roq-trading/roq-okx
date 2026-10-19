@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Fixed
+
+* Incorrect login timestamp introduced during code clean-up (#651)
+
 ## 1.1.9 &ndash; 2026-10-18
 
 ### Added
