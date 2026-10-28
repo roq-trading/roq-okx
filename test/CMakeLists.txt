@@ -23,7 +23,7 @@ set(SOURCES
     json_notice.cpp
     json_order.cpp
     json_orders.cpp
-    json_orders_pending_ack.cpp
+    json_trade_orders_pending_ack.cpp
     json_positions.cpp
     json_price_limit.cpp
     json_status.cpp
