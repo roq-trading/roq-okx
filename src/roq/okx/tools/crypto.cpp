@@ -21,11 +21,11 @@ namespace tools {
 
 // === IMPLEMENTATION ===
 
-Crypto::Crypto() : mac_{""sv} {
+Crypto::Crypto() : mac_{""sv}, simulated_trading_{true} {
 }
 
-Crypto::Crypto(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase)
-    : key_(key), mac_(secret), passphrase_(passphrase), secret_(secret) {
+Crypto::Crypto(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase, bool simulated_trading)
+    : key_{key}, mac_{secret}, passphrase_{passphrase}, secret_{secret}, simulated_trading_{simulated_trading} {
 }
 
 std::string Crypto::create_sign(std::string_view const &timestamp) {
@@ -54,11 +54,13 @@ std::string Crypto::create_headers(web::http::Method method, std::string_view co
       "OK-ACCESS-KEY: {}\r\n"
       "OK-ACCESS-SIGN: {}\r\n"
       "OK-ACCESS-TIMESTAMP: {}\r\n"
-      "OK-ACCESS-PASSPHRASE: {}\r\n"sv,
+      "OK-ACCESS-PASSPHRASE: {}\r\n"
+      "x-simulated-trading: {}\r\n"sv,
       key_,
       signature,
       tmp,
-      passphrase_);
+      passphrase_,
+      simulated_trading_ ? 1 : 0);
   return result;
 }
 

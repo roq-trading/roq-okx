@@ -19,6 +19,7 @@ API API::create(Settings const &) {
           .candles = "/api/v5/market/candles"sv,
       },
       .simple{
+          .account_config = "/api/v5/account/config"sv,
           .account_balance = "/api/v5/account/balance"sv,
           .account_positions = "/api/v5/account/positions"sv,
           .trade_orders_pending = "/api/v5/trade/orders-pending"sv,

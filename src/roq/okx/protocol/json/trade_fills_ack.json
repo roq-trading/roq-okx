@@ -1,5 +1,5 @@
 {
-  "name": "roq/okx/protocol/json/OrdersPendingAck",
+  "name": "roq/okx/protocol/json/TradeFillsAck",
   "type": "dictionary",
   "values": [
     {
@@ -12,11 +12,11 @@
     },
     {
       "name": "arg",
-      "type": "roq/okx/protocol/json/OrdersPendingArg"
+      "type": "roq/okx/protocol/json/FillsArg"
     },
     {
       "name": "data",
-      "type": "roq/okx/protocol/json/OrdersDataItem",
+      "type": "roq/okx/protocol/json/FillsItem",
       "array": "std/span"
     },
     {

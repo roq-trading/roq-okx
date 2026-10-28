@@ -1,0 +1,119 @@
+{
+  "name": "roq/okx/protocol/json/AccountConfigAckDataItem",
+  "type": "dictionary",
+  "values": [
+    {
+      "name": "acctLv",
+      "type": "std/int32"
+    },
+    {
+      "name": "acctStpMode",
+      "type": "roq/okx/protocol/json/StpMode"
+    },
+    {
+      "name": "autoLoan",
+      "type": "std/bool"
+    },
+    {
+      "name": "ctIsoMode",
+      "type": "std/string_view"
+    },
+    {
+      "name": "enableSpotBorrow",
+      "type": "std/bool"
+    },
+    {
+      "name": "feeType",
+      "type": "std/int32"
+    },
+    {
+      "name": "greeksType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "ip",
+      "type": "std/string_view"
+    },
+    {
+      "name": "kycLv",
+      "type": "std/string_view"
+    },
+    {
+      "name": "label",
+      "type": "std/string_view"
+    },
+    {
+      "name": "level",
+      "type": "std/string_view"
+    },
+    {
+      "name": "levelTmp",
+      "type": "std/string_view"
+    },
+    {
+      "name": "liquidationGear",
+      "type": "std/string_view"
+    },
+    {
+      "name": "mainUid",
+      "type": "std/int64"
+    },
+    {
+      "name": "mgnIsoMode",
+      "type": "std/string_view"
+    },
+    {
+      "name": "opAuth",
+      "type": "std/int32"
+    },
+    {
+      "name": "perm",
+      "type": "std/string_view"
+    },
+    {
+      "name": "posMode",
+      "type": "roq/okx/protocol/json/PosMode"
+    },
+    {
+      "name": "roleType",
+      "type": "std/int32"
+    },
+    {
+      "name": "settleCcy",
+      "type": "std/string_view"
+    },
+    {
+      "name": "settleCcyList"
+    },
+    {
+      "name": "spotBorrowAutoRepay",
+      "type": "std/bool"
+    },
+    {
+      "name": "spotOffsetType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "spotRoleType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "spotTraderInsts"
+    },
+    {
+      "name": "stgyType",
+      "type": "std/string_view"
+    },
+    {
+      "name": "traderInsts"
+    },
+    {
+      "name": "type",
+      "type": "std/string_view"
+    },
+    {
+      "name": "uid",
+      "type": "std/int64"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "roq/okx/protocol/json/PosMode",
+  "type": "enum",
+  "values": [
+    {
+      "name": "net_mode"
+    }
+  ]
+}

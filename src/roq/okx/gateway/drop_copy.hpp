@@ -83,6 +83,24 @@ struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream,
   void operator()(Trace<web::socket::Text> const &) override;
   void operator()(Trace<web::socket::Binary> const &) override;
 
+  // core::Download
+
+  enum class State {
+    UNDEFINED = 0,
+    SUBSCRIBE_ACCOUNT,
+    GET_ACCOUNT,
+    SUBSCRIBE_BALANCE,
+    GET_BALANCE,
+    SUBSCRIBE_POSITIONS,
+    GET_POSITIONS,
+    SUBSCRIBE_ORDERS,
+    GET_ORDERS,
+    GET_TRADES,
+    DONE,
+  };
+
+  int32_t download(Trace<State> const &);
+
   // protocol::json::Parser::Handler
 
   void operator()(Trace<protocol::json::Error> const &) override;
@@ -114,37 +132,16 @@ struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream,
 
   void operator()(Trace<protocol::json::Candle> const &) override;
 
-  // core::Download
-
-  enum class State {
-    UNDEFINED = 0,
-    LOGIN,
-    SUBSCRIBE,
-    BALANCE,
-    POSITIONS,
-    ORDERS,
-    DONE,
-  };
-
-  int32_t download(Trace<State> const &);
-
   // helpers
 
-  void login(TraceInfo const &);
+  void send_login(TraceInfo const &);
 
-  void subscribe();
   void subscribe(std::string_view const &channel);
   void subscribe(std::string_view const &channel, std::string_view const &selector, std::string_view const &value);
 
+  void check_request_queue(TraceInfo const &);
+
   void parse(TraceInfo const &, std::string_view const &message);
-
-  void request_balance(TraceInfo const &);
-  void request_positions(TraceInfo const &);
-  void request_orders(TraceInfo const &);
-
-  void check_response_balance(TraceInfo const &);
-  void check_response_positions(TraceInfo const &);
-  void check_response_orders(TraceInfo const &);
 
  private:
   Handler &handler_;

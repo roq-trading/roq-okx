@@ -21,6 +21,13 @@
       "description": "Proxy end-point"
     },
     {
+      "name": "private_uri",
+      "type": "roq/io/web/URI",
+      "validator": "roq/core/flags/URI",
+      "default": "https://openapi.okx.com",
+      "description": "Exchange end-point"
+    },
+    {
       "name": "ping_freq",
       "type": "std/nanoseconds",
       "validator": "roq/flags/validators/TimePeriod",

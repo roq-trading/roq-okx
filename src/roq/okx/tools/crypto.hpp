@@ -17,7 +17,7 @@ namespace tools {
 
 struct Crypto final {
   Crypto();
-  Crypto(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase);
+  Crypto(std::string_view const &key, std::string_view const &secret, std::string_view const &passphrase, bool simulated_trading);
 
   Crypto(Crypto &&) = delete;
   Crypto(Crypto const &) = delete;
@@ -38,6 +38,7 @@ struct Crypto final {
   Digest digest_;
   std::string const passphrase_;
   std::string const secret_;
+  bool const simulated_trading_;
 };
 
 }  // namespace tools

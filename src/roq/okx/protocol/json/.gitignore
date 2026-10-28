@@ -1,5 +1,11 @@
 !!! THIS FILE HAS BEEN AUTO-GENERATED !!!
 roq-okx-protocol-json
+account_balance_ack.hpp
+account_balance_ack_data_item.hpp
+account_balance_ack_data_item_details_item.hpp
+pos_mode.hpp
+account_config_ack.hpp
+account_config_ack_data_item.hpp
 account.hpp
 account_arg.hpp
 account_data_item.hpp
@@ -38,7 +44,7 @@ estimated_price_arg.hpp
 estimated_price_data_item.hpp
 event_type.hpp
 event_type2.hpp
-fills_ack.hpp
+trade_fills_ack.hpp
 fills_arg.hpp
 fills_item.hpp
 funding_rate.hpp
@@ -69,11 +75,11 @@ order_type.hpp
 orders.hpp
 orders_arg.hpp
 orders_data_item.hpp
-orders_pending_ack.hpp
+trade_orders_pending_ack.hpp
 orders_pending_arg.hpp
 position_side.hpp
 positions.hpp
-positions_ack.hpp
+account_positions_ack.hpp
 positions_arg.hpp
 positions_data_item.hpp
 price_limit.hpp
@@ -97,6 +103,12 @@ trades_data_item.hpp
 trigger_price_type.hpp
 unsubscribe_arg.hpp
 unsubscribe.hpp
+account_balance_ack.cpp
+account_balance_ack_data_item.cpp
+account_balance_ack_data_item_details_item.cpp
+pos_mode.cpp
+account_config_ack.cpp
+account_config_ack_data_item.cpp
 account.cpp
 account_arg.cpp
 account_data_item.cpp
@@ -135,7 +147,7 @@ estimated_price_arg.cpp
 estimated_price_data_item.cpp
 event_type.cpp
 event_type2.cpp
-fills_ack.cpp
+trade_fills_ack.cpp
 fills_arg.cpp
 fills_item.cpp
 funding_rate.cpp
@@ -166,11 +178,11 @@ order_type.cpp
 orders.cpp
 orders_arg.cpp
 orders_data_item.cpp
-orders_pending_ack.cpp
+trade_orders_pending_ack.cpp
 orders_pending_arg.cpp
 position_side.cpp
 positions.cpp
-positions_ack.cpp
+account_positions_ack.cpp
 positions_arg.cpp
 positions_data_item.cpp
 price_limit.cpp

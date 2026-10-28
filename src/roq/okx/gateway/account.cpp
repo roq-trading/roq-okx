@@ -17,7 +17,7 @@ namespace gateway {
 // === HELPERS ===
 
 namespace {
-auto create_crypto(auto &config, auto &name) -> tools::Crypto {
+auto create_crypto(auto &settings, auto &config, auto &name) -> tools::Crypto {
   auto ready = true;
   auto key = config.get_api_key(name);
   if (std::empty(key)) {
@@ -37,13 +37,13 @@ auto create_crypto(auto &config, auto &name) -> tools::Crypto {
   if (!ready) {
     log::fatal("Invalid config"sv);
   }
-  return {key, secret, passphrase};
+  return {key, secret, passphrase, settings.misc.simulated_trading};
 }
 }  // namespace
 
 // === IMPLEMENTATION ===
 
-Account::Account(Config const &config, std::string_view const &name) : name{name}, crypto_{create_crypto(config, name)} {
+Account::Account(Settings const &settings, Config const &config, std::string_view const &name) : name{name}, crypto_{create_crypto(settings, config, name)} {
 }
 
 std::string Account::create_headers(TraceInfo const &trace_info, web::http::Method method, std::string_view const &path, std::string_view const &body) {

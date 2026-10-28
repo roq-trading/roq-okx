@@ -22,9 +22,11 @@
 #include "roq/okx/gateway/request.hpp"
 #include "roq/okx/gateway/shared.hpp"
 
-#include "roq/okx/protocol/json/fills_ack.hpp"
-#include "roq/okx/protocol/json/orders_pending_ack.hpp"
-#include "roq/okx/protocol/json/positions_ack.hpp"
+#include "roq/okx/protocol/json/account_balance_ack.hpp"
+#include "roq/okx/protocol/json/account_config_ack.hpp"
+#include "roq/okx/protocol/json/account_positions_ack.hpp"
+#include "roq/okx/protocol/json/trade_fills_ack.hpp"
+#include "roq/okx/protocol/json/trade_orders_pending_ack.hpp"
 
 namespace roq {
 namespace okx {
@@ -59,31 +61,39 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
   void operator()(Trace<web::rest::Disconnected> const &) override;
   void operator()(Trace<web::rest::Latency> const &) override;
 
-  // balance
+  // account-config
 
-  void get_balance(TraceInfo const &);
-  void get_balance_ack(Trace<web::rest::Response> const &);
-  // void operator()(Trace<protocol::json::BalanceAck> const &);
+  void get_account_config(TraceInfo const &);
+  void get_account_config_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<protocol::json::AccountConfigAck> const &);
 
-  // positions
+  // account-balance
 
-  void get_positions(TraceInfo const &);
-  void get_positions_ack(Trace<web::rest::Response> const &);
-  void operator()(Trace<protocol::json::PositionsAck> const &);
+  void get_account_balance(TraceInfo const &);
+  void get_account_balance_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<protocol::json::AccountBalanceAck> const &);
 
-  // orders-pending
+  // account-positions
 
-  void get_orders_pending(TraceInfo const &);
-  void get_orders_pending_ack(Trace<web::rest::Response> const &);
-  void operator()(Trace<protocol::json::OrdersPendingAck> const &);
+  void get_account_positions(TraceInfo const &);
+  void get_account_positions_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<protocol::json::AccountPositionsAck> const &);
 
-  // fills
+  // trade-orders-pending
 
-  void get_fills(TraceInfo const &);
-  void get_fills_ack(Trace<web::rest::Response> const &);
-  void operator()(Trace<protocol::json::FillsAck> const &);
+  void get_trade_orders_pending(TraceInfo const &);
+  void get_trade_orders_pending_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<protocol::json::TradeOrdersPendingAck> const &);
+
+  // trade-fills
+
+  void get_trade_fills(TraceInfo const &);
+  void get_trade_fills_ack(Trace<web::rest::Response> const &);
+  void operator()(Trace<protocol::json::TradeFillsAck> const &);
 
   // helpers
+
+  void check_request_queue(TraceInfo const &);
 
   void process_response(Trace<web::rest::Response> const &, auto error_handler, auto success_handler);
 
@@ -101,7 +111,8 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile balance, balance_ack, positions, positions_ack, orders_pending, orders_pending_ack, fills, fills_ack;
+    utils::metrics::Profile account_config, account_config_ack, account_balance, account_balance_ack, account_positions, account_positions_ack,
+        trade_orders_pending, trade_orders_pending_ack, trade_fills, trade_fills_ack;
   } profile_;
   struct {
     utils::metrics::Latency ping;

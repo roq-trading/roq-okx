@@ -8,11 +8,11 @@ fi
 
 NAME="okx"
 
-CONFIG="${CONFIG:-$NAME}"
+CONFIG="${CONFIG:-$NAME-testnet}"
 
 CONFIG_FILE="$ROQ_CONFIG_PATH/roq-okx/$CONFIG.toml"
 
-FLAGFILE="../../../share/flags/test/flags.cfg"
+FLAGFILE="../../../share/flags/test-eea/flags.cfg"
 
 $PREFIX ./roq-okx \
   --name "$NAME" \

@@ -202,6 +202,15 @@ Environments
    .. include:: flags/test/flags.cfg
      :code: ini
 
+.. tab:: Test EEA
+
+   .. code-block:: shell
+
+      $ --flagfile $CONDA_PREFIX/share/roq-okx/flags/test-eea/flags.cfg
+
+   .. include:: flags/test-eea/flags.cfg
+     :code: ini
+
 
 Configuration
 ~~~~~~~~~~~~~

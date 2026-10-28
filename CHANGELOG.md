@@ -4,6 +4,10 @@ All notable changes will be documented in this file.
 
 ## Head
 
+### Changed
+
+* New flags to support simulated trading: `--rest_private_uri` and `--simulated_trading` (#655)
+
 ### Fixed
 
 * Incorrect login timestamp introduced during code clean-up (#651)

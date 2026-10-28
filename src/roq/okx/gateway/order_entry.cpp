@@ -38,7 +38,7 @@ auto create_name(auto stream_id) {
 }
 
 auto create_connection(auto &handler, auto &settings, auto &context, auto &shared) {
-  auto uri = settings.rest.uri;
+  auto uri = settings.rest.private_uri;
   auto config = web::rest::Client::Config{
       // connection
       .interface = settings.misc.test_local_interface,
@@ -90,14 +90,16 @@ OrderEntry::OrderEntry(Handler &handler, io::Context &context, uint16_t stream_i
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
       profile_{
-          .balance = create_metrics(shared.settings, name_, "balance"sv),
-          .balance_ack = create_metrics(shared.settings, name_, "balance_ack"sv),
-          .positions = create_metrics(shared.settings, name_, "positions"sv),
-          .positions_ack = create_metrics(shared.settings, name_, "positions_ack"sv),
-          .orders_pending = create_metrics(shared.settings, name_, "orders_pending"sv),
-          .orders_pending_ack = create_metrics(shared.settings, name_, "orders_pending_ack"sv),
-          .fills = create_metrics(shared.settings, name_, "fills"sv),
-          .fills_ack = create_metrics(shared.settings, name_, "fills_ack"sv),
+          .account_config = create_metrics(shared.settings, name_, "account_config"sv),
+          .account_config_ack = create_metrics(shared.settings, name_, "account_config_ack"sv),
+          .account_balance = create_metrics(shared.settings, name_, "account_balance"sv),
+          .account_balance_ack = create_metrics(shared.settings, name_, "account_balance_ack"sv),
+          .account_positions = create_metrics(shared.settings, name_, "account_positions"sv),
+          .account_positions_ack = create_metrics(shared.settings, name_, "account_positions_ack"sv),
+          .trade_orders_pending = create_metrics(shared.settings, name_, "trade_orders_pending"sv),
+          .trade_orders_pending_ack = create_metrics(shared.settings, name_, "trade_orders_pending_ack"sv),
+          .trade_fills = create_metrics(shared.settings, name_, "trade_fills"sv),
+          .trade_fills_ack = create_metrics(shared.settings, name_, "trade_fills_ack"sv),
       },
       latency_{
           .ping = create_metrics(shared.settings, name_, "ping"sv),
@@ -119,12 +121,7 @@ void OrderEntry::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
   if ((*connection_).refresh(timer.now)) {
     if (ready()) {
-      request_.balance.check_pending(trace_info, [this](auto &trace_info) { get_balance(trace_info); });
-      request_.positions.check_pending(trace_info, [this](auto &trace_info) { get_positions(trace_info); });
-      request_.orders.check_pending(trace_info, [this](auto &trace_info) {
-        get_orders_pending(trace_info);
-        get_fills(trace_info);  // note!
-      });
+      check_request_queue(trace_info);
     }
   }
 }
@@ -134,14 +131,16 @@ void OrderEntry::operator()(metrics::Writer &writer) const {
       // counter
       .write(counter_.disconnect, metrics::Type::COUNTER)
       // profile
-      .write(profile_.balance, metrics::Type::PROFILE)
-      .write(profile_.balance_ack, metrics::Type::PROFILE)
-      .write(profile_.positions, metrics::Type::PROFILE)
-      .write(profile_.positions_ack, metrics::Type::PROFILE)
-      .write(profile_.orders_pending, metrics::Type::PROFILE)
-      .write(profile_.orders_pending_ack, metrics::Type::PROFILE)
-      .write(profile_.fills, metrics::Type::PROFILE)
-      .write(profile_.fills_ack, metrics::Type::PROFILE)
+      .write(profile_.account_config, metrics::Type::PROFILE)
+      .write(profile_.account_config_ack, metrics::Type::PROFILE)
+      .write(profile_.account_balance, metrics::Type::PROFILE)
+      .write(profile_.account_balance_ack, metrics::Type::PROFILE)
+      .write(profile_.account_positions, metrics::Type::PROFILE)
+      .write(profile_.account_positions_ack, metrics::Type::PROFILE)
+      .write(profile_.trade_orders_pending, metrics::Type::PROFILE)
+      .write(profile_.trade_orders_pending_ack, metrics::Type::PROFILE)
+      .write(profile_.trade_fills, metrics::Type::PROFILE)
+      .write(profile_.trade_fills_ack, metrics::Type::PROFILE)
       // latency
       .write(latency_.ping, metrics::Type::LATENCY);
 }
@@ -192,10 +191,59 @@ void OrderEntry::operator()(Trace<web::rest::Latency> const &event) {
   latency_.ping.update(latency.sample);
 }
 
-// balance
+// account-config
 
-void OrderEntry::get_balance(TraceInfo const &trace_info) {
-  profile_.balance([&]() {
+void OrderEntry::get_account_config(TraceInfo const &trace_info) {
+  profile_.account_config([&]() {
+    auto method = web::http::Method::GET;
+    auto path = shared_.api.simple.account_config;
+    auto headers = account_.create_headers(trace_info, method, path, {});
+    auto request = web::rest::Request{
+        .method = method,
+        .path = path,
+        .query = {},
+        .accept = web::http::Accept::APPLICATION_JSON,
+        .content_type = {},
+        .headers = headers,
+        .body = {},
+        .quality_of_service = {},
+    };
+    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_account_config_ack(event); };
+    (*connection_)(request, callback, "account_config"sv);
+  });
+}
+
+void OrderEntry::get_account_config_ack(Trace<web::rest::Response> const &event) {
+  profile_.account_config_ack([&]() {
+    auto &[trace_info, response] = event;
+    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
+      log::error(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+    };
+    auto handle_success = [&](auto &body) {
+      protocol::json::AccountConfigAck account_config_ack{body, decode_buffer_};
+      if (account_config_ack.code == 0) {
+        create_trace_and_dispatch_2(trace_info, account_config_ack);
+      } else {
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(account_config_ack.code), account_config_ack.msg);
+      }
+    };
+    process_response(event, handle_error, handle_success);
+    request_.account.commit(trace_info);
+  });
+}
+
+void OrderEntry::operator()(Trace<protocol::json::AccountConfigAck> const &event) {
+  auto &[trace_info, account_config_ack] = event;
+  log::info<4>("account_config_ack={}"sv, account_config_ack);
+  for (auto &item : account_config_ack.data) {
+    log::warn("DEBUG {}"sv, item);
+  }
+}
+
+// account-balance
+
+void OrderEntry::get_account_balance(TraceInfo const &trace_info) {
+  profile_.account_balance([&]() {
     auto method = web::http::Method::GET;
     auto path = shared_.api.simple.account_balance;
     auto headers = account_.create_headers(trace_info, method, path, {});
@@ -209,40 +257,42 @@ void OrderEntry::get_balance(TraceInfo const &trace_info) {
         .body = {},
         .quality_of_service = {},
     };
-    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_balance_ack(event); };
-    (*connection_)(request, callback, "balance"sv);
+    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_account_balance_ack(event); };
+    (*connection_)(request, callback, "account_balance"sv);
   });
 }
 
-void OrderEntry::get_balance_ack(Trace<web::rest::Response> const &event) {
-  profile_.balance_ack([&]() {
+void OrderEntry::get_account_balance_ack(Trace<web::rest::Response> const &event) {
+  profile_.account_balance_ack([&]() {
     auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
-      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
-      // XXX WHAT ???
+      log::error(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
     };
-    auto handle_success = [&]([[maybe_unused]] auto &body) {
-      /*
-      protocol::json::BalanceAck balance_ack{body, decode_buffer_};
-      create_trace_and_dispatch_2(trace_info, balance_ack);
-      */
+    auto handle_success = [&](auto &body) {
+      protocol::json::AccountBalanceAck account_balance_ack{body, decode_buffer_};
+      if (account_balance_ack.code == 0) {
+        create_trace_and_dispatch_2(trace_info, account_balance_ack);
+      } else {
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(account_balance_ack.code), account_balance_ack.msg);
+      }
     };
     process_response(event, handle_error, handle_success);
     request_.balance.commit(trace_info);
   });
 }
 
-/*
-void OrderEntry::operator()(Trace<protocol::json::BalanceAck> const &event) {
-  auto &[trace_info, balance_ack] = event;
-  log::info<4>("balance_ack={}"sv, balance_ack);
+void OrderEntry::operator()(Trace<protocol::json::AccountBalanceAck> const &event) {
+  auto &[trace_info, account_balance_ack] = event;
+  log::info<4>("account_balance_ack={}"sv, account_balance_ack);
+  for (auto &item : account_balance_ack.data) {
+    log::warn("DEBUG {}"sv, item);
+  }
 }
-*/
 
-// positions
+// account-positions
 
-void OrderEntry::get_positions(TraceInfo const &trace_info) {
-  profile_.positions([&]() {
+void OrderEntry::get_account_positions(TraceInfo const &trace_info) {
+  profile_.account_positions([&]() {
     auto method = web::http::Method::GET;
     auto path = shared_.api.simple.account_positions;
     auto headers = account_.create_headers(trace_info, method, path, {});
@@ -256,24 +306,23 @@ void OrderEntry::get_positions(TraceInfo const &trace_info) {
         .body = {},
         .quality_of_service = {},
     };
-    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_positions_ack(event); };
-    (*connection_)(request, callback, "positions"sv);
+    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_account_positions_ack(event); };
+    (*connection_)(request, callback, "account_positions"sv);
   });
 }
 
-void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
-  profile_.positions_ack([&]() {
+void OrderEntry::get_account_positions_ack(Trace<web::rest::Response> const &event) {
+  profile_.account_positions_ack([&]() {
     auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
-      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
-      // XXX WHAT ???
+      log::error(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
     };
     auto handle_success = [&](auto &body) {
-      protocol::json::PositionsAck positions_ack{body, decode_buffer_};
-      if (positions_ack.code == 0) {
-        create_trace_and_dispatch_2(trace_info, positions_ack);
+      protocol::json::AccountPositionsAck account_positions_ack{body, decode_buffer_};
+      if (account_positions_ack.code == 0) {
+        create_trace_and_dispatch_2(trace_info, account_positions_ack);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(positions_ack.code), positions_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(account_positions_ack.code), account_positions_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);
@@ -281,10 +330,10 @@ void OrderEntry::get_positions_ack(Trace<web::rest::Response> const &event) {
   });
 }
 
-void OrderEntry::operator()(Trace<protocol::json::PositionsAck> const &event) {
-  auto &[trace_info, positions_ack] = event;
-  log::info<4>("positions_ack={}"sv, positions_ack);
-  for (auto &item : positions_ack.data) {
+void OrderEntry::operator()(Trace<protocol::json::AccountPositionsAck> const &event) {
+  auto &[trace_info, account_positions_ack] = event;
+  log::info<4>("account_positions_ack={}"sv, account_positions_ack);
+  for (auto &item : account_positions_ack.data) {
     log::info<2>("item={}"sv, item);
     auto long_quantity = std::max(0.0, item.pos);
     auto short_quantity = std::max(0.0, -item.pos);
@@ -305,10 +354,10 @@ void OrderEntry::operator()(Trace<protocol::json::PositionsAck> const &event) {
   }
 }
 
-// orders-pending
+// trade-orders-pending
 
-void OrderEntry::get_orders_pending(TraceInfo const &trace_info) {
-  profile_.orders_pending([&]() {
+void OrderEntry::get_trade_orders_pending(TraceInfo const &trace_info) {
+  profile_.trade_orders_pending([&]() {
     auto method = web::http::Method::GET;
     auto path = shared_.api.simple.trade_orders_pending;
     auto headers = account_.create_headers(trace_info, method, path, {});
@@ -322,35 +371,35 @@ void OrderEntry::get_orders_pending(TraceInfo const &trace_info) {
         .body = {},
         .quality_of_service = {},
     };
-    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_orders_pending_ack(event); };
-    (*connection_)(request, callback, "orders-pending"sv);
+    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_trade_orders_pending_ack(event); };
+    (*connection_)(request, callback, "trade_orders_pending"sv);
   });
 }
 
-void OrderEntry::get_orders_pending_ack(Trace<web::rest::Response> const &event) {
-  profile_.orders_pending_ack([&]() {
+void OrderEntry::get_trade_orders_pending_ack(Trace<web::rest::Response> const &event) {
+  profile_.trade_orders_pending_ack([&]() {
     auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
-      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
-      // XXX WHAT ???
+      log::error(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
     };
     auto handle_success = [&](auto &body) {
-      protocol::json::OrdersPendingAck orders_pending_ack{body, decode_buffer_};
-      if (orders_pending_ack.code == 0) {
-        create_trace_and_dispatch_2(trace_info, orders_pending_ack);
+      protocol::json::TradeOrdersPendingAck trade_orders_pending_ack{body, decode_buffer_};
+      if (trade_orders_pending_ack.code == 0) {
+        create_trace_and_dispatch_2(trace_info, trade_orders_pending_ack);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(orders_pending_ack.code), orders_pending_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(trade_orders_pending_ack.code), trade_orders_pending_ack.msg);
       }
-      request_.orders.commit(trace_info);
     };
     process_response(event, handle_error, handle_success);
+    request_.orders.commit(trace_info);
   });
 }
 
-void OrderEntry::operator()(Trace<protocol::json::OrdersPendingAck> const &event) {
-  auto &[trace_info, orders_pending_ack] = event;
-  log::info<4>("orders_pending_ack={}"sv, orders_pending_ack);
-  for (auto &item : orders_pending_ack.data) {
+void OrderEntry::operator()(Trace<protocol::json::TradeOrdersPendingAck> const &event) {
+  auto &[trace_info, trade_orders_pending_ack] = event;
+  log::info<4>("trade_orders_pending_ack={}"sv, trade_orders_pending_ack);
+  log::warn("DEBUG len(orders)={}"sv, std::size(trade_orders_pending_ack.data));
+  for (auto &item : trade_orders_pending_ack.data) {
     log::info<2>("item={}"sv, item);
     auto remaining_quantity = item.sz - item.acc_fill_sz;
     auto order_update = server::oms::OrderUpdate{
@@ -394,10 +443,10 @@ void OrderEntry::operator()(Trace<protocol::json::OrdersPendingAck> const &event
   }
 }
 
-// fills
+// trade-fills
 
-void OrderEntry::get_fills(TraceInfo const &trace_info) {
-  profile_.fills([&]() {
+void OrderEntry::get_trade_fills(TraceInfo const &trace_info) {
+  profile_.trade_fills([&]() {
     auto now = std::chrono::duration_cast<std::chrono::milliseconds>(trace_info.origin_create_time_utc);
     auto lookback = get_download_trades_lookback(shared_.settings, download_trades_is_first_);
     log::info<1>("Download trades: lookback={}"sv, lookback);
@@ -426,35 +475,37 @@ void OrderEntry::get_fills(TraceInfo const &trace_info) {
         .body = body,
         .quality_of_service = {},
     };
-    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_fills_ack(event); };
-    (*connection_)(request, callback, "fills"sv);
+    log::warn("DEBUG {}"sv, request);
+    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_trade_fills_ack(event); };
+    (*connection_)(request, callback, "trade_fills"sv);
   });
 }
 
-void OrderEntry::get_fills_ack(Trace<web::rest::Response> const &event) {
-  profile_.fills_ack([&]() {
+void OrderEntry::get_trade_fills_ack(Trace<web::rest::Response> const &event) {
+  profile_.trade_fills_ack([&]() {
     auto &[trace_info, response] = event;
     auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
-      log::warn(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
-      // XXX WHAT ???
+      log::error(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
     };
     auto handle_success = [&](auto &body) {
-      protocol::json::FillsAck fills_ack{body, decode_buffer_};
-      if (fills_ack.code == 0) {
-        create_trace_and_dispatch_2(trace_info, fills_ack);
+      protocol::json::TradeFillsAck trade_fills_ack{body, decode_buffer_};
+      if (trade_fills_ack.code == 0) {
+        create_trace_and_dispatch_2(trace_info, trade_fills_ack);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(fills_ack.code), fills_ack.msg);
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(trade_fills_ack.code), trade_fills_ack.msg);
       }
       download_trades_is_first_ = false;
     };
     process_response(event, handle_error, handle_success);
+    request_.trades.commit(trace_info);
   });
 }
 
-void OrderEntry::operator()(Trace<protocol::json::FillsAck> const &event) {
-  auto &[trace_info, fills_ack] = event;
-  log::info<4>("fills_ack={}"sv, fills_ack);
-  for (auto &item : fills_ack.data) {
+void OrderEntry::operator()(Trace<protocol::json::TradeFillsAck> const &event) {
+  auto &[trace_info, trade_fills_ack] = event;
+  log::info<4>("trade_fills_ack={}"sv, trade_fills_ack);
+  log::warn("DEBUG len(fills)={}"sv, std::size(trade_fills_ack.data));
+  for (auto &item : trade_fills_ack.data) {
     log::info<2>("item={}"sv, item);
     auto side = map(item.side).template get<Side>();
     auto ref_data = shared_.dispatcher.get_ref_data(shared_.settings.exchange, item.inst_id);
@@ -499,6 +550,14 @@ void OrderEntry::operator()(Trace<protocol::json::FillsAck> const &event) {
 }
 
 // helpers
+
+void OrderEntry::check_request_queue(TraceInfo const &trace_info) {
+  request_.account.check_pending(trace_info, [this](auto &trace_info) { get_account_config(trace_info); });
+  request_.balance.check_pending(trace_info, [this](auto &trace_info) { get_account_balance(trace_info); });
+  request_.positions.check_pending(trace_info, [this](auto &trace_info) { get_account_positions(trace_info); });
+  request_.orders.check_pending(trace_info, [this](auto &trace_info) { get_trade_orders_pending(trace_info); });
+  request_.trades.check_pending(trace_info, [this](auto &trace_info) { get_trade_fills(trace_info); });
+}
 
 void OrderEntry::process_response(Trace<web::rest::Response> const &event, auto error_handler, auto success_handler) {
   auto &[trace_info, response] = event;

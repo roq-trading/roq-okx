@@ -8,6 +8,7 @@
 #include "roq/web/http/method.hpp"
 
 #include "roq/okx/gateway/config.hpp"
+#include "roq/okx/gateway/settings.hpp"
 
 #include "roq/okx/tools/crypto.hpp"
 
@@ -17,7 +18,7 @@ namespace gateway {
 
 struct Account final {
   Account() = default;
-  Account(Config const &, std::string_view const &name);
+  Account(Settings const &, Config const &, std::string_view const &name);
 
   Account(Account const &) = delete;
 

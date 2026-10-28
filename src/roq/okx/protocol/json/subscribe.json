@@ -3,6 +3,10 @@
   "type": "dictionary",
   "values": [
     {
+      "name": "id",
+      "type": "std/string_view"
+    },
+    {
       "name": "event",
       "type": "roq/okx/protocol/json/EventType"
     },

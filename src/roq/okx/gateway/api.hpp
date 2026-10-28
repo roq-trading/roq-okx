@@ -17,6 +17,7 @@ struct API final {
   } market_data;
 
   struct {
+    std::string_view account_config;
     std::string_view account_balance;
     std::string_view account_positions;
     std::string_view trade_orders_pending;

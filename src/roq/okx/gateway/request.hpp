@@ -20,9 +20,11 @@ struct Request final : public core::limit::Request::Handler {
 
   // ...
 
+  core::limit::Request account;
   core::limit::Request balance;
   core::limit::Request positions;
   core::limit::Request orders;
+  core::limit::Request trades;
 
  private:
   Shared &shared_;

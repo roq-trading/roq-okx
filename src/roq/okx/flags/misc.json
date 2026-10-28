@@ -26,6 +26,12 @@
       "name": "test_local_interface",
       "type": "std/string",
       "description": "Local interface"
+    },
+    {
+      "name": "simulated_trading",
+      "type": "std/bool",
+      "default": false,
+      "description": "Add the x-simulated-trading header"
     }
   ]
 }

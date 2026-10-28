@@ -1,5 +1,5 @@
 {
-  "name": "roq/okx/protocol/json/PositionsAck",
+  "name": "roq/okx/protocol/json/AccountPositionsAck",
   "type": "dictionary",
   "values": [
     {
