@@ -24,7 +24,10 @@ namespace gateway {
 namespace {
 auto const NAME = "dc"sv;
 
-auto const SUPPORTS = Mask<SupportType>{};
+auto const SUPPORTS = Mask<SupportType>{
+    SupportType::REFERENCE_DATA,
+    SupportType::MARKET_STATUS,
+};
 
 size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 }  // namespace

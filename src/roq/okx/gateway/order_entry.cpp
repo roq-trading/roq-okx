@@ -23,7 +23,10 @@ namespace gateway {
 namespace {
 auto const NAME = "dc"sv;
 
-auto const SUPPORTS = Mask<SupportType>{};
+auto const SUPPORTS = Mask{
+    SupportType::FUNDS,
+    SupportType::POSITION,
+};
 
 size_t const MAX_DECODE_BUFFER_DEPTH = 2;
 
@@ -98,6 +101,8 @@ OrderEntry::OrderEntry(Handler &handler, io::Context &context, uint16_t stream_i
           .account_positions_ack = create_metrics(shared.settings, name_, "account_positions_ack"sv),
           .trade_orders_pending = create_metrics(shared.settings, name_, "trade_orders_pending"sv),
           .trade_orders_pending_ack = create_metrics(shared.settings, name_, "trade_orders_pending_ack"sv),
+          .trade_order = create_metrics(shared.settings, name_, "trade_order"sv),
+          .trade_order_ack = create_metrics(shared.settings, name_, "trade_order_ack"sv),
           .trade_fills = create_metrics(shared.settings, name_, "trade_fills"sv),
           .trade_fills_ack = create_metrics(shared.settings, name_, "trade_fills_ack"sv),
       },
@@ -139,6 +144,8 @@ void OrderEntry::operator()(metrics::Writer &writer) const {
       .write(profile_.account_positions_ack, metrics::Type::PROFILE)
       .write(profile_.trade_orders_pending, metrics::Type::PROFILE)
       .write(profile_.trade_orders_pending_ack, metrics::Type::PROFILE)
+      .write(profile_.trade_order, metrics::Type::PROFILE)
+      .write(profile_.trade_order_ack, metrics::Type::PROFILE)
       .write(profile_.trade_fills, metrics::Type::PROFILE)
       .write(profile_.trade_fills_ack, metrics::Type::PROFILE)
       // latency
@@ -277,7 +284,7 @@ void OrderEntry::get_account_balance_ack(Trace<web::rest::Response> const &event
       }
     };
     process_response(event, handle_error, handle_success);
-    request_.balance.commit(trace_info);
+    request_.balances.commit(trace_info);
   });
 }
 
@@ -391,7 +398,7 @@ void OrderEntry::get_trade_orders_pending_ack(Trace<web::rest::Response> const &
       }
     };
     process_response(event, handle_error, handle_success);
-    request_.orders.commit(trace_info);
+    request_.open_orders.commit(trace_info);
   });
 }
 
@@ -443,6 +450,115 @@ void OrderEntry::operator()(Trace<protocol::json::TradeOrdersPendingAck> const &
   }
 }
 
+// trade-order
+
+void OrderEntry::get_trade_order(
+    TraceInfo const &trace_info, std::string_view const &client_order_id, std::string_view const &external_order_id, int32_t security_id) {
+  profile_.trade_order([&]() {
+    auto method = web::http::Method::GET;
+    auto path = shared_.api.simple.trade_order;
+    auto body = fmt::format(
+        R"({{)"
+        R"("instId":{},)"
+        R"("clOrdId":"{}")"
+        R"(}})"sv,
+        security_id,
+        client_order_id);
+    auto headers = account_.create_headers(trace_info, method, path, body);
+    auto request = web::rest::Request{
+        .method = method,
+        .path = path,
+        .query = {},
+        .accept = web::http::Accept::APPLICATION_JSON,
+        .content_type = {},
+        .headers = headers,
+        .body = body,
+        .quality_of_service = {},
+    };
+    auto callback = [this](auto &event, [[maybe_unused]] auto &request_id) { get_trade_order_ack(event); };
+    (*connection_)(request, callback, "trade_order"sv);
+  });
+}
+
+void OrderEntry::get_trade_order_ack(Trace<web::rest::Response> const &event) {
+  profile_.trade_order_ack([&]() {
+    auto &[trace_info, response] = event;
+    auto handle_error = [&](auto origin, auto status, auto error, auto const &text) {
+      log::error(R"(origin={}, error={}, status={}, text="{}")"sv, origin, error, status, text);
+    };
+    auto handle_success = [&](auto &body) {
+      log::warn("DEBUG {}"sv, body);
+      /*
+      protocol::json::TradeOrdersPendingAck trade_order_ack{body, decode_buffer_};
+      if (trade_order_ack.code == 0) {
+        create_trace_and_dispatch_2(trace_info, trade_order_ack);
+      } else {
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(trade_order_ack.code), trade_order_ack.msg);
+      }
+      */
+    };
+    process_response(event, handle_error, handle_success);
+    //
+    if (download_lost_orders_counter_) {
+      --download_lost_orders_counter_;
+    } else {
+      log::fatal("Unexpected"sv);
+    }
+    log::warn("DEBUG remaining orders: {}"sv, download_lost_orders_counter_);
+    if (download_lost_orders_counter_ == 0) {
+      request_.lost_orders.commit(trace_info);
+    }
+  });
+}
+/*
+void OrderEntry::operator()(Trace<protocol::json::TradeOrdersPendingAck> const &event) {
+  auto &[trace_info, trade_order_ack] = event;
+  log::info<4>("trade_order_ack={}"sv, trade_order_ack);
+  log::warn("DEBUG len(orders)={}"sv, std::size(trade_order_ack.data));
+  for (auto &item : trade_order_ack.data) {
+    log::info<2>("item={}"sv, item);
+    auto remaining_quantity = item.sz - item.acc_fill_sz;
+    auto order_update = server::oms::OrderUpdate{
+        .account = account_.name,
+        .exchange = shared_.settings.exchange,
+        .symbol = item.inst_id,
+        .side = map(item.side),
+        .position_effect = {},
+        .margin_mode = {},
+        .max_show_quantity = NaN,
+        .order_type = {},
+        .time_in_force = {},
+        .execution_instructions = {},
+        .execution_destination = {},
+        .create_time_utc = {},
+        .update_time_utc = utils::safe_cast(item.u_time),
+        .external_account = {},
+        .external_order_id = item.ord_id,
+        .client_order_id = item.cl_ord_id,
+        .order_status = map(item.state),
+        .error = {},
+        .text = {},
+        .quantity = item.sz,
+        .price = item.px,
+        .stop_price = NaN,
+        .leverage = NaN,
+        .remaining_quantity = remaining_quantity,
+        .traded_quantity = item.acc_fill_sz,
+        .average_traded_price = item.avg_px,
+        .last_traded_quantity = item.fill_sz,
+        .last_traded_price = item.fill_px,
+        .last_liquidity = {},
+        .routing_id = {},
+        .max_request_version = {},
+        .max_response_version = {},
+        .max_accepted_version = {},
+        .update_type = UpdateType::SNAPSHOT,
+        .sending_time_utc = {},
+    };
+    create_trace_and_dispatch(shared_.dispatcher, trace_info, order_update, stream_id_);
+  }
+}
+*/
 // trade-fills
 
 void OrderEntry::get_trade_fills(TraceInfo const &trace_info) {
@@ -553,9 +669,24 @@ void OrderEntry::operator()(Trace<protocol::json::TradeFillsAck> const &event) {
 
 void OrderEntry::check_request_queue(TraceInfo const &trace_info) {
   request_.account.check_pending(trace_info, [this](auto &trace_info) { get_account_config(trace_info); });
-  request_.balance.check_pending(trace_info, [this](auto &trace_info) { get_account_balance(trace_info); });
+  request_.balances.check_pending(trace_info, [this](auto &trace_info) { get_account_balance(trace_info); });
   request_.positions.check_pending(trace_info, [this](auto &trace_info) { get_account_positions(trace_info); });
-  request_.orders.check_pending(trace_info, [this](auto &trace_info) { get_trade_orders_pending(trace_info); });
+  request_.open_orders.check_pending(trace_info, [this](auto &trace_info) { get_trade_orders_pending(trace_info); });
+  request_.lost_orders.check_pending(trace_info, [this](auto &trace_info) {
+    // XXX FIXME TODO throttle requests
+    auto helper = [&](auto &order) {
+      auto ref_data = shared_.dispatcher.get_ref_data(order.exchange, order.symbol);
+      get_trade_order(trace_info, order.client_order_id, order.external_order_id, ref_data.external_security_id);
+    };
+    for (auto &[user_id, order_id] : request_.details_lost_orders) {
+      if (shared_.dispatcher.find_order(user_id, order_id, helper)) {
+        ++download_lost_orders_counter_;
+      } else {
+        log::warn("Unexpected: user_id={}, order_id={}"sv, user_id, order_id);
+      }
+    }
+    request_.details_lost_orders.clear();
+  });
   request_.trades.check_pending(trace_info, [this](auto &trace_info) { get_trade_fills(trace_info); });
 }
 

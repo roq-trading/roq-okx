@@ -115,7 +115,7 @@ Controller::Controller(server::Dispatcher &dispatcher, Settings const &settings,
     : dispatcher_{dispatcher}, accounts_{create_accounts<decltype(accounts_)>(settings, config)}, master_account_{config.get_master_account()},
       context_{context}, shared_{dispatcher, settings}, requests_{create_requests<decltype(requests_)>(config, shared_)}, request_2_{shared_},
       rest_{*this, context_, ++stream_id_, shared_, request_2_},
-      order_entry_{create_order_entry<decltype(order_entry_)>(*this, context_, ++stream_id_, accounts_, shared_, requests_)},
+      order_entry_{create_order_entry<decltype(order_entry_)>(*this, context_, stream_id_, accounts_, shared_, requests_)},
       drop_copy_{create_drop_copy<decltype(drop_copy_)>(*this, context_, stream_id_, accounts_, shared_, requests_)},
       static_data_{create_static_data(*this, context_, stream_id_, accounts_, master_account_, shared_, request_2_)},
       business_{create_business(*this, settings, context_, stream_id_, shared_, request_2_)} {

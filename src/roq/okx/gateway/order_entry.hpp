@@ -85,6 +85,12 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
   void get_trade_orders_pending_ack(Trace<web::rest::Response> const &);
   void operator()(Trace<protocol::json::TradeOrdersPendingAck> const &);
 
+  // trade-order
+
+  void get_trade_order(TraceInfo const &, std::string_view const &client_order_id, std::string_view const &external_order_id, int32_t security_id);
+  void get_trade_order_ack(Trace<web::rest::Response> const &);
+  // void operator()(Trace<protocol::json::TradeOrdersPendingAck> const &);
+
   // trade-fills
 
   void get_trade_fills(TraceInfo const &);
@@ -112,7 +118,7 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
   } counter_;
   struct {
     utils::metrics::Profile account_config, account_config_ack, account_balance, account_balance_ack, account_positions, account_positions_ack,
-        trade_orders_pending, trade_orders_pending_ack, trade_fills, trade_fills_ack;
+        trade_orders_pending, trade_orders_pending_ack, trade_order, trade_order_ack, trade_fills, trade_fills_ack;
   } profile_;
   struct {
     utils::metrics::Latency ping;
@@ -125,6 +131,8 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
   // state
   ConnectionStatus connection_status_ = {};
   bool download_trades_is_first_ = true;
+  //
+  size_t download_lost_orders_counter_ = {};
 };
 
 }  // namespace gateway

@@ -23,6 +23,7 @@ API API::create(Settings const &) {
           .account_balance = "/api/v5/account/balance"sv,
           .account_positions = "/api/v5/account/positions"sv,
           .trade_orders_pending = "/api/v5/trade/orders-pending"sv,
+          .trade_order = "/api/v5/trade/order"sv,
           .trade_fills = "/api/v5/trade/fills"sv,
       },
   };

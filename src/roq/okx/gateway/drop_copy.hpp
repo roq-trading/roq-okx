@@ -90,11 +90,12 @@ struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream,
     SUBSCRIBE_ACCOUNT,
     GET_ACCOUNT,
     SUBSCRIBE_BALANCE,
-    GET_BALANCE,
+    GET_BALANCES,
     SUBSCRIBE_POSITIONS,
     GET_POSITIONS,
     SUBSCRIBE_ORDERS,
-    GET_ORDERS,
+    GET_OPEN_ORDERS,
+    GET_LOST_ORDERS,  // XXX FIXME TODO rename to GET_STALE_ORDERS
     GET_TRADES,
     DONE,
   };
@@ -141,6 +142,9 @@ struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream,
 
   void check_request_queue(TraceInfo const &);
 
+  bool check_stale_orders();
+  void check_stale_orders(TraceInfo const &);
+
   void parse(TraceInfo const &, std::string_view const &message);
 
  private:
@@ -175,6 +179,8 @@ struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream,
   // other
   protocol::json::TradeMode const trade_mode_;
   protocol::json::StpMode const stp_mode_;
+  //
+  std::chrono::nanoseconds next_check_stale_orders_ = {};
 };
 
 }  // namespace gateway

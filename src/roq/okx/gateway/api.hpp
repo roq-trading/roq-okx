@@ -21,6 +21,7 @@ struct API final {
     std::string_view account_balance;
     std::string_view account_positions;
     std::string_view trade_orders_pending;
+    std::string_view trade_order;
     std::string_view trade_fills;
   } simple;
 
