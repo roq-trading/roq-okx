@@ -95,7 +95,7 @@ struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream,
     GET_POSITIONS,
     SUBSCRIBE_ORDERS,
     GET_OPEN_ORDERS,
-    GET_LOST_ORDERS,  // XXX FIXME TODO rename to GET_STALE_ORDERS
+    GET_STALE_ORDERS,  // XXX FIXME TODO rename to GET_STALE_ORDERS
     GET_TRADES,
     DONE,
   };

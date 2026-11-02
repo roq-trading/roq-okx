@@ -132,7 +132,7 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
   ConnectionStatus connection_status_ = {};
   bool download_trades_is_first_ = true;
   //
-  size_t download_lost_orders_counter_ = {};
+  size_t download_stale_orders_counter_ = {};
 };
 
 }  // namespace gateway
