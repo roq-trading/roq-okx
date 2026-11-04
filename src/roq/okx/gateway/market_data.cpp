@@ -119,9 +119,10 @@ void MarketData::operator()(Trace<Stop> const &) {
 
 void MarketData::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
-  (*connection_).refresh(timer.now);
-  if ((*connection_).ready()) {
-    check_subscribe_queue(trace_info);
+  if ((*connection_).refresh(trace_info)) {
+    if (ready()) {
+      check_subscribe_queue(trace_info);
+    }
   }
 }
 
