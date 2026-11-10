@@ -10,6 +10,7 @@ All notable changes will be documented in this file.
 
 ### Fixed
 
+* Drop the fast cancel-ack due to race condition (#661)
 * Incorrect login timestamp introduced during code clean-up (#651)
 
 ## 1.1.9 &ndash; 2026-10-18

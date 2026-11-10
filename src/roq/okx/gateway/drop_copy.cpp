@@ -802,6 +802,9 @@ void DropCopy::operator()(Trace<protocol::json::CancelOrder> const &event) {
     log::debug("cancel_order_ack={}"sv, cancel_order_ack);
     auto order_status = cancel_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : cancel_order_ack.data) {
+      if (item.s_code == 0) {
+        continue;
+      }
       auto error = protocol::json::guess_error(item.s_code);
       auto response = server::oms::Response{
           .request_type = RequestType::CANCEL_ORDER,
