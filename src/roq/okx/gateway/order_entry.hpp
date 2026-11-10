@@ -87,7 +87,7 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
 
   // trade-order
 
-  void get_trade_order(TraceInfo const &, std::string_view const &client_order_id, std::string_view const &external_order_id, int32_t security_id);
+  void get_trade_order(TraceInfo const &, std::string_view const &client_order_id, std::string_view const &external_order_id, int64_t security_id);
   void get_trade_order_ack(Trace<web::rest::Response> const &);
   // void operator()(Trace<protocol::json::TradeOrdersPendingAck> const &);
 

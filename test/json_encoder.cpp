@@ -188,7 +188,7 @@ TEST_CASE("modify_order", "[json_encoder]") {
 TEST_CASE("cancel_all_orders_1", "[json_encoder]") {
   std::string buffer;
   CancelAllOrders cancel_all_orders;
-  std::vector<std::pair<int32_t, std::string_view>> symbol_and_external_order_id{{
+  std::vector<std::pair<int64_t, std::string_view>> symbol_and_external_order_id{{
       {123, "order_id:1234"sv},
   }};
   auto result = protocol::json::Encoder::batch_cancel_orders(buffer, cancel_all_orders, "1234"sv, symbol_and_external_order_id);
@@ -207,7 +207,7 @@ TEST_CASE("cancel_all_orders_1", "[json_encoder]") {
 TEST_CASE("cancel_all_orders_2", "[json_encoder]") {
   std::string buffer;
   CancelAllOrders cancel_all_orders;
-  std::vector<std::pair<int32_t, std::string_view>> symbol_and_external_order_id{{
+  std::vector<std::pair<int64_t, std::string_view>> symbol_and_external_order_id{{
       {123, "order_id:1234"sv},
       {234, "order_id:2345"sv},
   }};

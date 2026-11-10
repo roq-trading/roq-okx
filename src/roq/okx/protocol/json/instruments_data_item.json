@@ -144,7 +144,7 @@
     },
     {
       "name": "instIdCode",
-      "type": "std/uint32"
+      "type": "std/int64"
     },
     {
       "name": "tradeQuoteCcyList"

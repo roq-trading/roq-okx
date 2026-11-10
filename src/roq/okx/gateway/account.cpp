@@ -37,7 +37,7 @@ auto create_crypto(auto &settings, auto &config, auto &name) -> tools::Crypto {
   if (!ready) {
     log::fatal("Invalid config"sv);
   }
-  return {key, secret, passphrase, settings.misc.simulated_trading};
+  return {key, secret, passphrase, settings.simulated_trading};
 }
 }  // namespace
 

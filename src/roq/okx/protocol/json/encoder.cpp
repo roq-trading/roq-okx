@@ -293,7 +293,7 @@ std::string_view Encoder::batch_cancel_orders(
     std::string &buffer,
     CancelAllOrders const &,
     std::string_view const &request_id,
-    std::span<std::pair<int32_t, std::string_view>> const &external_security_id_and_order_id) {
+    std::span<std::pair<int64_t, std::string_view>> const &external_security_id_and_order_id) {
   buffer.clear();
   fmt::format_to(
       std::back_inserter(buffer),

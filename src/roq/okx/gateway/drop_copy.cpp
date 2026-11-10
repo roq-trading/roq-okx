@@ -288,7 +288,7 @@ uint16_t DropCopy::operator()(
 uint16_t DropCopy::operator()(Event<CancelAllOrders> const &event, [[maybe_unused]] std::string_view const &request_id) {
   auto &[message_info, cancel_all_orders] = event;
   // XXX FIXME TODO what about orders where we haven't received external_order_id ???
-  std::vector<std::pair<int32_t, std::string_view>> external_security_id_and_order_id;
+  std::vector<std::pair<int64_t, std::string_view>> external_security_id_and_order_id;
   auto helper = [&](auto &order) {
     if (std::empty(order.external_order_id)) {
       return;
@@ -847,7 +847,7 @@ void DropCopy::send_login(TraceInfo const &trace_info) {
       account_.get_passphrase(),
       timestamp,
       sign,
-      shared_.settings.misc.simulated_trading ? 1 : 0);
+      shared_.settings.simulated_trading ? 1 : 0);
   log::warn("DEBUG {}"sv, message);
   (*connection_).send_text(message);
 }
@@ -973,7 +973,6 @@ void DropCopy::check_stale_orders(TraceInfo const &trace_info) {
 }
 
 void DropCopy::parse(TraceInfo const &trace_info, std::string_view const &message) {
-  log::warn("DEBUG {}"sv, message);
   profile_.parse([&]() {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
