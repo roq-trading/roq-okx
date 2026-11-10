@@ -33,12 +33,6 @@
       "name": "test_margin_currency",
       "type": "std/string",
       "description": "TEST Margin currency used when placing new orders"
-    },
-    {
-      "name": "simulated_trading",
-      "type": "std/bool",
-      "default": false,
-      "description": "Add the x-simulated-trading header"
     }
   ]
 }

@@ -178,7 +178,7 @@ void Rest::operator()(Trace<web::rest::Latency> const &event) {
 void Rest::get_instruments(std::string_view const &type) {
   profile_.instruments([&]() {
     auto query = fmt::format("?instType={}"sv, type);
-    auto headers = fmt::format("x-simulated-trading: {}\r\n"sv, shared_.settings.simulated_trading ? 1 : 0);
+    auto headers = fmt::format("x-simulated-trading: {}\r\n"sv, shared_.settings.app.simulated_trading ? 1 : 0);
     auto request = web::rest::Request{
         .method = web::http::Method::GET,
         .path = shared_.api.market_data.instruments,

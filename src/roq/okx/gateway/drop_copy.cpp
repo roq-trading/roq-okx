@@ -850,7 +850,7 @@ void DropCopy::send_login(TraceInfo const &trace_info) {
       account_.get_passphrase(),
       timestamp,
       sign,
-      shared_.settings.simulated_trading ? 1 : 0);
+      shared_.settings.app.simulated_trading ? 1 : 0);
   log::warn("DEBUG {}"sv, message);
   (*connection_).send_text(message);
 }

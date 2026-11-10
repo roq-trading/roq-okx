@@ -14,7 +14,7 @@ CONFIG_FILE="$ROQ_CONFIG_PATH/roq-okx/$CONFIG.toml"
 
 FLAGFILE="../../../share/flags/test-eea/flags.cfg"
 
-$PREFIX ./roq-okx-fix-bridge \
+$PREFIX ./roq-okx \
   --name "$NAME" \
   --config_file "$CONFIG_FILE" \
   --flagfile "$FLAGFILE" \
