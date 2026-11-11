@@ -2,11 +2,15 @@
 
 #include "roq/okx/protocol/json/map.hpp"
 
-#include "roq/logging.hpp"
+#include "roq/server/tools/log_once.hpp"
 
 using namespace std::literals;
 
 namespace roq {
+
+namespace {
+server::tools::LogOnce LOG_ONCE{"Map"sv};
+}
 
 namespace {
 template <typename... Args>
@@ -40,7 +44,7 @@ constexpr Helper<int32_t>::operator std::optional<roq::Error>() const {
     case 58102:  // Rate limit reached. Please refer to API docs and throttle requests accordingly.
       return Error::REQUEST_RATE_LIMIT_REACHED;
   }
-  log::warn("DEBUG unable to map error_code={}"sv, value);
+  LOG_ONCE("error_code"sv, value);
   return Error::UNKNOWN;
 }
 
