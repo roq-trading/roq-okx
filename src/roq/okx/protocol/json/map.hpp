@@ -22,6 +22,10 @@ namespace roq {
 
 template <>
 template <>
+std::optional<Error> Map<int32_t>::helper() const;
+
+template <>
+template <>
 std::optional<TradingStatus> Map<okx::protocol::json::InstrumentState>::helper() const;
 
 template <>

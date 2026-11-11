@@ -206,7 +206,8 @@ void Rest::get_instruments_ack(Trace<web::rest::Response> const &event, std::str
       if (instruments_ack.code == 0) {
         create_trace_and_dispatch_2(trace_info, instruments_ack);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(instruments_ack.code), instruments_ack.msg);
+        auto error = map(instruments_ack.code).template get<Error>();
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, error, instruments_ack.msg);
       }
       if (type == "SPOT"sv) {
         download_instruments_.spot = false;
@@ -380,7 +381,8 @@ void Rest::get_candles_ack(Trace<web::rest::Response> const &event, std::string_
       if (candles_ack.code == 0) {
         create_trace_and_dispatch_2(trace_info, candles_ack, symbol);
       } else {
-        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, protocol::json::guess_error(candles_ack.code), candles_ack.msg);
+        auto error = map(candles_ack.code).template get<Error>();
+        handle_error(Origin::EXCHANGE, RequestStatus::REJECTED, error, candles_ack.msg);
       }
     };
     process_response(event, handle_error, handle_success);

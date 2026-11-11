@@ -620,12 +620,11 @@ void DropCopy::operator()(Trace<protocol::json::Orders> const &event) {
         log::warn<1>(R"(*** ERROR CODE={}, MSG="{}" ***)"sv, item.code, item.msg);
       }
       if (item.amend_result < 0) {
-        auto error = protocol::json::guess_error(item.code);
         auto response = server::oms::Response{
             .request_type = RequestType::MODIFY_ORDER,
             .origin = Origin::EXCHANGE,
             .request_status = RequestStatus::REJECTED,
-            .error = error,
+            .error = map(item.code),
             .text = item.msg,
             .version = {},
             .request_id = {},
@@ -729,12 +728,11 @@ void DropCopy::operator()(Trace<protocol::json::Order> const &event) {
     log::debug("order_ack={}"sv, order_ack);
     auto order_status = order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     if (std::empty(order_ack.data)) {
-      auto error = protocol::json::guess_error(order_ack.code);
       auto response = server::oms::Response{
           .request_type = RequestType::CREATE_ORDER,
           .origin = Origin::EXCHANGE,
           .request_status = order_status,
-          .error = error,
+          .error = map(order_ack.code),
           .text = order_ack.msg,
           .version = {},
           .request_id = order_ack.id,
@@ -746,12 +744,11 @@ void DropCopy::operator()(Trace<protocol::json::Order> const &event) {
       create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_);
     } else {
       for (auto &item : order_ack.data) {
-        auto error = protocol::json::guess_error(item.s_code);
         auto response = server::oms::Response{
             .request_type = RequestType::CREATE_ORDER,
             .origin = Origin::EXCHANGE,
             .request_status = order_status,
-            .error = error,
+            .error = map(item.s_code),
             .text = item.s_msg,
             .version = {},
             .request_id = item.cl_ord_id,
@@ -773,24 +770,22 @@ void DropCopy::operator()(Trace<protocol::json::AmendOrder> const &event) {
     log::debug("amend_order_ack={}"sv, amend_order_ack);
     auto order_status = amend_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : amend_order_ack.data) {
-      if (item.s_code == 0) {
-        continue;
+      if (item.s_code != 0 || shared_.settings.oms.unsafe_order_ack) {
+        auto response = server::oms::Response{
+            .request_type = RequestType::MODIFY_ORDER,
+            .origin = Origin::EXCHANGE,
+            .request_status = order_status,
+            .error = map(item.s_code),
+            .text = item.s_msg,
+            .version = {},
+            .request_id = item.req_id,
+            .external_order_id = item.ord_id,
+            .client_order_id = item.cl_ord_id,
+            .quantity = NaN,
+            .price = NaN,
+        };
+        create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_);
       }
-      auto error = protocol::json::guess_error(item.s_code);
-      auto response = server::oms::Response{
-          .request_type = RequestType::MODIFY_ORDER,
-          .origin = Origin::EXCHANGE,
-          .request_status = order_status,
-          .error = error,
-          .text = item.s_msg,
-          .version = {},
-          .request_id = item.req_id,
-          .external_order_id = item.ord_id,
-          .client_order_id = item.cl_ord_id,
-          .quantity = NaN,
-          .price = NaN,
-      };
-      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_);
     }
   });
 }
@@ -802,24 +797,22 @@ void DropCopy::operator()(Trace<protocol::json::CancelOrder> const &event) {
     log::debug("cancel_order_ack={}"sv, cancel_order_ack);
     auto order_status = cancel_order_ack.code ? RequestStatus::REJECTED : RequestStatus::ACCEPTED;
     for (auto &item : cancel_order_ack.data) {
-      if (item.s_code == 0) {
-        continue;
+      if (item.s_code != 0 || shared_.settings.oms.unsafe_order_ack) {
+        auto response = server::oms::Response{
+            .request_type = RequestType::CANCEL_ORDER,
+            .origin = Origin::EXCHANGE,
+            .request_status = order_status,
+            .error = map(item.s_code),
+            .text = item.s_msg,
+            .version = {},
+            .request_id = {},
+            .external_order_id = item.ord_id,
+            .client_order_id = item.cl_ord_id,
+            .quantity = NaN,
+            .price = NaN,
+        };
+        create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_);
       }
-      auto error = protocol::json::guess_error(item.s_code);
-      auto response = server::oms::Response{
-          .request_type = RequestType::CANCEL_ORDER,
-          .origin = Origin::EXCHANGE,
-          .request_status = order_status,
-          .error = error,
-          .text = item.s_msg,
-          .version = {},
-          .request_id = {},
-          .external_order_id = item.ord_id,
-          .client_order_id = item.cl_ord_id,
-          .quantity = NaN,
-          .price = NaN,
-      };
-      create_trace_and_dispatch(shared_.dispatcher, trace_info, response, stream_id_);
     }
   });
 }

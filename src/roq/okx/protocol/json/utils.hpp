@@ -73,10 +73,6 @@ inline std::string_view strip_symbol_from_topic(std::string_view const &topic) {
   return pos == std::string_view::npos ? topic : topic.substr(pos + 1);
 }
 
-// error
-
-extern roq::Error guess_error(int32_t code);
-
 }  // namespace json
 }  // namespace protocol
 }  // namespace okx

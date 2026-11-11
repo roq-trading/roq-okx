@@ -4,7 +4,7 @@
   "values": [
     {
       "name": "code",
-      "type": "std/uint32"
+      "type": "std/int32"
     },
     {
       "name": "msg",
