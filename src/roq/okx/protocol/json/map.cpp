@@ -29,19 +29,21 @@ constexpr Helper<int32_t>::operator std::optional<roq::Error>() const {
   switch (value) {
     case 0:
       return Error::UNDEFINED;
-    case 50124:  // This API Key does not have trading permission for the market (UNDOC)
+    case 50'124:  // This API Key does not have trading permission for the market (UNDOC)
       return Error::NOT_AUTHORIZED;
-    case 51008:  // Order failed. Insufficient {param0} balance in account
+    case 51'008:  // Order failed. Insufficient {param0} balance in account
       return Error::INSUFFICIENT_FUNDS;
-    case 51185:  // The maximum value allowed per order is {maxOrderValue} USD
+    case 51'185:  // The maximum value allowed per order is {maxOrderValue} USD
       return Error::INVALID_QUANTITY;
-    case 51400:  // Order cancellation failed as the order has been filled, canceled or does not exist.
+    case 51'503:  // Order modification failed as the order has been filled, canceled or does not exist.
       return Error::TOO_LATE_TO_MODIFY_OR_CANCEL;
-    case 51511:  // Modification failed as the order price did not meet the requirement for Post Only.
+    case 51'400:  // Order cancellation failed as the order has been filled, canceled or does not exist.
+      return Error::TOO_LATE_TO_MODIFY_OR_CANCEL;
+    case 51'511:  // Modification failed as the order price did not meet the requirement for Post Only.
       return Error::MODIFY_HAS_NO_EFFECT;
-    case 52916:  // Insufficient balance in funding account
+    case 52'916:  // Insufficient balance in funding account
       return Error::INSUFFICIENT_FUNDS;
-    case 58102:  // Rate limit reached. Please refer to API docs and throttle requests accordingly.
+    case 58'102:  // Rate limit reached. Please refer to API docs and throttle requests accordingly.
       return Error::REQUEST_RATE_LIMIT_REACHED;
   }
   LOG_ONCE("error_code"sv, value);
@@ -49,13 +51,13 @@ constexpr Helper<int32_t>::operator std::optional<roq::Error>() const {
 }
 
 static_assert(Helper{int32_t{0}} == roq::Error::UNDEFINED);
-static_assert(Helper{int32_t{50124}} == roq::Error::NOT_AUTHORIZED);
-static_assert(Helper{int32_t{51008}} == roq::Error::INSUFFICIENT_FUNDS);
-static_assert(Helper{int32_t{51185}} == roq::Error::INVALID_QUANTITY);
-static_assert(Helper{int32_t{51400}} == roq::Error::TOO_LATE_TO_MODIFY_OR_CANCEL);
-static_assert(Helper{int32_t{51511}} == roq::Error::MODIFY_HAS_NO_EFFECT);
-static_assert(Helper{int32_t{52916}} == roq::Error::INSUFFICIENT_FUNDS);
-static_assert(Helper{int32_t{58102}} == roq::Error::REQUEST_RATE_LIMIT_REACHED);
+static_assert(Helper{int32_t{50'124}} == roq::Error::NOT_AUTHORIZED);
+static_assert(Helper{int32_t{51'008}} == roq::Error::INSUFFICIENT_FUNDS);
+static_assert(Helper{int32_t{51'185}} == roq::Error::INVALID_QUANTITY);
+static_assert(Helper{int32_t{51'400}} == roq::Error::TOO_LATE_TO_MODIFY_OR_CANCEL);
+static_assert(Helper{int32_t{51'511}} == roq::Error::MODIFY_HAS_NO_EFFECT);
+static_assert(Helper{int32_t{52'916}} == roq::Error::INSUFFICIENT_FUNDS);
+static_assert(Helper{int32_t{58'102}} == roq::Error::REQUEST_RATE_LIMIT_REACHED);
 
 template <>
 template <>
