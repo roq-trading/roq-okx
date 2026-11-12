@@ -4,6 +4,8 @@ All notable changes will be documented in this file.
 
 ## Head
 
+## 1.2.0 &ndash; 2026-11-14
+
 ### Changed
 
 * New flags to support simulated trading: `--rest_private_uri` and `--simulated_trading` (#655)
