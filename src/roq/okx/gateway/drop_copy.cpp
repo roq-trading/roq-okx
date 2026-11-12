@@ -763,7 +763,7 @@ void DropCopy::operator()(Trace<protocol::json::Order> const &event) {
     };
     if (order_ack.code != 0) {
       helper(RequestStatus::REJECTED);
-    } else if (shared_.settings.oms.unsafe_order_ack) {
+    } else if (shared_.settings.oms.allow_unsafe_order_ack) {
       helper(RequestStatus::ACCEPTED);
     }
   });
@@ -776,7 +776,7 @@ void DropCopy::operator()(Trace<protocol::json::AmendOrder> const &event) {
     log::debug("amend_order_ack={}"sv, amend_order_ack);
     auto helper = [&](auto request_status) {
       for (auto &item : amend_order_ack.data) {
-        if (item.s_code != 0 || shared_.settings.oms.unsafe_order_ack) {
+        if (item.s_code != 0 || shared_.settings.oms.allow_unsafe_order_ack) {
           auto response = server::oms::Response{
               .request_type = RequestType::MODIFY_ORDER,
               .origin = Origin::EXCHANGE,
@@ -796,7 +796,7 @@ void DropCopy::operator()(Trace<protocol::json::AmendOrder> const &event) {
     };
     if (amend_order_ack.code != 0) {
       helper(RequestStatus::REJECTED);
-    } else if (shared_.settings.oms.unsafe_order_ack) {
+    } else if (shared_.settings.oms.allow_unsafe_order_ack) {
       helper(RequestStatus::ACCEPTED);
     }
   });
@@ -809,7 +809,7 @@ void DropCopy::operator()(Trace<protocol::json::CancelOrder> const &event) {
     log::debug("cancel_order_ack={}"sv, cancel_order_ack);
     auto helper = [&](auto request_status) {
       for (auto &item : cancel_order_ack.data) {
-        if (item.s_code != 0 || shared_.settings.oms.unsafe_order_ack) {
+        if (item.s_code != 0 || shared_.settings.oms.allow_unsafe_order_ack) {
           auto response = server::oms::Response{
               .request_type = RequestType::CANCEL_ORDER,
               .origin = Origin::EXCHANGE,
@@ -829,7 +829,7 @@ void DropCopy::operator()(Trace<protocol::json::CancelOrder> const &event) {
     };
     if (cancel_order_ack.code) {
       helper(RequestStatus::REJECTED);
-    } else if (shared_.settings.oms.unsafe_order_ack) {
+    } else if (shared_.settings.oms.allow_unsafe_order_ack) {
       helper(RequestStatus::ACCEPTED);
     }
   });
