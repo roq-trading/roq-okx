@@ -457,7 +457,7 @@ void OrderEntry::operator()(Trace<protocol::json::TradeOrdersPendingAck> const &
 // trade-order
 
 void OrderEntry::get_trade_order(
-    TraceInfo const &trace_info, std::string_view const &client_order_id, std::string_view const &external_order_id, int64_t security_id) {
+    TraceInfo const &trace_info, std::string_view const &client_order_id, [[maybe_unused]] std::string_view const &external_order_id, int64_t security_id) {
   profile_.trade_order([&]() {
     auto method = web::http::Method::GET;
     auto path = shared_.api.simple.trade_order;
