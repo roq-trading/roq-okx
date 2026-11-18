@@ -240,9 +240,21 @@ void DropCopy::operator()(Trace<ConnectionStatus> const &event, std::string_view
 
 // server::OrderActionStream
 
+void DropCopy::operator()(Trace<server::oms::OrderActionBatchBegin> const &) {
+  throw server::oms::NotSupported{"not supported"sv};
+}
+
+void DropCopy::operator()(Trace<server::oms::OrderActionBatchCommit> const &) {
+  throw server::oms::NotSupported{"not supported"sv};
+}
+
+void DropCopy::operator()(Trace<server::oms::OrderActionBatchRollback> const &) {
+  throw server::oms::NotSupported{"not supported"sv};
+}
+
 uint16_t DropCopy::operator()(
-    Event<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &ref_data, std::string_view const &request_id) {
-  auto &[message_info, create_order] = event;
+    Trace<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &ref_data, std::string_view const &request_id) {
+  auto &[trace_info, create_order] = event;
   auto message = protocol::json::Encoder::batch_orders(
       encode_buffer_,
       create_order,
@@ -260,12 +272,12 @@ uint16_t DropCopy::operator()(
 }
 
 uint16_t DropCopy::operator()(
-    Event<ModifyOrder> const &event,
+    Trace<ModifyOrder> const &event,
     server::oms::Order const &order,
     server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     std::string_view const &previous_request_id) {
-  auto &[message_info, modify_order] = event;
+  auto &[trace_info, modify_order] = event;
   auto message = protocol::json::Encoder::batch_amend_orders(
       encode_buffer_, modify_order, order, ref_data, request_id, previous_request_id, shared_.settings.price_amend_type);
   log::debug(R"(message="{}")"sv, message);
@@ -274,20 +286,20 @@ uint16_t DropCopy::operator()(
 }
 
 uint16_t DropCopy::operator()(
-    Event<CancelOrder> const &event,
+    Trace<CancelOrder> const &event,
     server::oms::Order const &order,
     server::oms::RefData const &ref_data,
     std::string_view const &request_id,
     std::string_view const &previous_request_id) {
-  auto &[message_info, cancel_order] = event;
+  auto &[trace_info, cancel_order] = event;
   auto message = protocol::json::Encoder::batch_cancel_orders(encode_buffer_, cancel_order, order, ref_data, request_id, previous_request_id);
   log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
   return stream_id_;
 }
 
-uint16_t DropCopy::operator()(Event<CancelAllOrders> const &event, [[maybe_unused]] std::string_view const &request_id) {
-  auto &[message_info, cancel_all_orders] = event;
+uint16_t DropCopy::operator()(Trace<CancelAllOrders> const &event, [[maybe_unused]] std::string_view const &request_id) {
+  auto &[trace_info, cancel_all_orders] = event;
   // XXX FIXME TODO what about orders where we haven't received external_order_id ???
   std::vector<std::pair<int64_t, std::string_view>> external_security_id_and_order_id;
   auto helper = [&](auto &order) {
