@@ -9,7 +9,6 @@
 #include "roq/server/flags/settings.hpp"
 
 #include "roq/okx/flags/flags.hpp"
-#include "roq/okx/flags/mbp.hpp"
 #include "roq/okx/flags/misc.hpp"
 #include "roq/okx/flags/request.hpp"
 #include "roq/okx/flags/rest.hpp"
@@ -25,7 +24,6 @@ struct ROQ_PUBLIC Settings : public server::flags::Settings, public flags::Flags
   flags::Misc misc;
   flags::REST rest;
   flags::WS ws;
-  flags::MBP mbp;
   flags::Request request;
 };
 
@@ -44,14 +42,12 @@ struct fmt::formatter<roq::okx::flags::Settings> {
         R"(misc={}, )"
         R"(rest={}, )"
         R"(ws={}, )"
-        R"(mbp={}, )"
         R"(request={}, )"
         R"(server={})"
         R"(}})"sv,
         value.misc,
         value.rest,
         value.ws,
-        value.mbp,
         value.request,
         static_cast<roq::server::Settings const &>(value));
   }

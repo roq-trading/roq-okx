@@ -62,13 +62,6 @@
       "type": "std/bool",
       "default": false,
       "description": "Only use publicly available data sources (not requiring VIP membership)?"
-    },
-    {
-      "name": "disconnect_timeout",
-      "type": "std/nanoseconds",
-      "validator": "roq/flags/validators/TimePeriod",
-      "default": "10s",
-      "description": "Disconnect if connection has been silent for this period"
     }
   ]
 }

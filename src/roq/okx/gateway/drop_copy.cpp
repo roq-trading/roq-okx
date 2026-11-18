@@ -264,7 +264,7 @@ uint16_t DropCopy::operator()(
       trade_mode_,
       stp_mode_,
       shared_.settings.price_amend_type,
-      shared_.settings.test_margin_currency);
+      shared_.settings.misc.test_margin_currency);
   log::debug(R"(message="{}")"sv, message);
   log::warn("DEBUG message={}"sv, message);
   (*connection_).send_text(message);
@@ -436,7 +436,7 @@ int32_t DropCopy::download(Trace<State> const &event) {
 void DropCopy::operator()(Trace<protocol::json::Error> const &event) {
   profile_.error([&]() {
     auto &[trace_info, error] = event;
-    if (shared_.settings.experimental.retry_logon) {
+    if (shared_.settings.app.disable_strict_logon) {
       log::error("[{}] error={}"sv, account_.name, error);
       log::warn("Disconnecting..."sv);
       (*connection_).close();
@@ -1009,7 +1009,7 @@ void DropCopy::parse(TraceInfo const &trace_info, std::string_view const &messag
   profile_.parse([&]() {
     auto log_message = [&]() { log::warn(R"(*** PLEASE REPORT *** message="{}")"sv, message); };
     try {
-      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.experimental.allow_unknown_event_types)) {
+      if (!protocol::json::Parser::dispatch(*this, message, decode_buffer_, trace_info, shared_.settings.app.disable_strict_parsing)) {
         log_message();
       }
     } catch (...) {

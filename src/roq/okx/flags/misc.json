@@ -26,6 +26,11 @@
       "name": "test_local_interface",
       "type": "std/string",
       "description": "Local interface"
+    },
+    {
+      "name": "test_margin_currency",
+      "type": "std/string",
+      "description": "TEST Margin currency used when placing new orders"
     }
   ]
 }
