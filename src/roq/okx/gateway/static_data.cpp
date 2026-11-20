@@ -170,7 +170,7 @@ void StaticData::operator()(Trace<web::socket::Disconnected> const &event) {
 
 void StaticData::operator()(Trace<web::socket::Ready> const &event) {
   auto &[trace_info, ready] = event;
-  create_trace_and_dispatch_2(trace_info, ConnectionStatus::LOGIN_SENT);
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::AUTHENTICATING);
   download_.begin(trace_info);
 }
 
@@ -213,7 +213,7 @@ int32_t StaticData::download(Trace<State> const &event) {
         log::info("Using public channels (no authentication)"sv);
         return 0;
       } else {
-        create_trace_and_dispatch_2(trace_info, ConnectionStatus::LOGIN_SENT);
+        create_trace_and_dispatch_2(trace_info, ConnectionStatus::AUTHENTICATING);
         login(trace_info);
         return 1;
       }
@@ -508,7 +508,7 @@ void StaticData::login(TraceInfo const &trace_info) {
       timestamp,
       sign);
   (*connection_).send_text(message);
-  create_trace_and_dispatch_2(trace_info, ConnectionStatus::LOGIN_SENT);
+  create_trace_and_dispatch_2(trace_info, ConnectionStatus::AUTHENTICATING);
 }
 
 void StaticData::subscribe_static() {

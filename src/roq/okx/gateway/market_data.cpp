@@ -240,7 +240,7 @@ int32_t MarketData::download(Trace<State> const &event) {
         log::info("Using public channels (no authentication)"sv);
         return 0;
       } else {
-        create_trace_and_dispatch_2(trace_info, ConnectionStatus::LOGIN_SENT);
+        create_trace_and_dispatch_2(trace_info, ConnectionStatus::AUTHENTICATING);
         login(trace_info);
         return 1;
       }
