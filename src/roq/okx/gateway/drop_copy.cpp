@@ -136,7 +136,8 @@ std::pair<protocol::json::OrderType, bool> compute_order_attributes(auto order_t
 
 DropCopy::DropCopy(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request &request)
     : handler_{handler}, stream_id_{stream_id}, name_{create_name(stream_id_, account.name)},
-      connection_{create_connection(*this, shared.settings, context, shared)}, decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
+      connection_{create_connection(*this, shared.settings, context, shared)}, trade_mode_{shared.settings.trade_mode}, stp_mode_{shared.settings.stp_mode},
+      decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
       },
@@ -163,8 +164,7 @@ DropCopy::DropCopy(Handler &handler, io::Context &context, uint16_t stream_id, A
           .ping = create_metrics(shared.settings, name_, "ping"sv),
           .heartbeat = create_metrics(shared.settings, name_, "heartbeat"sv),
       },
-      account_{account}, shared_{shared}, request_{request}, download_{{}, [this](auto &event) { return download(event); }},
-      trade_mode_{shared.settings.trade_mode}, stp_mode_{shared.settings.stp_mode} {
+      account_{account}, shared_{shared}, request_{request}, download_{{}, [this](auto &event) { return download(event); }} {
 }
 
 // server::Stream

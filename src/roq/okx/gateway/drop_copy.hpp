@@ -153,37 +153,32 @@ struct DropCopy final : public Base<DropCopy>, public server::OrderActionStream,
 
  private:
   Handler &handler_;
-  // config
+  //
   uint16_t const stream_id_;
   std::string const name_;
-  // web socket
   std::unique_ptr<web::socket::Client> const connection_;
-  // buffers
+  protocol::json::TradeMode const trade_mode_;
+  protocol::json::StpMode const stp_mode_;
+  //
   core::json::BufferStack decode_buffer_;
   std::string encode_buffer_;
-  // metrics
   struct {
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, error, subscribe, unsubscribe, notice, channel_conn_count, login, account, balance_and_position, positions, orders,
-        create_order, modify_order, cancel_order, order_ack, amend_order_ack, cancel_order_ack;
+    utils::metrics::Profile parse,              //
+        error, subscribe, unsubscribe, notice,  //
+        channel_conn_count, login, account, balance_and_position, positions, orders, create_order, modify_order, cancel_order, order_ack, amend_order_ack,
+        cancel_order_ack;
   } profile_;
   struct {
     utils::metrics::Latency ping, heartbeat;
   } latency_;
-  // account
   Account &account_;
-  // shared
   Shared &shared_;
   Request &request_;
-  // state
   ConnectionStatus connection_status_ = {};
   core::Download2<State> download_;
-  // other
-  protocol::json::TradeMode const trade_mode_;
-  protocol::json::StpMode const stp_mode_;
-  //
   std::chrono::nanoseconds next_check_stale_orders_ = {};
 };
 

@@ -105,14 +105,12 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
 
  private:
   [[maybe_unused]] Handler &handler_;
-  // config
+  //
   uint16_t const stream_id_;
   std::string const name_;
-  // connection
   std::unique_ptr<web::rest::Client> const connection_;
-  // buffers
+  //
   core::json::BufferStack decode_buffer_;
-  // metrics
   struct {
     utils::metrics::Counter disconnect;
   } counter_;
@@ -123,15 +121,11 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
   struct {
     utils::metrics::Latency ping;
   } latency_;
-  // account
   Account &account_;
-  // shared
   Shared &shared_;
   Request &request_;
-  // state
   ConnectionStatus connection_status_ = {};
   bool download_trades_is_first_ = true;
-  //
   size_t download_stale_orders_counter_ = {};
 };
 

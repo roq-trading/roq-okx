@@ -111,33 +111,27 @@ struct Business final : public Base<Business>, public server::MarketDataStream, 
 
  private:
   [[maybe_unused]] Handler &handler_;
-  // config
+  //
   uint16_t const stream_id_;
   std::string const name_;
-  // web socket
   std::unique_ptr<web::socket::Client> const connection_;
-  // buffers
+  //
   core::json::BufferStack decode_buffer_;
-  // metrics
   struct {
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, error, subscribe, unsubscribe, notice, candles;
+    utils::metrics::Profile parse,              //
+        error, subscribe, unsubscribe, notice,  //
+        candles;
   } profile_;
   struct {
     utils::metrics::Latency ping, heartbeat;
   } latency_;
-  // cache
   Shared &shared_;
-  // request
   Request2 &request_;
-  // state
   ConnectionStatus connection_status_ = {};
-  // queue
   core::limit::Queue<std::string> subscribe_queue_;
-  // sequencing
-  utils::unordered_map<std::string, int64_t> sequence_;
 };
 
 }  // namespace gateway

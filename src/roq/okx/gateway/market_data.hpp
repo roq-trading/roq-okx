@@ -128,37 +128,30 @@ struct MarketData final : public Base<MarketData>,
 
  private:
   [[maybe_unused]] Handler &handler_;
-  // config
+  //
   uint16_t const stream_id_;
   std::string const name_;
   size_t const index_;
-  // web socket
   std::unique_ptr<web::socket::Client> const connection_;
-  // buffers
+  //
   core::json::BufferStack decode_buffer_;
-  // metrics
   struct {
     utils::metrics::Counter disconnect;
   } counter_;
   struct {
-    utils::metrics::Profile parse, error, subscribe, unsubscribe, notice, status, login, estimated_price, price_limit, mark_price, tickers, trades, bbo_tbt,
-        books_l2_tbt, index_tickers, funding_rate;
+    utils::metrics::Profile parse,              //
+        error, subscribe, unsubscribe, notice,  //
+        status, login, estimated_price, price_limit, mark_price, tickers, trades, bbo_tbt, books_l2_tbt, index_tickers, funding_rate;
   } profile_;
   struct {
     utils::metrics::Latency ping, heartbeat;
   } latency_;
-  // account
   Account &account_;
-  // cache
   Shared &shared_;
-  // request
   Request2 &request_;
-  // state
   ConnectionStatus connection_status_ = {};
   core::Download2<State> download_;
-  // queue
   core::limit::Queue<std::string> subscribe_queue_;
-  // sequencing
   utils::unordered_map<std::string, int64_t> sequence_;
 };
 
