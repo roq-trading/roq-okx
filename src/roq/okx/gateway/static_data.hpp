@@ -41,7 +41,7 @@ struct StaticData final : public Base<StaticData>, public server::Stream, public
 
   StaticData(Handler &, io::Context &, uint16_t stream_id, Account &, Shared &, Request2 &);
 
-  // protected:
+ protected:
   friend base_type;
 
   // server::Stream
@@ -58,7 +58,6 @@ struct StaticData final : public Base<StaticData>, public server::Stream, public
 
   void operator()(Trace<ConnectionStatus> const &, std::string_view const &reason = {}) override;
 
- protected:
   // web::socket::Client::Handler
 
   void operator()(Trace<web::socket::Connected> const &) override;

@@ -108,19 +108,18 @@ struct Controller final : public Base<Controller>,
 
  private:
   server::Dispatcher &dispatcher_;
-  // accounts
-  utils::unordered_map<std::string, std::unique_ptr<Account>> const accounts_;
+  //
   std::string const master_account_;
-  // io
+  //
   io::Context &context_;
-  // shared
   Shared shared_;
+  uint16_t stream_id_ = {};
+  //
+  utils::unordered_map<std::string, std::unique_ptr<Account>> const accounts_;
   utils::unordered_map<std::string, std::unique_ptr<Request>> const requests_;
   Request2 request_2_;
-  // seed
-  uint16_t stream_id_ = {};
-  // streams
-  Rest rest_;
+  //
+  std::unique_ptr<Rest> rest_;
   utils::unordered_map<std::string, std::unique_ptr<OrderEntry>> order_entry_;
   utils::unordered_map<std::string, std::unique_ptr<DropCopy>> drop_copy_;
   std::unique_ptr<StaticData> static_data_;

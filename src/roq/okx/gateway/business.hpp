@@ -34,7 +34,7 @@ struct Business final : public Base<Business>, public server::MarketDataStream, 
 
   Business(Handler &, io::Context &, uint16_t stream_id, Shared &, Request2 &);
 
-  // protected:
+ protected:
   friend base_type;
 
   // server::Stream
@@ -55,7 +55,6 @@ struct Business final : public Base<Business>, public server::MarketDataStream, 
 
   void subscribe(size_t start_from = 0) override;
 
- protected:
   // web::socket::Client::Handler
 
   void operator()(Trace<web::socket::Connected> const &) override;
