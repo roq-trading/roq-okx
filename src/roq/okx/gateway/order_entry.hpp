@@ -42,10 +42,6 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
 
   // server::Stream
 
-  uint16_t stream_id() const override { return stream_id_; }
-
-  bool ready() const override { return connection_status_ == ConnectionStatus::READY; }
-
   void operator()(Trace<Start> const &) override;
   void operator()(Trace<Stop> const &) override;
   void operator()(Trace<Timer> const &) override;
@@ -105,7 +101,6 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
  private:
   [[maybe_unused]] Handler &handler_;
   //
-  uint16_t const stream_id_;
   std::string const name_;
   std::unique_ptr<web::rest::Client> const connection_;
   //
@@ -123,7 +118,6 @@ struct OrderEntry final : public Base<OrderEntry>, public server::Stream, public
   Account &account_;
   Shared &shared_;
   Request &request_;
-  ConnectionStatus connection_status_ = {};
   bool download_trades_is_first_ = true;
   size_t download_stale_orders_counter_ = {};
 };
