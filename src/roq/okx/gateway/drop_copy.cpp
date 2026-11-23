@@ -169,17 +169,17 @@ DropCopy::DropCopy(Handler &handler, io::Context &context, uint16_t stream_id, A
 
 // server::Stream
 
-void DropCopy::operator()(Trace<Start> const &) {
-  (*connection_).start();
+void DropCopy::operator()(Trace<Start> const &event) {
+  (*connection_)(event);
 }
 
-void DropCopy::operator()(Trace<Stop> const &) {
-  (*connection_).stop();
+void DropCopy::operator()(Trace<Stop> const &event) {
+  (*connection_)(event);
 }
 
 void DropCopy::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
-  if ((*connection_).refresh(trace_info)) {
+  if ((*connection_)(event)) {
     check_request_queue(trace_info);
   }
 }
@@ -249,7 +249,7 @@ void DropCopy::operator()(Trace<server::oms::OrderActionBatchRollback> const &) 
   throw server::oms::NotSupported{"not supported"sv};
 }
 
-uint16_t DropCopy::operator()(
+void DropCopy::operator()(
     Trace<CreateOrder> const &event, server::oms::Order const &order, server::oms::RefData const &ref_data, std::string_view const &request_id) {
   auto &[trace_info, create_order] = event;
   auto message = protocol::json::Encoder::batch_orders(
@@ -265,10 +265,9 @@ uint16_t DropCopy::operator()(
   log::debug(R"(message="{}")"sv, message);
   log::warn("DEBUG message={}"sv, message);
   (*connection_).send_text(message);
-  return stream_id();
 }
 
-uint16_t DropCopy::operator()(
+void DropCopy::operator()(
     Trace<ModifyOrder> const &event,
     server::oms::Order const &order,
     server::oms::RefData const &ref_data,
@@ -279,10 +278,9 @@ uint16_t DropCopy::operator()(
       encode_buffer_, modify_order, order, ref_data, request_id, previous_request_id, shared_.settings.price_amend_type);
   log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
-  return stream_id();
 }
 
-uint16_t DropCopy::operator()(
+void DropCopy::operator()(
     Trace<CancelOrder> const &event,
     server::oms::Order const &order,
     server::oms::RefData const &ref_data,
@@ -292,10 +290,9 @@ uint16_t DropCopy::operator()(
   auto message = protocol::json::Encoder::batch_cancel_orders(encode_buffer_, cancel_order, order, ref_data, request_id, previous_request_id);
   log::debug(R"(message="{}")"sv, message);
   (*connection_).send_text(message);
-  return stream_id();
 }
 
-uint16_t DropCopy::operator()(Trace<CancelAllOrders> const &event, [[maybe_unused]] std::string_view const &request_id) {
+void DropCopy::operator()(Trace<CancelAllOrders> const &event, [[maybe_unused]] std::string_view const &request_id) {
   auto &[trace_info, cancel_all_orders] = event;
   // XXX FIXME TODO what about orders where we haven't received external_order_id ???
   std::vector<std::pair<int64_t, std::string_view>> external_security_id_and_order_id;
@@ -316,7 +313,6 @@ uint16_t DropCopy::operator()(Trace<CancelAllOrders> const &event, [[maybe_unuse
     (*connection_).send_text(message);
   }
   // XXX FIXME TODO CancelAllOrdersAck
-  return stream_id();
 }
 
 // web::socket::Client::Handler

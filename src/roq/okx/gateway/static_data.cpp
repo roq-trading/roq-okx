@@ -97,17 +97,17 @@ StaticData::StaticData(Handler &handler, io::Context &context, uint16_t stream_i
 
 // server::Stream
 
-void StaticData::operator()(Trace<Start> const &) {
-  (*connection_).start();
+void StaticData::operator()(Trace<Start> const &event) {
+  (*connection_)(event);
 }
 
-void StaticData::operator()(Trace<Stop> const &) {
-  (*connection_).stop();
+void StaticData::operator()(Trace<Stop> const &event) {
+  (*connection_)(event);
 }
 
 void StaticData::operator()(Trace<Timer> const &event) {
   auto &[trace_info, timer] = event;
-  if ((*connection_).refresh(trace_info)) {
+  if ((*connection_)(event)) {
     if (ready()) {
       check_subscribe_queue(trace_info);
     }
