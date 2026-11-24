@@ -76,7 +76,7 @@ struct create_metrics final : public utils::metrics::Factory {
 // === IMPLEMENTATION ===
 
 MarketData::MarketData(Handler &handler, io::Context &context, uint16_t stream_id, Account &account, Shared &shared, Request2 &request, size_t index)
-    : server::MarketDataStream{stream_id}, handler_{handler}, name_{create_name(stream_id)}, index_{index},
+    : server::MarketDataStream{stream_id, {}, SUPPORTS}, handler_{handler}, name_{create_name(stream_id)}, index_{index},
       connection_{create_connection(*this, shared.settings, context, shared)}, decode_buffer_{shared.settings.misc.decode_buffer_size, MAX_DECODE_BUFFER_DEPTH},
       counter_{
           .disconnect = create_metrics(shared.settings, name_, "disconnect"sv),
@@ -156,9 +156,9 @@ void MarketData::operator()(Trace<ConnectionStatus> const &event, std::string_vi
   auto &[trace_info, connection_status] = event;
   if (update(connection_status, reason)) {
     auto stream_status = StreamStatus{
-        .stream_id = stream_id(),
-        .account = {},
-        .supports = SUPPORTS,
+        .stream_id = stream_id,
+        .account = account,
+        .supports = supports,
         .transport = Transport::TCP,
         .protocol = Protocol::WS,
         .encoding = {Encoding::JSON},
@@ -210,7 +210,7 @@ void MarketData::operator()(Trace<web::socket::Close> const &event) {
 void MarketData::operator()(Trace<web::socket::Latency> const &event) {
   auto &[trace_info, latency] = event;
   auto external_latency = ExternalLatency{
-      .stream_id = stream_id(),
+      .stream_id = stream_id,
       .account = {},
       .latency = latency.sample,
   };
@@ -366,7 +366,7 @@ void MarketData::operator()(Trace<protocol::json::Tickers> const &event) {
           },
       }};
       auto statistics_update = StatisticsUpdate{
-          .stream_id = stream_id(),
+          .stream_id = stream_id,
           .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
           .statistics = statistics,
@@ -407,7 +407,7 @@ void MarketData::operator()(Trace<protocol::json::Trades> const &event) {
       if (utils::update(symbol, item.inst_id) && !std::empty(shared_.trades)) {
         assert(!std::empty(symbol));
         auto trade_summary = TradeSummary{
-            .stream_id = stream_id(),
+            .stream_id = stream_id,
             .exchange = shared_.settings.exchange,
             .symbol = symbol,
             .trades = shared_.trades,
@@ -426,7 +426,7 @@ void MarketData::operator()(Trace<protocol::json::Trades> const &event) {
     if (!std::empty(shared_.trades)) {
       assert(!std::empty(symbol));
       auto trade_summary = TradeSummary{
-          .stream_id = stream_id(),
+          .stream_id = stream_id,
           .exchange = shared_.settings.exchange,
           .symbol = symbol,
           .trades = shared_.trades,
@@ -451,7 +451,7 @@ void MarketData::operator()(Trace<protocol::json::BboTbt> const &event) {
         log::fatal("Unexpected"sv);
       }
       auto top_of_book = TopOfBook{
-          .stream_id = stream_id(),
+          .stream_id = stream_id,
           .exchange = shared_.settings.exchange,
           .symbol = bbo_tbt.arg.inst_id,
           .layer{
@@ -517,7 +517,7 @@ void MarketData::operator()(Trace<protocol::json::BooksL2Tbt> const &event) {
       // XXX HANS validate checksum
       auto update_type = snapshot ? UpdateType::SNAPSHOT : UpdateType::INCREMENTAL;
       auto market_by_price_update = MarketByPriceUpdate{
-          .stream_id = stream_id(),
+          .stream_id = stream_id,
           .exchange = shared_.settings.exchange,
           .symbol = books_l2_tbt.arg.inst_id,
           .bids = shared_.bids,
@@ -553,7 +553,7 @@ void MarketData::operator()(Trace<protocol::json::IndexTickers> const &event) {
           .end_time_utc = {},
       };
       auto statistics_update = StatisticsUpdate{
-          .stream_id = stream_id(),
+          .stream_id = stream_id,
           .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
           .statistics = {&statistics, 1u},
@@ -588,7 +588,7 @@ void MarketData::operator()(Trace<protocol::json::FundingRate> const &event) {
           },
       }};
       auto statistics_update = StatisticsUpdate{
-          .stream_id = stream_id(),
+          .stream_id = stream_id,
           .exchange = shared_.settings.exchange,
           .symbol = item.inst_id,
           .statistics = statistics,
