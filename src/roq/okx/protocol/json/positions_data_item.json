@@ -276,6 +276,9 @@
     {
       "name": "ruleType",
       "type": "roq/okx/protocol/json/Category"
+    },
+    {
+      "name": "autoBeOrderAlgo"
     }
   ]
 }
