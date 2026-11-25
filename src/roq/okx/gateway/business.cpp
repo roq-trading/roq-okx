@@ -95,6 +95,22 @@ Business::Business(Handler &handler, io::Context &context, uint16_t stream_id, S
 
 // server::Stream
 
+void Business::operator()(metrics::Writer &writer) const {
+  writer
+      // counter
+      .write(counter_.disconnect, metrics::Type::COUNTER)
+      // profile
+      .write(profile_.parse, metrics::Type::PROFILE)
+      .write(profile_.error, metrics::Type::PROFILE)
+      .write(profile_.subscribe, metrics::Type::PROFILE)
+      .write(profile_.unsubscribe, metrics::Type::PROFILE)
+      .write(profile_.notice, metrics::Type::PROFILE)
+      .write(profile_.candles, metrics::Type::PROFILE)
+      // latency
+      .write(latency_.ping, metrics::Type::LATENCY)
+      .write(latency_.heartbeat, metrics::Type::LATENCY);
+}
+
 void Business::operator()(Trace<Start> const &event) {
   (*connection_)(event);
 }
@@ -110,22 +126,6 @@ void Business::operator()(Trace<Timer> const &event) {
       check_subscribe_queue(trace_info);
     }
   }
-}
-
-void Business::operator()(metrics::Writer &writer) const {
-  writer
-      // counter
-      .write(counter_.disconnect, metrics::Type::COUNTER)
-      // profile
-      .write(profile_.parse, metrics::Type::PROFILE)
-      .write(profile_.error, metrics::Type::PROFILE)
-      .write(profile_.subscribe, metrics::Type::PROFILE)
-      .write(profile_.unsubscribe, metrics::Type::PROFILE)
-      .write(profile_.notice, metrics::Type::PROFILE)
-      .write(profile_.candles, metrics::Type::PROFILE)
-      // latency
-      .write(latency_.ping, metrics::Type::LATENCY)
-      .write(latency_.heartbeat, metrics::Type::LATENCY);
 }
 
 void Business::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {

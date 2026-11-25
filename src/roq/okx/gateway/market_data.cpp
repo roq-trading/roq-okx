@@ -109,23 +109,6 @@ MarketData::MarketData(Handler &handler, io::Context &context, uint16_t stream_i
 
 // server::Stream
 
-void MarketData::operator()(Trace<Start> const &event) {
-  (*connection_)(event);
-}
-
-void MarketData::operator()(Trace<Stop> const &event) {
-  (*connection_)(event);
-}
-
-void MarketData::operator()(Trace<Timer> const &event) {
-  auto &[trace_info, timer] = event;
-  if ((*connection_)(event)) {
-    if (ready()) {
-      check_subscribe_queue(trace_info);
-    }
-  }
-}
-
 void MarketData::operator()(metrics::Writer &writer) const {
   writer
       // counter
@@ -150,6 +133,23 @@ void MarketData::operator()(metrics::Writer &writer) const {
       // latency
       .write(latency_.ping, metrics::Type::LATENCY)
       .write(latency_.heartbeat, metrics::Type::LATENCY);
+}
+
+void MarketData::operator()(Trace<Start> const &event) {
+  (*connection_)(event);
+}
+
+void MarketData::operator()(Trace<Stop> const &event) {
+  (*connection_)(event);
+}
+
+void MarketData::operator()(Trace<Timer> const &event) {
+  auto &[trace_info, timer] = event;
+  if ((*connection_)(event)) {
+    if (ready()) {
+      check_subscribe_queue(trace_info);
+    }
+  }
 }
 
 void MarketData::operator()(Trace<ConnectionStatus> const &event, std::string_view const &reason) {
