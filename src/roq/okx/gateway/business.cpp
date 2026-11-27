@@ -189,7 +189,7 @@ void Business::operator()(Trace<web::socket::Latency> const &event) {
   auto &[trace_info, latency] = event;
   auto external_latency = ExternalLatency{
       .stream_id = stream_id,
-      .account = {},
+      .account = account,
       .latency = latency.sample,
   };
   create_trace_and_dispatch(shared_.dispatcher, trace_info, external_latency);
